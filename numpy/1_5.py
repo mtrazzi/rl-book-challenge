@@ -81,6 +81,7 @@ class RandomAgent:
 
 
 class RLAgent:
+  """Offline training, assuming the RL Agent has its opponent has attribute."""
   def __init__(self, board, sym='o', step=0.2, eps=0.1, opp_type="random"):
     self.step = step
     self.V = {}
@@ -174,6 +175,24 @@ def play_against_agent(agent):
     print(agent.get_possible_move_values())
     input("...")
     agent.board.do_move(*agent.best_move())
+
+
+class RLBoxAgent:
+  """Trained online from playing against opponents."""
+  def __init__(self, sym='o', step=0.1, eps=0.1):
+    self.sym = sym
+    self.step = step
+    self.eps = eps
+    self.V = {}
+
+  def initialize_values(self):
+    pass
+
+  def update(self, board, last_move):
+    pass
+
+  def play(self, board):
+    pass
 
 
 def main():
