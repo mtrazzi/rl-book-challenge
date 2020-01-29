@@ -65,7 +65,7 @@ def benchmark(agent, opponent, step=10,
 def opposite_agent(agent):
   from agents import RLAgent
   """Returns an agent who plays with the opposite symbol."""
-  new_agent = RLAgent(opposite(agent.sym), agent.step, agent.eps,
+  new_agent = RLAgent(agent.size, opposite(agent.sym), agent.step, agent.eps,
                       agent.eps_decay)
   if isinstance(agent, RLAgent):
     for state, val in agent.V.items():

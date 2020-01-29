@@ -38,15 +38,11 @@ class RLAgent:
         return x, y
 
   def best_move(self, board):
-    max_value = -np.inf
-    for x in range(board.size):
-      for y in range(board.size):
-        if board.can_place(x, y):
-          value = self.get_move_value(board, x, y)
-          if value > max_value:
-            best_move = (x, y)
-            max_value = value
-    return best_move
+    values = [self.get_move_value(board, i // self.size, i % self.size)
+              if board.can_place(i // self.size, i % self.size) else -np.inf
+              for i in range(self.size ** 2)]
+    idx = np.random.choice(np.flatnonzero(np.isclose(values, max(values))))
+    return idx // self.size, idx % self.size
 
   def get_move_value(self, board, x, y):
     board.do_move(x, y)

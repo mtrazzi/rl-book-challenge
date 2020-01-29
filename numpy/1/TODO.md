@@ -1,0 +1,1 @@
+- [X] Make sure that the ties are broken randomly.
