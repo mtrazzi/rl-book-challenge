@@ -1,12 +1,19 @@
+from board import TicTacToeBoard
 import numpy as np
 
 
 class RandomAgent:
+  def __init__(self, sym='x'):
+    self.sym = sym
+
   def best_move(self, board):
     while True:
       x, y = np.random.randint(3), np.random.randint(3)
       if board.can_place(x, y):
         return x, y
+
+  def train(self, opponent, n_episodes):
+    pass
 
 
 class RLAgent:
@@ -59,7 +66,8 @@ class RLAgent:
     else:
       return "greedy", self.best_move(board)
 
-  def train(self, board, opponent=RandomAgent(), n_episodes=1000):
+  def train(self, opponent=RandomAgent(), n_episodes=1000):
+    board = TicTacToeBoard()
     for _ in range(n_episodes):
       board.reset()
       while not board.is_end_state():
@@ -73,6 +81,15 @@ class RLAgent:
           self.get_value(board)
           if case == "greedy":  # only update from non-exploratory moves
             self.update_value(s_t, s_tp1)
+
+  def test(self, board, opponent=RandomAgent(), n_episodes=1000):
+    board = TicTacToeBoard()
+    num_wins = 0
+    for _ in range(n_episodes):
+      while not board.is_end_state():
+        board.do_move(*opponent.best_move(board))
+        if not board.is_end_state():
+          board.do_move(self.best_move(board))
 
   def get_possible_move_values(self, board):
     d = {}
