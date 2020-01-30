@@ -41,7 +41,8 @@ def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
     N[A] += 1
     Q[A] += (R - Q[A]) * weight_fn(N[A])
     R_log[A] += (R-R_log[A]) * (1 / N[A])
-    avg_rew.append(average_reward(R_log, N))
+    avg_rew = average_reward(R_log, N)
+    avg_rew.append(avg_rew)
     distance_to_true_q.append(np.linalg.norm(Q - q))
     if random_walk:
       q += 0.01 * np.random.randn(k)
