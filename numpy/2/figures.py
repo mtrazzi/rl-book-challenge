@@ -1,6 +1,10 @@
+import argparse
+
 from bandit import Bandit
 import matplotlib.pyplot as plt
 import numpy as np
+
+K = 10
 
 
 def average_reward(Q, N):
@@ -32,9 +36,9 @@ def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
                               weight_fn=sample_average, random_walk=False,
                               Q_1=0, method='epsilon-greedy'):
   """Returns the estimated Q-Values of the bandit problem."""
-  k, q, max_action = bandit.k, bandit.q, bandit.max_action
+  k = bandit.k
   Q, N, R_log = np.zeros(k) + Q_1, np.zeros(k), np.zeros(k)
-  avg_rew, distance_to_true_q, per_list = [], [], []
+  avg_rew, per_list = [], []
   avg_r, per_max_act = 0, 0
   for t in range(1, n_iterations + 1):
     A = action_selection(Q, eps, method=method, t=t, N=N)
@@ -43,13 +47,12 @@ def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
     Q[A] += (R - Q[A]) * weight_fn(N[A])
     R_log[A] += (R-R_log[A]) * (1 / N[A])
     avg_r += (R - avg_r) / t
-    per_max_act += ((A == max_action) - per_max_act) / t
+    per_max_act += ((A == bandit.max_action()) - per_max_act) / t
     per_list.append(per_max_act)
     avg_rew.append(avg_r)
-    distance_to_true_q.append(np.linalg.norm(Q - q))
     if random_walk:
-      q += 0.01 * np.random.randn(k)
-  return Q, np.array(per_list), np.array(avg_rew), np.array(distance_to_true_q)
+      bandit.q += 0.01 * np.random.randn(k)
+  return Q, np.array(per_list), np.array(avg_rew)
 
 
 def plot_average(arr, eps_list, n_bandits, y_lim, show=True, extra_label='',
@@ -68,60 +71,81 @@ def plot_average(arr, eps_list, n_bandits, y_lim, show=True, extra_label='',
     plt.show()
 
 
-def plot_figures(k, n_bandits, n_steps, eps_list, weight_fn, random_walk,
-                 y_bounds_1, y_bounds_2=None, Q_1=0, norm=False, show=True,
-                 method='epsilon-greedy', extra_label='', title=None):
+def plot_figures(k, n_bandits, n_steps, eps_list, weight_fn=sample_average,
+                 random_walk=False, y_bounds=[0, 1.5], Q_1=0, show=True,
+                 method='epsilon-greedy', extra_label='', title=None,
+                 percentage=False):
   avg_rew_per_eps = [np.zeros(n_steps) for _ in range(len(eps_list))]
   avg_rew_in_perc = [np.zeros(n_steps) for _ in range(len(eps_list))]
-  distance_to_true_q = [np.zeros(n_steps) for _ in range(len(eps_list))]
   for i in range(n_bandits):
     print(i)
     bandit_pb = Bandit(k)
     for i, eps in enumerate(eps_list):
-      Q, per, avg_rew, d = a_simple_bandit_algorithm(bandit_pb,
-                                                     n_iterations=n_steps,
-                                                     eps=eps,
-                                                     weight_fn=weight_fn,
-                                                     random_walk=random_walk,
-                                                     Q_1=Q_1,
-                                                     method=method)
+      _, per, avg_rew = a_simple_bandit_algorithm(bandit_pb,
+                                                  n_iterations=n_steps,
+                                                  eps=eps,
+                                                  weight_fn=weight_fn,
+                                                  random_walk=random_walk,
+                                                  Q_1=Q_1,
+                                                  method=method)
       avg_rew_per_eps[i] += avg_rew
       avg_rew_in_perc[i] += per
-      distance_to_true_q[i] += d
-  plot_average(avg_rew_per_eps, eps_list, n_bandits, y_bounds_1, show=show,
-               extra_label=extra_label, title=title)
-  if y_bounds_2 is not None:
-    plot_average(avg_rew_in_perc, eps_list, n_bandits, y_bounds_2,
-                 show=show, extra_label=extra_label, title=title,
-                 percentage=True)
-  if norm:
-    plot_average(distance_to_true_q, eps_list, n_bandits, [0, 10], show=show,
-                 extra_label=extra_label)
+
+  to_plot = avg_rew_in_perc if percentage else avg_rew_per_eps
+  bounds = [0, 100] if percentage else y_bounds
+  plot_average(to_plot, eps_list, n_bandits, bounds, show, extra_label, title,
+               percentage)
+
+
+def fig_2_2(n_bandits=2000, n_steps=1000, eps_list=[0, 0.1, 0.01]):
+  # reproducing figure 2.2
+  plot_figures(K, n_bandits, n_steps, eps_list, title='Figure 2.2')
+  plot_figures(K, n_bandits, n_steps, eps_list, title='Figure 2.2',
+               percentage=True)
+
+
+def ex_2_5(n_bandits=100, n_steps=10000, eps_list=[0.1]):
+  # # exercise 2.5: difficulties of sample average on non-stationary problems
+  plot_figures(K, n_bandits, n_steps, eps_list, sample_average, True, [0, 3],
+               show=False, extra_label='sample average',
+               title="Exercise 2.5: sample-average vs.constant step size")
+  plot_figures(K, n_bandits, n_steps, eps_list, constant_alpha(alpha=0.1), True,
+               [0, 3], extra_label='constant step size (alpha = 0.1)')
+
+
+def fig_2_3(n_bandits=100, n_steps=1000):
+  # figure 2.3: optimistic greedy vs. realistic eps-greedy
+  for Q_1, eps, show in [(5, 0, False), (0, 0.1, True)]:
+    plot_figures(K, n_bandits, n_steps, [eps], constant_alpha(alpha=0.1),
+                 Q_1=Q_1, show=show, title='Figure 2.3',
+                 extra_label=f'Q_1={Q_1}', percentage=True)
+
+
+def fig_2_4(n_bandits=100, n_steps=1000, eps_list=[0.1]):
+  # reproducing figure 2.4
+  plot_figures(K, n_bandits, n_steps, eps_list, sample_average, False, [0, 1.5],
+               show=False)
+  plot_figures(K, n_bandits, n_steps, eps_list, sample_average, False, [0, 1.5],
+               method='ucb', extra_label='ucb')
+
+
+PLOT_FUNCTION = {
+  '2.2': fig_2_2,
+  'ex2.5': ex_2_5,
+  '2.3': fig_2_3,
+  '2.4': fig_2_4,
+}
 
 
 def main():
-  # reproducing figure 2.2
-  plot_figures(10, 2000, 1000, [0, 0.1, 0.01], sample_average, False, [0, 1.5],
-               [0, 100], title='Figure 2.2')
+  parser = argparse.ArgumentParser()
 
-  # exercise 2.5: difficulties of sample average on non-stationary problems
-  plot_figures(10, 100, 10000, [0.1], sample_average, True, [0, 2], show=False,
-               extra_label='sample average',
-               title="Exercise 2.5: sample-average vs.constant step size")
-  plot_figures(10, 100, 10000, [0.1], constant_alpha(alpha=0.1), True, [0, 3],
-               extra_label='constant step size (alpha = 0.1)')
+  parser.add_argument('figure', type=str, default=None,
+                      help='Figure to reproduce.',
+                      choices=['2.2', 'ex2.5', '2.3', '2.4'])
+  args = parser.parse_args()
 
-  # figure 2.3: optimistic greedy vs. realistic eps-greedy
-  plot_figures(10, 2000, 1000, [0], constant_alpha(alpha=0.1), False, [0, 3],
-               Q_1=5, show=False, title="Figure 2.3", extra_label='Q_1=5')
-  plot_figures(10, 2000, 1000, [0.1], constant_alpha(alpha=0.1), False, [0, 3],
-               extra_label='Q_1=0')
-
-  # reproducing figure 2.4
-  plot_figures(10, 200, 1000, [0.1], sample_average, False, [0, 1.5],
-               show=False)
-  plot_figures(10, 200, 1000, [0.1], sample_average, False, [0, 1.5],
-               method='ucb', extra_label='ucb')
+  PLOT_FUNCTION[args.figure]()
 
 
 if __name__ == "__main__":
