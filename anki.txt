@@ -1,0 +1,20 @@
+# List of questions (and answers if any) for my Anki Flashcards
+First TD formula in tic-tac-toe
+Why does the red arrow goes two steps up in the tic-tac-toe?</div></div>	"Because the opponent is kind of a <b>stochastic environment</b>. So our RL agent is trying to predict the value of reaching ""state before stochasticity in environment"".</div></div>"
+How is defined the value of an action in the k-armed bandit problem?
+What's the formula for estimating the true value of an action in the k-armed bandit pb?
+What's the formula for the <b>greedy</b> action selection method (in k-armed bandit)?
+What's the formula for the estimated action value, indexed by n, in terms of rewards?
+How do you re-write the estimate of action value (indexed by n) to limit memory/computational requirements? (n+1 in function of n)
+What's the general update rule used in the book? (the average hack being a special case)
+How is the average called when using the formula with the step size for Q_{n+1}?	<b>exponential recency-weighted</b> average
+What are the conditions on the weights (from stochastic approximation theory) to assure convergence with probability 1 of the Q values using the formula with Q_{n+1} and the step size alpha?
+What's the formula for UCB?
+What's the update rule for the preference of the <b>selected action </b>in the <b>Gradient Bandit Algorithm</b>?
+What's the update rule for the preference of the <b>other actions </b>in the <b>Gradient Bandit Algorithm</b>?
+What's the thing that we need to show to prove that we're actually doing stochastic gradient ascent?	That the <b>expected update</b> of the gradient bandit algorithm is equal to the <b>gradient of expected reward</b>.
+What would be the formula for <b>exact gradient ascent</b> (In the case of Gradient Bandit algorithms)?
+How do we call a task that change over time (e.g. random walk)?	<b>nonstationary</b>
+another name for <b>contextual bandit</b>	another name for <b>associative search</b> task
+another name for <b>associative search</b> task	another name for <b>contextual bandit</b>
+Visualize the arrow updates in the tic-tac-toe diagram
