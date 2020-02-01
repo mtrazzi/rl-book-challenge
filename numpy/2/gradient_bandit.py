@@ -29,11 +29,11 @@ def gradient_bandit(bandit, n_steps=1000, alpha=0.1, baseline=False,
     pi = softmax(H)
     A = np.random.choice(len(H), p=pi)
     R = bandit.reward(A)
-    R_mean += (R-R_mean) / t
     per_max_act += ((A == max_action) - per_max_act) / t
     per_max_act_log.append(per_max_act)
-    baseline = R_mean if baseline else 0
-    gradient_update(H, pi, A, R, baseline, alpha)
+    overline_R_t = R_mean if baseline else 0
+    gradient_update(H, pi, A, R, overline_R_t, alpha)
+    R_mean += (R-R_mean) / t  # baseline \overline{R_t} doesn't include R_t!
   return np.array(per_max_act_log)
 
 
@@ -42,9 +42,11 @@ def fig_2_5(n_bandits=2000, n_steps=1000, k=10, random_walk=False):
   for baseline in [False, True]:
     for alpha in [0.1, 0.4]:
       d[(baseline, alpha)] = np.zeros(n_steps)
-      for n in range(n_bandits):
-        print(n)
-        bandit = Bandit(k, mean=4)
+  for n in range(n_bandits):
+    print(n)
+    bandit = Bandit(k, mean=4)
+    for baseline in [False, True]:
+      for alpha in [0.1, 0.4]:
         d[(baseline, alpha)] += gradient_bandit(bandit,
                                                 n_steps=n_steps,
                                                 alpha=0.1, baseline=baseline,
@@ -59,8 +61,7 @@ def fig_2_5(n_bandits=2000, n_steps=1000, k=10, random_walk=False):
 
 
 def main():
-  fig_2_5(n_bandits=2000, random_walk=False)
-  fig_2_5(n_bandits=2000, random_walk=True)
+  fig_2_5(n_bandits=50)
 
 
 if __name__ == "__main__":

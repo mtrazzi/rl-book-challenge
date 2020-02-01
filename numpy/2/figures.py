@@ -1,6 +1,8 @@
 import argparse
 
 from bandit import Bandit
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -113,7 +115,7 @@ def ex_2_5(n_bandits=100, n_steps=10000, eps_list=[0.1]):
                [0, 3], extra_label='constant step size (alpha = 0.1)')
 
 
-def fig_2_3(n_bandits=100, n_steps=1000):
+def fig_2_3(n_bandits=2000, n_steps=1000):
   # figure 2.3: optimistic greedy vs. realistic eps-greedy
   for Q_1, eps, show in [(5, 0, False), (0, 0.1, True)]:
     plot_figures(K, n_bandits, n_steps, [eps], constant_alpha(alpha=0.1),
@@ -121,7 +123,7 @@ def fig_2_3(n_bandits=100, n_steps=1000):
                  extra_label=f'Q_1={Q_1}', percentage=True)
 
 
-def fig_2_4(n_bandits=100, n_steps=1000, eps_list=[0.1]):
+def fig_2_4(n_bandits=2000, n_steps=1000, eps_list=[0.1]):
   # reproducing figure 2.4
   plot_figures(K, n_bandits, n_steps, eps_list, sample_average, False, [0, 1.5],
                show=False)
