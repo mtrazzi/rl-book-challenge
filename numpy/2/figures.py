@@ -36,14 +36,14 @@ def action_selection(Q, eps=0.1, method='epsilon-greedy', c=2, t=1, N=None):
 
 def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
                               weight_fn=sample_average, random_walk=False,
-                              Q_1=0, method='epsilon-greedy'):
+                              Q_1=0, method='epsilon-greedy', c=2):
   """Returns the estimated Q-Values of the bandit problem."""
   k = bandit.k
   Q, N, R_log = np.zeros(k) + Q_1, np.zeros(k), np.zeros(k)
   avg_rew, per_list = [], []
   avg_r, per_max_act = 0, 0
   for t in range(1, n_iterations + 1):
-    A = action_selection(Q, eps, method=method, t=t, N=N)
+    A = action_selection(Q, eps, method=method, c=c, t=t, N=N)
     R = bandit.reward(A)
     N[A] += 1
     Q[A] += (R - Q[A]) * weight_fn(N[A])
