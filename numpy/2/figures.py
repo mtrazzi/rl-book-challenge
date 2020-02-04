@@ -2,9 +2,10 @@ import argparse
 
 from bandit import Bandit
 import matplotlib as mpl
-mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
+
+mpl.use('TkAgg')
 
 K = 10
 
@@ -36,12 +37,13 @@ def action_selection(Q, eps=0.1, method='epsilon-greedy', c=2, t=1, N=None):
 
 def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
                               weight_fn=sample_average, random_walk=False,
-                              Q_1=0, method='epsilon-greedy', c=2):
+                              Q_1=0, method='epsilon-greedy', c=2,
+                              start_timestep=np.inf):
   """Returns the estimated Q-Values of the bandit problem."""
   k = bandit.k
   Q, N, R_log = np.zeros(k) + Q_1, np.zeros(k), np.zeros(k)
   avg_rew, per_list = [], []
-  avg_r, per_max_act = 0, 0
+  avg_r, per_max_act, avg_r_end = 0, 0, 0
   for t in range(1, n_iterations + 1):
     A = action_selection(Q, eps, method=method, c=c, t=t, N=N)
     R = bandit.reward(A)
@@ -49,12 +51,14 @@ def a_simple_bandit_algorithm(bandit, n_iterations=1000, eps=0.1,
     Q[A] += (R - Q[A]) * weight_fn(N[A])
     R_log[A] += (R-R_log[A]) * (1 / N[A])
     avg_r += (R - avg_r) / t
+    if t >= start_timestep:
+      avg_r_end += (R - avg_r_end) / (t - start_timestep + 1)
     per_max_act += ((A == bandit.max_action()) - per_max_act) / t
     per_list.append(per_max_act)
     avg_rew.append(avg_r)
     if random_walk:
       bandit.q += 0.01 * np.random.randn(k)
-  return Q, np.array(per_list), np.array(avg_rew)
+  return Q, np.array(per_list), np.array(avg_rew), [avg_r_end]
 
 
 def plot_average(arr, eps_list, n_bandits, y_lim, show=True, extra_label='',
@@ -83,13 +87,13 @@ def plot_figures(k, n_bandits, n_steps, eps_list, weight_fn=sample_average,
     print(i)
     bandit_pb = Bandit(k)
     for i, eps in enumerate(eps_list):
-      _, per, avg_rew = a_simple_bandit_algorithm(bandit_pb,
-                                                  n_iterations=n_steps,
-                                                  eps=eps,
-                                                  weight_fn=weight_fn,
-                                                  random_walk=random_walk,
-                                                  Q_1=Q_1,
-                                                  method=method)
+      _, per, avg_rew, _ = a_simple_bandit_algorithm(bandit_pb,
+                                                     n_iterations=n_steps,
+                                                     eps=eps,
+                                                     weight_fn=weight_fn,
+                                                     random_walk=random_walk,
+                                                     Q_1=Q_1,
+                                                     method=method)
       avg_rew_per_eps[i] += avg_rew
       avg_rew_in_perc[i] += per
 

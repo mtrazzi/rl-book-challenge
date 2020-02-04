@@ -1,2 +1,9 @@
-- [ ] reproduce figure 2.6
+- [X] reproduce figure 2.6
+  - [X] correct shape for UCB
+  - [X] correct shape for gradient bandit
+  - [X] correct shape for optimistic greedy
+    - [X] get performance to decrease for Q_0=2 and 4
+  - [X] correct shape for epsilon greedy
+    - [X] figure out why it's same as gradient bandit
 - [ ] exercise 2.11
+  - [X] add parameter to simple_bandit_algorithm and gradient_bandit to average over last 100 000 timesteps

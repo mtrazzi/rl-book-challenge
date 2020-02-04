@@ -18,11 +18,13 @@ def gradient_update(H, pi, A, R, baseline=0, alpha=0.1):
 
 
 def gradient_bandit(bandit, n_steps=1000, alpha=0.1, baseline=False,
-                    percentage=True):
-  k = bandit.k
+                    percentage=True, start_timestep=np.inf, random_walk=False):
+  k, avg_r_end = bandit.k, 0
   H, per_max_act_log, avg_rew, R_mean, per_max_act = np.zeros(k), [], [], 0, 0
   max_action = bandit.max_action()
   for t in range(1, n_steps + 1):
+    if random_walk:
+      bandit.q += 0.01 * np.random.randn(k)
     pi = softmax(H)
     A = np.random.choice(len(H), p=pi)
     R = bandit.reward(A)
@@ -32,7 +34,10 @@ def gradient_bandit(bandit, n_steps=1000, alpha=0.1, baseline=False,
     gradient_update(H, pi, A, R, overline_R_t, alpha)
     R_mean += (R-R_mean) / t  # baseline \overline{R_t} doesn't include R_t!
     avg_rew.append(R_mean)
-  return np.array(per_max_act_log) if percentage else np.array(avg_rew)
+    if t >= start_timestep:
+      avg_r_end += (R - avg_r_end) / (t - start_timestep + 1)
+  return (np.array(per_max_act_log) if percentage else np.array(avg_rew),
+          [avg_r_end])
 
 
 def fig_2_5(n_bandits=2000, n_steps=1000, k=10, alpha_list=[0.1, 0.4]):
@@ -45,8 +50,9 @@ def fig_2_5(n_bandits=2000, n_steps=1000, k=10, alpha_list=[0.1, 0.4]):
     bandit = Bandit(k, mean=4)
     for baseline in [False, True]:
       for alpha in alpha_list:
-        d[(baseline, alpha)] += gradient_bandit(bandit, n_steps=n_steps,
+        result_arr, _ = gradient_bandit(bandit, n_steps=n_steps,
                                                 alpha=alpha, baseline=baseline)
+        d[(baseline, alpha)] += result_arr
 
   def label(baseline, alpha):
     return ("with" if baseline else "without") + f" baseline, alpha={alpha}"
