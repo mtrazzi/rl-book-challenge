@@ -1,30 +1,30 @@
 # Understanding RL
 
-Here's the thing. I know you want to win at Dota, Starcraft or Go using DeepRL.
+>Reading the [RL book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way.
 
-But you **can't**, unless you _really_ understand Reinforcement Learning.
+My goal with this project is to go through the entire RL book before Friday, March 20.
 
-My solution: read the [RL book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hardcore way:
+### 1. Numpify the pseudo-code (cf. [numpy/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/numpy))
 
-### 1. Numpify the pseudo-code ([numpy/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/numpy))
+Provide an implementation of all the pseudo-code in the book, using only numpy arrays.
 
-If there is some pseudo-code, implement it using numpy arrays.
+### 2. Ankify the math (cf. [anki.txt](https://github.com/mtrazzi/numpankify-the-RL-book/blob/master/anki.txt))
 
-### 2. Ankify all the math ([anki.txt](https://github.com/mtrazzi/numpankify-the-RL-book/blob/master/anki.txt))
+Write down questions & answers for [Anki](http://augmentingcognition.com/ltm.html) flashcards, and study them everyday. (I provide only the questions in [anki.txt](https://github.com/mtrazzi/numpankify-the-RL-book/blob/master/anki.txt) so everyone can write down their own answers).
 
-Insert definitions and important equations into your long-term memory using [Anki](http://augmentingcognition.com/ltm.html).
-
-### 3. Reproduce every plot ([plots/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/plots))
+### 3. Reproduce every plot (cf. [plots/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/plots))
 
 If there is a plot, reproduce the results as closely as possible.
 
-### 4. Add an answer to every exercise, even the programming ones ([exercises/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/exercises))
+<p align="center">
+  <img src="/plots/fig2.6.png" alt="fig2.6">
+</p>
 
-### 5. Write down your own questions ([questions/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/questions))
+### 4. Add an answer to every exercise, even the programming ones (cf. [exercises/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/exercises))
 
-### 6. Go through all the derivations ([math/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/math))
+### 5. Write down your own questions (cf. [questions/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/questions))
 
-If there is some mathematical derivation, then you should do derive it by yourself, understanding every step.
+### 6. Go through all the mathematical derivations (cf. [math/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/math))
 
 ### Exceptions
 
