@@ -22,9 +22,9 @@ If there is a plot, replicate the results as closely as possible.
   <img src="/plots/fig2.6.png" alt="fig2.6">
 </p>
 
-### 4. Exercises should be answered, even the programming ones (cf. [exercises/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/exercises))
+### 4. Exercises should be solved, even the programming ones (cf. [exercises/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/exercises))
 
-### 5. Your own questions you will write down (cf. [questions/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/questions))
+### 5. Your own confusion you will notice and write down (cf. [questions/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/questions))
 
 ### 6. Through all the mathematical derivations you will go (cf. [math/](https://github.com/mtrazzi/numpankify-the-RL-book/tree/master/math))
 
