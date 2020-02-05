@@ -48,14 +48,14 @@ def apply_method(bandit, n_iterations, method_name, hyperparam, nonstat=False,
 
 
 def plot_current(n_steps, results, iteration_nb=0,
-                 title='Figure 2.6', fn='fig2_6'):
+                 title='Figure 2.6', fn='fig2_6', y_label=''):
   _, ax = plt.subplots()
   ax.set_xscale('log', basex=2)
   x = [2 ** i for i in range(-7, 3)]
   x_name = ([f"1/{2**i}" for i in range(7, 0, -1)] +
             [str(2 ** i) for i in range(3)])
   plt.xticks(x, x_name)
-  plt.ylabel(f"Average Reward over first {n_steps} steps")
+  plt.ylabel(y_label)
   plt.title(title)
   for method, hyperparams in HYPERPARMS.items():
     to_plot = [results[(method, hyper)] / (iteration_nb + 1) for hyper in
@@ -71,16 +71,18 @@ def param_study(n_bandits=2000, n_steps=1000, title='Figure 2.6',
                 start_timestep=np.inf):
   results = {(method, hyper): 0 for (method, hyperparams) in HYPERPARMS.items()
              for hyper in hyperparams}
+  y_label = (f"Average Reward over last {n_steps-start_timestep} steps" if
+             nonstat else f"Average Reward over first {n_steps} steps")
   for t in range(1, n_bandits + 1):
     print(f"{t}/{n_bandits}")
     bandit = Bandit()
     for method, hyperparams in HYPERPARMS.items():
       for hyper in hyperparams:
-        print(f"{method} {hyper}")
         results[(method, hyper)] += apply_method(bandit, n_steps, method, hyper,
                                                  nonstat, start_timestep)[-1]
+        bandit.reset()  # need to reset q values after random walk
     if (t % print_freq == 0):
-      plot_current(n_steps, results, t, title, fn)
+      plot_current(n_steps, results, t, title, fn, y_label)
 
 
 def fig_2_6():
