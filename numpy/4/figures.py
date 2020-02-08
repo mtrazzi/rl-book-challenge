@@ -13,7 +13,7 @@ def random_policy(env):
 
 def fig_4_1():
   env = Gridworld()
-  alg = DynamicProgramming(env)
+  alg = DynamicProgramming(env, gamma=1)  # undiscounted
   alg.policy_evaluation(random_policy(env))
 
 

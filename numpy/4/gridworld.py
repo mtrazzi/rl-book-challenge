@@ -25,6 +25,8 @@ class Gridworld:
       return s
     elif self.is_terminal(candidate):
       return UNIQUE_TERMINAL_STATE  # two grey cells are the same state
+    elif not self.is_valid(candidate):  # out of border move
+      return s
     else:
       return candidate
 
