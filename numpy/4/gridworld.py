@@ -1,10 +1,10 @@
 import numpy as np
 
 MOVES = {
-  "UP": [-1, 0],
-  "DOWN": [1, 0],
-  "RIGHT": [0, 1],
-  "LEFT": [0, -1],
+  "UP": (-1, 0),
+  "DOWN": (1, 0),
+  "RIGHT": (0, 1),
+  "LEFT": (0, -1),
 }
 
 UNIQUE_TERMINAL_STATE = (0, 0)
@@ -15,12 +15,12 @@ class Gridworld:
     self.size = size
     self.n_states = self.size ** 2 - 1
     self.moves = list(MOVES.keys())
-    self.states = [np.array([x, y]) for x in range(self.size)
+    self.states = [(x, y) for x in range(self.size)
                    for y in range(self.size)]
     self.r = [-1, 0]
 
   def next_s(self, s, a):
-    candidate = s + np.array(MOVES[a])
+    candidate = s + MOVES[a]
     if self.is_terminal(s):
       return s
     elif self.is_terminal(candidate):

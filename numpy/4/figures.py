@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 from gridworld import Gridworld
 from dynamic_programming import DynamicProgramming
+from utils import print_transitions
 
 
 def random_policy(env):
@@ -13,8 +14,17 @@ def random_policy(env):
 
 def fig_4_1():
   env = Gridworld()
-  alg = DynamicProgramming(env, gamma=1)  # undiscounted
-  alg.policy_evaluation(random_policy(env))
+  print_transitions(env)
+  pi_rand = random_policy(env)
+  pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
+  alg = DynamicProgramming(env, pi=pi_init, theta=0.001, gamma=1)  # undiscounted
+  alg.policy_evaluation()
+  alg.print_values()
+  # show the optimal policy
+  while not alg.policy_improvement(): pass
+  alg.print_policy()
+
+
 
 
 PLOT_FUNCTION = {
