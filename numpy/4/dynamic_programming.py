@@ -2,7 +2,7 @@ import numpy as np
 
 
 class DynamicProgramming:
-  def __init__(self, env, pi=None, theta=1e-4, gamma=0.9):
+  def __init__(self, env, pi={}, theta=1e-4, gamma=0.9):
     self.theta = theta
     self.env = env  # environment with transitions p
     self.V = {tuple(s): 0 for s in self.env.states}
@@ -14,7 +14,7 @@ class DynamicProgramming:
     arb_d = {s: np.random.randint(len(self.env.moves)) for s in self.env.states}
     for s in self.env.states:
       for a in self.env.moves:
-        self.pi[(a, s)] = (a == self.env.moves[arb_d[s]])
+        self.pi[(a, s)] = int(a == self.env.moves[arb_d[s]])
 
   def print_policy(self):
     to_print = [[None] * self.env.size for _ in range(self.env.size)]
@@ -22,7 +22,7 @@ class DynamicProgramming:
     for x in range(self.env.size):
       for y in range(self.env.size):
         to_print[x][y] = str(self.deterministic_pi((x, y))).ljust(max_length)
-    print(to_print)
+    print(*to_print, sep='\n')
 
   def print_values(self):
     np.set_printoptions(2)
@@ -33,8 +33,14 @@ class DynamicProgramming:
     print(to_print)
 
   def expected_value(self, s, a):
+    # print(f"from state {s} action {a}")
+    # for s_p in self.env.states:
+    #   for r in self.env.r:
+    #     val = self.env.p(s_p, r, s, a) * (r + self.gamma * self.V[s_p])
+    #     if val != 0:
+    #       print(f"p={self.env.p(s_p, r, s, a)}, r={r}, V[{s_p}]={self.V[s_p]}")
     return np.sum([self.env.p(s_p, r, s, a) *
-                            (r + self.gamma * self.V[tuple(s_p)])
+                            (r + self.gamma * self.V[s_p])
                             for s_p in self.env.states for r in self.env.r])
 
   def policy_evaluation(self):
@@ -42,11 +48,13 @@ class DynamicProgramming:
     while True:
       delta = 0
       for s in self.env.states:
-        v = self.V[tuple(s)]
-        self.V[tuple(s)] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
+        # print("self.pi =", [self.pi[(a, s)] for a in self.env.moves])
+        # print("expected values =", [self.expected_value(s, a) for a in self.env.moves])
+        v = self.V[s]
+        self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                                    for a in self.env.moves])
-        delta = max(delta, abs(v-self.V[tuple(s)]))
-      self.print_values()
+        # print(f"self.V[{s}] = {np.sum([self.pi[(a, s)] * self.expected_value(s, a) for a in self.env.moves])}")
+        delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
 
@@ -63,15 +71,16 @@ class DynamicProgramming:
     policy_stable = True
     for s in self.env.states:
       old_action = self.deterministic_pi(s)
-      self.update_pi(s, np.argmax([self.expected_value(s, a) for a in self.env.moves]))
+      self.update_pi(s, self.env.moves[np.argmax([self.expected_value(s, a) for a in self.env.moves])])
       policy_stable = policy_stable and (old_action == self.deterministic_pi(s))
     return policy_stable
 
   def policy_iteration(self):
-    if self.pi is None:
+    if not self.pi:
       self.initialize_deterministic_pi()
 
     while True:
+      self.print_values()
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi

@@ -20,7 +20,8 @@ class Gridworld:
     self.r = [-1, 0]
 
   def next_s(self, s, a):
-    candidate = s + MOVES[a]
+    move = MOVES[a]
+    candidate = s[0] + move[0], s[1] + move[1]
     if self.is_terminal(s):
       return s
     elif self.is_terminal(candidate):
