@@ -10,7 +10,7 @@ So here is my challenge: go through the entire [RL book](http://incompleteideas.
 
 Provide an implementation of all the pseudo-code in the book, using only numpy arrays.
 
-### 2. Math should be Ankified (cf. [anki/](https://github.com/mtrazzi/understanding-the-RL-book/blob/master/anki.txt))
+### 2. Math should be Ankified (cf. [anki/](https://github.com/mtrazzi/understanding-the-RL-book/blob/master/anki))
 
 Write down questions & answers for [Anki](http://augmentingcognition.com/ltm.html) flashcards, and study them everyday.
 
