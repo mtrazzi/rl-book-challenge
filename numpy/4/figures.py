@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+from car_rental import CarRentalEnv
 from gridworld import Gridworld
 from dynamic_programming import DynamicProgramming
 from utils import print_transitions
@@ -25,10 +26,9 @@ def fig_4_1():
 
 
 def fig_4_2():
-  env = Gridworld()
+  env = CarRentalEnv()
   alg = DynamicProgramming(env, gamma=0.9, theta=1e-4)
   alg.policy_iteration()
-  alg.print_values()
 
 
 PLOT_FUNCTION = {

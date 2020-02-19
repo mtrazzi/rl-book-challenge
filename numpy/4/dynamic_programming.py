@@ -33,12 +33,6 @@ class DynamicProgramming:
     print(to_print)
 
   def expected_value(self, s, a):
-    # print(f"from state {s} action {a}")
-    # for s_p in self.env.states:
-    #   for r in self.env.r:
-    #     val = self.env.p(s_p, r, s, a) * (r + self.gamma * self.V[s_p])
-    #     if val != 0:
-    #       print(f"p={self.env.p(s_p, r, s, a)}, r={r}, V[{s_p}]={self.V[s_p]}")
     return np.sum([self.env.p(s_p, r, s, a) *
                             (r + self.gamma * self.V[s_p])
                             for s_p in self.env.states for r in self.env.r])
@@ -48,12 +42,9 @@ class DynamicProgramming:
     while True:
       delta = 0
       for s in self.env.states:
-        # print("self.pi =", [self.pi[(a, s)] for a in self.env.moves])
-        # print("expected values =", [self.expected_value(s, a) for a in self.env.moves])
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                                    for a in self.env.moves])
-        # print(f"self.V[{s}] = {np.sum([self.pi[(a, s)] * self.expected_value(s, a) for a in self.env.moves])}")
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
@@ -80,7 +71,6 @@ class DynamicProgramming:
       self.initialize_deterministic_pi()
 
     while True:
-      self.print_values()
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi
