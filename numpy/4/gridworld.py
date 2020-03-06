@@ -49,3 +49,24 @@ class Gridworld:
   def is_terminal(self, s):
     return ((s[0] == 0 and s[1] == 0) or
             (s[0] == (self.size - 1) and s[1] == (self.size - 1)))
+
+  def p(self, s_p, r, s, a):
+    (n1, n2), (n1_p, n2_p), m = s, s_p, a
+    if (n1_p < 0 or n2_p < 0 or not (0 <= m <= MAX_CAR_MOVES) or not (0 <= n1 <= MAX_CAR_CAP) or not (0 <= n2 <= MAX_CAR_CAP)):
+      return 0
+    def proba_move_loc(n_p, n, new_cars, lam_ret, lam_rent):
+      args = n_p - n + new_cars, lam_ret, lam_rent
+      if n_p != MAX_CAR_CAP:
+        return skellman.pmf(*args)
+      else:
+        return skellman.sf(*args) + skellman.pmf(*args)
+    return proba_move_loc(n1_p, n1, -m, )
+
+  def reward(self, s, a):
+    req, ret = [[np.random.poisson(lam) for lam in lam_list]
+                          for lam_list in [REN_REQ_LAMBDA, RETURNS_LAMBDA]]
+    new_nb_cars = [min(s[i] + ret[i], MAX_CAR_CAP) for i in range(NB_LOC)]
+    if np.all(np.array(req) <= np.array(new_nb_cars)):
+      return abs(a) * CAR_MOVE_COST + np.sum(req) * RENT_BEN
+    else:
+      return 0
