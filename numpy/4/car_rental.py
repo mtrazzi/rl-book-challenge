@@ -1,6 +1,6 @@
 import numpy as np
 
-MAX_CAR_NB = 20
+MAX_CAR_NB = 5
 MAX_CAR_MOVES = 5
 REN_REQ_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]
@@ -10,6 +10,8 @@ class CarRentalEnv:
     self.states = [(x, y) for x in range(MAX_CAR_NB)
                    for y in range(MAX_CAR_NB)]
     self.moves = list(range(-MAX_CAR_MOVES, MAX_CAR_MOVES + 1))
+    self.r = [0]
+    self.size = MAX_CAR_NB
 
   def next_s(self, s, a):
     return s[0] - a, s[1] + a

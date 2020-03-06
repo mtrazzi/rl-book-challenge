@@ -1,7 +1,9 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class DynamicProgramming:
+  """Dynamic Programming algorithms to run the gridworld and car_rental 
+  examples (fig 4.1 and 4.2)."""
   def __init__(self, env, pi={}, theta=1e-4, gamma=0.9):
     self.theta = theta
     self.env = env  # environment with transitions p
@@ -16,13 +18,24 @@ class DynamicProgramming:
       for a in self.env.moves:
         self.pi[(a, s)] = int(a == self.env.moves[arb_d[s]])
 
-  def print_policy(self):
+  def print_policy_gridworld(self):
     to_print = [[None] * self.env.size for _ in range(self.env.size)]
     max_length = max([len(move_name) for move_name in self.env.moves])
     for x in range(self.env.size):
       for y in range(self.env.size):
         to_print[x][y] = str(self.deterministic_pi((x, y))).ljust(max_length)
     print(*to_print, sep='\n')
+
+  def print_policy_car_rental(self):
+    fig, ax = plt.subplots()
+    X = Y = list(range(self.env.size))
+    Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
+    print(*Z, sep='\n')
+    transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
+    CS = ax.contour(X, Y, transposed_Z)
+    ax.clabel(CS, inline=1, fontsize=10)
+    ax.set_title('Figure 4.2')
+    plt.show()
 
   def print_values(self):
     np.set_printoptions(2)
@@ -42,12 +55,14 @@ class DynamicProgramming:
     while True:
       delta = 0
       for s in self.env.states:
+        print(f"{s}")
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                                    for a in self.env.moves])
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
+      print(f"{delta} >= {self.theta}")
 
   def deterministic_pi(self, s):
     return self.env.moves[np.argmax([self.pi[(a, s)] for a in self.env.moves])]
@@ -66,11 +81,13 @@ class DynamicProgramming:
       policy_stable = policy_stable and (old_action == self.deterministic_pi(s))
     return policy_stable
 
-  def policy_iteration(self):
+  def policy_iteration(self, max_iter=np.inf):
     if not self.pi:
       self.initialize_deterministic_pi()
 
-    while True:
+    counter = 0
+    while True and counter < max_iter:
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi
+      counter += 1

@@ -22,13 +22,15 @@ def fig_4_1():
   alg.print_values()
   # show the optimal policy
   while not alg.policy_improvement(): pass
-  alg.print_policy()
+  alg.print_policy_gridworld()
 
 
 def fig_4_2():
   env = CarRentalEnv()
   alg = DynamicProgramming(env, gamma=0.9, theta=1e-4)
-  alg.policy_iteration()
+  alg.policy_iteration(max_iter=1)
+  alg.print_values()
+  alg.print_policy_car_rental()
 
 
 PLOT_FUNCTION = {
