@@ -31,11 +31,11 @@ class DynamicProgramming:
     X = Y = list(range(self.env.size))
     Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
     print(*Z, sep='\n')
-    transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
-    CS = ax.contour(X, Y, transposed_Z)
-    ax.clabel(CS, inline=1, fontsize=10)
-    ax.set_title('Figure 4.2')
-    plt.show()
+    # transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
+    # CS = ax.contour(X, Y, transposed_Z)
+    # ax.clabel(CS, inline=1, fontsize=10)
+    # ax.set_title('Figure 4.2')
+    # plt.show()
 
   def print_values(self):
     np.set_printoptions(2)
@@ -46,7 +46,7 @@ class DynamicProgramming:
     print(to_print)
 
   def expected_value(self, s, a):
-    return np.sum([self.env.p(s_p, r, s, a) *
+    return np.sum([self.env.p[str(s_p)][r][str(s)][a] *
                             (r + self.gamma * self.V[s_p])
                             for s_p in self.env.states for r in self.env.r])
 
@@ -87,6 +87,9 @@ class DynamicProgramming:
 
     counter = 0
     while True and counter < max_iter:
+      self.print_policy_car_rental()
+      self.print_values()
+      print(f"counter={counter}")
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi

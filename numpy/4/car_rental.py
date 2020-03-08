@@ -3,7 +3,7 @@ from scipy.stats import skellam
 
 MAX_CAR_CAP = 4
 MAX_CAR_MOVES = 5
-REN_REQ_LAMBDA = [3, 4]
+REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]
 CAR_MOVE_COST = 2
 RENT_BEN = 10
@@ -14,14 +14,16 @@ class CarRentalEnv:
     self.states = [(x, y) for x in range(MAX_CAR_CAP)
                    for y in range(MAX_CAR_CAP)]
     self.moves = list(range(-MAX_CAR_MOVES, MAX_CAR_MOVES + 1))
-    self.r = [0]
+    self.r = list(range(-MAX_CAR_MOVES * CAR_MOVE_COST, MAX_CAR_MOVES * 
+                        CAR_MOVE_COST + 1))
     self.size = MAX_CAR_CAP
+    self.p = [[[[self._p(str(s_p), r, str(s), a) for a in self.moves] for s in self.states] for r in self.r] for s_p in self.states]
 
   def is_valid(self, s):
     car_arr = np.array(s)
     return np.all((0 <= car_arr) & (car_arr <= MAX_CAR_CAP))
 
-  def p(self, s_p, r, s, a):
+  def _p(self, s_p, r, s, a):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a
     if (n1_p < 0 or n2_p < 0 or not (0 <= m <= MAX_CAR_MOVES) or not (0 <= n1 <= MAX_CAR_CAP) or not (0 <= n2 <= MAX_CAR_CAP)):
       return 0
@@ -31,10 +33,8 @@ class CarRentalEnv:
         return skellam.pmf(*args)
       else:
         return skellam.sf(*args) + skellam.pmf(*args)
-    req, ret = [[np.random.poisson(lam) for lam in lam_list]
-                for lam_list in [REN_REQ_LAMBDA, RETURNS_LAMBDA]]
-    return (proba_move_loc(n1_p, n1, -m, ret[0], req[0]) * 
-            proba_move_loc(n1_p, n1, m, ret[1], req[1]))
+    return (proba_move_loc(n1_p, n1, -m, RETURNS_LAMBDA[0], REQUEST_LAMBDA[0]) 
+            * proba_move_loc(n1_p, n1, m, RETURNS_LAMBDA[1], REQUEST_LAMBDA[1]))
 
   def is_terminal(self, s):
     return not self.is_valid(s)
