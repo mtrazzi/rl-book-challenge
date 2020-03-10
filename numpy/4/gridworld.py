@@ -20,7 +20,8 @@ class Gridworld:
                    for y in range(self.size)]
     self.r = [-1, 0]
     print("starting to compute transitions p...")
-    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves for s in self.states for r in self.r for s_p in self.states}
+    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves
+              for s in self.states for r in self.r for s_p in self.states}
     print("done")
 
   def next_s(self, s, a):

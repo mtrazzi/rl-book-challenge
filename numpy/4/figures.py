@@ -1,10 +1,8 @@
 import argparse
 
-import numpy as np
 from car_rental import CarRentalEnv
-from gridworld import Gridworld
 from dynamic_programming import DynamicProgramming
-from utils import print_transitions
+from gridworld import Gridworld
 
 
 def random_policy(env):
@@ -21,7 +19,8 @@ def fig_4_1():
   alg.policy_evaluation()
   alg.print_values()
   # show the optimal policy
-  while not alg.policy_improvement(): pass
+  while not alg.policy_improvement():
+    pass
   alg.print_policy_gridworld()
 
 
