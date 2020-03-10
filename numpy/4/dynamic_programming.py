@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import trans_id
+import time
 
 
 class DynamicProgramming:
@@ -93,7 +94,11 @@ class DynamicProgramming:
       self.print_policy_car_rental()
       self.print_values()
       print(f"counter={counter}")
+      start = time.time()
       self.policy_evaluation()
+      print(f"evaluation took {time.time()-start}s")
+      start = time.time()
       if self.policy_improvement():
         return self.V, self.pi
+      print(f"improvement took {time.time()-start}s")
       counter += 1

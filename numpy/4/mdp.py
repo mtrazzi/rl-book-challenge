@@ -1,5 +1,6 @@
 from utils import trans_id
 from abc import ABC, abstractmethod
+import time
 
 
 class MDP(ABC):
@@ -10,10 +11,11 @@ class MDP(ABC):
 
     def init_p(self):
         print("starting to compute transitions p...")
+        start = time.time()
         self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a)
                   for a in self.moves for s in self.states for r in self.r
                   for s_p in self.states}
-        print("done")
+        print(f"finished after {time.time()-start}s")
 
     @abstractmethod
     def _p(self, s_p, r, s, a):
