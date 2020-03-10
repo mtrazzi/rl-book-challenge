@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import skellam
+from utils import trans_id
 
 MAX_CAR_CAP = 4
 MAX_CAR_MOVES = 5
@@ -17,7 +18,9 @@ class CarRentalEnv:
     self.r = list(range(-MAX_CAR_MOVES * CAR_MOVE_COST, MAX_CAR_MOVES * 
                         CAR_MOVE_COST + 1))
     self.size = MAX_CAR_CAP
-    self.p = [[[[self._p(str(s_p), r, str(s), a) for a in self.moves] for s in self.states] for r in self.r] for s_p in self.states]
+    print("starting to compute transitions p...")
+    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves for s in self.states for r in self.r for s_p in self.states}
+    print("done...")
 
   def is_valid(self, s):
     car_arr = np.array(s)

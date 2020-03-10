@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import trans_id
 
 class DynamicProgramming:
   """Dynamic Programming algorithms to run the gridworld and car_rental 
@@ -46,7 +47,7 @@ class DynamicProgramming:
     print(to_print)
 
   def expected_value(self, s, a):
-    return np.sum([self.env.p[str(s_p)][r][str(s)][a] *
+    return np.sum([self.env.p[trans_id(s_p, r, s, a)] *
                             (r + self.gamma * self.V[s_p])
                             for s_p in self.env.states for r in self.env.r])
 
@@ -55,14 +56,12 @@ class DynamicProgramming:
     while True:
       delta = 0
       for s in self.env.states:
-        print(f"{s}")
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                                    for a in self.env.moves])
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
-      print(f"{delta} >= {self.theta}")
 
   def deterministic_pi(self, s):
     return self.env.moves[np.argmax([self.pi[(a, s)] for a in self.env.moves])]

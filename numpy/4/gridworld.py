@@ -1,4 +1,5 @@
 import numpy as np
+from utils import trans_id
 
 MOVES = {
   "UP": (-1, 0),
@@ -18,6 +19,9 @@ class Gridworld:
     self.states = [(x, y) for x in range(self.size)
                    for y in range(self.size)]
     self.r = [-1, 0]
+    print("starting to compute transitions p...")
+    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves for s in self.states for r in self.r for s_p in self.states}
+    print("done")
 
   def next_s(self, s, a):
     move = MOVES[a]
@@ -39,7 +43,7 @@ class Gridworld:
       return 0 <= x < self.size
     return np.all([is_valid_coord(s[i]) for i in range(len(s))])
 
-  def p(self, s_p, r, s, a):
+  def _p(self, s_p, r, s, a):
     s_next = self.next_s(s, a)
     r_next = self.reward(s, a)
     return 1 if (self.is_valid(s_next)
@@ -49,24 +53,3 @@ class Gridworld:
   def is_terminal(self, s):
     return ((s[0] == 0 and s[1] == 0) or
             (s[0] == (self.size - 1) and s[1] == (self.size - 1)))
-
-  def p(self, s_p, r, s, a):
-    (n1, n2), (n1_p, n2_p), m = s, s_p, a
-    if (n1_p < 0 or n2_p < 0 or not (0 <= m <= MAX_CAR_MOVES) or not (0 <= n1 <= MAX_CAR_CAP) or not (0 <= n2 <= MAX_CAR_CAP)):
-      return 0
-    def proba_move_loc(n_p, n, new_cars, lam_ret, lam_rent):
-      args = n_p - n + new_cars, lam_ret, lam_rent
-      if n_p != MAX_CAR_CAP:
-        return skellman.pmf(*args)
-      else:
-        return skellman.sf(*args) + skellman.pmf(*args)
-    return proba_move_loc(n1_p, n1, -m, )
-
-  def reward(self, s, a):
-    req, ret = [[np.random.poisson(lam) for lam in lam_list]
-                          for lam_list in [REN_REQ_LAMBDA, RETURNS_LAMBDA]]
-    new_nb_cars = [min(s[i] + ret[i], MAX_CAR_CAP) for i in range(NB_LOC)]
-    if np.all(np.array(req) <= np.array(new_nb_cars)):
-      return abs(a) * CAR_MOVE_COST + np.sum(req) * RENT_BEN
-    else:
-      return 0
