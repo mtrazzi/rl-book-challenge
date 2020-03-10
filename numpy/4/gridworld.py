@@ -1,5 +1,5 @@
 import numpy as np
-from utils import trans_id
+from mdp import MDP
 
 MOVES = {
   "UP": (-1, 0),
@@ -11,18 +11,27 @@ MOVES = {
 UNIQUE_TERMINAL_STATE = (0, 0)
 
 
-class Gridworld:
+class Gridworld(MDP):
   def __init__(self, size=4):
-    self.size = size
-    self.n_states = self.size ** 2 - 1
-    self.moves = list(MOVES.keys())
-    self.states = [(x, y) for x in range(self.size)
-                   for y in range(self.size)]
-    self.r = [-1, 0]
-    print("starting to compute transitions p...")
-    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves
-              for s in self.states for r in self.r for s_p in self.states}
-    print("done")
+    self.size_val = size
+    super().__init__()
+
+  @property
+  def size(self):
+    return self.size_val
+
+  @property
+  def moves(self):
+    return list(MOVES.keys())
+
+  @property
+  def states(self):
+    return [(x, y) for x in range(self.size)
+            for y in range(self.size)]
+
+  @property
+  def r(self):
+    return [-1, 0]
 
   def next_s(self, s, a):
     move = MOVES[a]

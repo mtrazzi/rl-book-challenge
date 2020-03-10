@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import skellam
-from utils import trans_id
+from mdp import MDP
 
 MAX_CAR_CAP = 4
 MAX_CAR_MOVES = 5
@@ -11,18 +11,27 @@ RENT_BEN = 10
 NB_LOC = 2
 
 
-class CarRentalEnv:
+class CarRentalEnv(MDP):
   def __init__(self):
-    self.states = [(x, y) for x in range(MAX_CAR_CAP)
-                   for y in range(MAX_CAR_CAP)]
-    self.moves = list(range(-MAX_CAR_MOVES, MAX_CAR_MOVES + 1))
-    self.r = list(range(-MAX_CAR_MOVES * CAR_MOVE_COST, MAX_CAR_MOVES *
-                        CAR_MOVE_COST + 1))
-    self.size = MAX_CAR_CAP
-    print("starting to compute transitions p...")
-    self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a) for a in self.moves
-              for s in self.states for r in self.r for s_p in self.states}
-    print("done...")
+    super().__init__()
+
+  @property
+  def size(self):
+    return MAX_CAR_CAP
+
+  @property
+  def moves(self):
+    return list(range(-MAX_CAR_MOVES, MAX_CAR_MOVES + 1))
+
+  @property
+  def states(self):
+    return [(x, y) for x in range(MAX_CAR_CAP)
+            for y in range(MAX_CAR_CAP)]
+
+  @property
+  def r(self):
+    return list(range(-MAX_CAR_MOVES * CAR_MOVE_COST, MAX_CAR_MOVES *
+                      CAR_MOVE_COST + 1))
 
   def is_valid(self, s):
     car_arr = np.array(s)
