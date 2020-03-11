@@ -29,14 +29,16 @@ class DynamicProgramming:
     for x in range(self.env.size):
       for y in range(self.env.size):
         to_print[x][y] = str(self.deterministic_pi((x, y))).ljust(max_length)
+    print("printing policy gridworld")
     print(*to_print, sep='\n')
 
   def print_policy_car_rental(self):
     fig, ax = plt.subplots()
     X = Y = list(range(self.env.size))
     Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
-    print(*Z, sep='\n')
-    # transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
+    print("printing policy car rental")
+    transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
+    print(*transposed_Z, sep='\n')
     # CS = ax.contour(X, Y, transposed_Z)
     # ax.clabel(CS, inline=1, fontsize=10)
     # ax.set_title('Figure 4.2')
@@ -48,12 +50,17 @@ class DynamicProgramming:
     for x in range(self.env.size):
       for y in range(self.env.size):
         to_print[x][y] = self.V[(x, y)]
+    print("printing value function V")
     print(to_print)
 
   def expected_value(self, s, a):
-    return np.sum([self.env.p[trans_id(s_p, r, s, a)] *
-                  (r + self.gamma * self.V[s_p])
-                   for s_p in self.env.states for r in self.env.r])
+    ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
+                (r + self.gamma * self.V[s_p])
+                for s_p in self.env.states for r in self.env.r])
+    print(f"expected value for a={a} s={s} is {ev}")
+    print(*[f"{self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})" for s_p in self.env.states for r in self.env.r], sep='\n')
+    return ev
+
 
   def policy_evaluation(self):
     """Updates V according to current pi."""
@@ -90,15 +97,17 @@ class DynamicProgramming:
       self.initialize_deterministic_pi()
 
     counter = 0
+    self.print_policy_car_rental()
+    self.print_values()
     while True and counter < max_iter:
-      self.print_policy_car_rental()
-      self.print_values()
       print(f"counter={counter}")
       start = time.time()
       self.policy_evaluation()
       print(f"evaluation took {time.time()-start}s")
+      self.print_values()
       start = time.time()
       if self.policy_improvement():
         return self.V, self.pi
       print(f"improvement took {time.time()-start}s")
+      self.print_policy_car_rental()
       counter += 1
