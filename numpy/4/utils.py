@@ -1,10 +1,21 @@
 def print_transitions(env):
+    p_sum = 0
     for s_p in env.states:
         for r in env.r:
             for a in env.moves:
                 for s in env.states:
-                    if env.p(s_p, r, s, a) > 0:
-                        print(f"p({s_p},{r}|{s},{a}) = {env.p(s_p, r, s, a)}")
+                    proba = env._p(s_p, r, s, a)
+                    if proba > 0:
+                        print(f"p({s_p},{r}|{s},{a}) = {proba}")
+                        p_sum += proba
+
+
+def print_psums(env):
+    for s in env.states:
+        for a in env.moves:
+            p_sum = sum([env._p(s_p, r, s, a) for s_p in env.states
+                         for r in env.r])
+            print(f"sum of p(., .| {s}, {a}) = {p_sum}")
 
 
 def trans_id(s_p, r, s, a):

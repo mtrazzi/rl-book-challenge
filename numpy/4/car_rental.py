@@ -15,10 +15,12 @@ class CarRentalEnv(MDP):
     self.max_car_cap = size
     self.init_skellman_probs()
     super().__init__()
+    print(self.r)
 
   @property
   def size(self):
-    return self.max_car_cap
+    # possible nb of cars can go frmo 0 to max car capacity
+    return self.max_car_cap + 1
 
   @property
   def moves(self):
@@ -31,8 +33,9 @@ class CarRentalEnv(MDP):
 
   @property
   def r(self):
-    return list(range(-MAX_CAR_MOVES * CAR_MOVE_COST, MAX_CAR_MOVES *
-                      CAR_MOVE_COST + 1))
+    return [-CAR_MOVE_COST * car_moves + RENT_BEN * car_solds
+            for car_moves in range(MAX_CAR_MOVES + 1)
+            for car_solds in range(self.max_car_cap * 2 + 1)]
 
   def is_valid(self, s):
     car_arr = np.array(s)
@@ -55,7 +58,8 @@ class CarRentalEnv(MDP):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a
     if (n1_p < 0 or n2_p < 0 or not (0 <= m <= MAX_CAR_MOVES)
         or not (0 <= n1 <= self.max_car_cap)
-        or not (0 <= n2 <= self.max_car_cap)):
+        or not (0 <= n2 <= self.max_car_cap)
+        or not (0 <= n1 - m)):
       return 0
 
     def proba_move_loc(n_p, n, new_cars, location):
@@ -65,7 +69,8 @@ class CarRentalEnv(MDP):
       else:
         return self.skell_sf_pmfs[location][idx]
 
-    return proba_move_loc(n1_p, n1, -m, 0) * proba_move_loc(n1_p, n1, m, 1)
+    succ_prob = proba_move_loc(n1_p, n1, m, 0) * proba_move_loc(n1_p, n1, -m, 1)
+    return succ_prob
 
   def is_terminal(self, s):
     return not self.is_valid(s)

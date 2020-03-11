@@ -6,7 +6,7 @@ from gridworld import Gridworld
 
 
 DEF_FIG_4_1_SIZE = 4
-DEF_FIG_4_2_SIZE = 20
+DEF_FIG_4_2_SIZE = 21
 
 
 def random_policy(env):
@@ -33,9 +33,14 @@ def fig_4_1(size=None):
 def fig_4_2(size=None):
   if size is None:
     size = DEF_FIG_4_2_SIZE
-  env = CarRentalEnv(size)
-  alg = DynamicProgramming(env, gamma=0.9, theta=1e-4)
-  alg.policy_iteration(max_iter=1)
+  # size - 1 because nb of cars from 0 to "size" param
+  env = CarRentalEnv(size - 1)
+  from utils import print_psums
+  print_psums(env)
+  # overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
+  # subject_policy = {s: 0 for s in env.states}
+  # alg = DynamicProgramming(env, pi=overflow_policy, gamma=0.9, theta=1e-4)
+  # alg.policy_iteration(max_iter=1)
   # alg.print_values()
   # alg.print_policy_car_rental()
 

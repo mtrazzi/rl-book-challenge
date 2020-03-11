@@ -2,26 +2,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import trans_id
 import time
-
+from car_rental import CarRentalEnv
 
 class DynamicProgramming:
   """
   Dynamic Programming algorithms to run the gridworld and car_rental
   examples (fig 4.1 and 4.2).
   """
-  def __init__(self, env, pi={}, theta=1e-4, gamma=0.9):
+  def __init__(self, env, pi=None, theta=1e-4, gamma=0.9):
     self.theta = theta
     self.env = env  # environment with transitions p
     self.V = {tuple(s): 0 for s in self.env.states}
     self.gamma = gamma
-    self.pi = pi
+    self.pi_init = {} if pi is None else pi  # initial policy (optional)
+    self.pi = {}  # deterministic pi
 
-  def initialize_deterministic_pi(self):
+  def initialize_deterministic_pi(self, arb_d=None):
     """Initializes a deterministic policy pi."""
-    arb_d = {s: np.random.randint(len(self.env.moves)) for s in self.env.states}
+    print(arb_d)
+    if arb_d is None or not arb_d:
+      arb_d = {s: self.env.moves[np.random.randint(len(self.env.moves))]
+               for s in self.env.states}
     for s in self.env.states:
       for a in self.env.moves:
-        self.pi[(a, s)] = int(a == self.env.moves[arb_d[s]])
+        self.pi[(a, s)] = int(a == arb_d[s])
 
   def print_policy_gridworld(self):
     to_print = [[None] * self.env.size for _ in range(self.env.size)]
@@ -44,34 +48,50 @@ class DynamicProgramming:
     # ax.set_title('Figure 4.2')
     # plt.show()
 
+  def print_policy(self):
+    if isinstance(self.env, CarRentalEnv):
+      self.print_policy_car_rental()
+    else:
+      self.print_policy_gridworld()
+
   def print_values(self):
     np.set_printoptions(2)
-    to_print = np.zeros((self.env.size, self.env.size))
-    for x in range(self.env.size):
-      for y in range(self.env.size):
+    size = self.env.size
+    to_print = np.zeros((size, size))
+    idxs = range(size)
+    for x in idxs:
+      for y in idxs:
         to_print[x][y] = self.V[(x, y)]
     print("printing value function V")
-    print(to_print)
+    if isinstance(self.env, CarRentalEnv):
+      to_print = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
+    print(np.array(to_print))
 
   def expected_value(self, s, a):
     ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
                 (r + self.gamma * self.V[s_p])
                 for s_p in self.env.states for r in self.env.r])
-    print(f"expected value for a={a} s={s} is {ev}")
-    print(*[f"{self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})" for s_p in self.env.states for r in self.env.r], sep='\n')
+    if a == 1 and s == (1, 0):
+      print(f"expected value for a={a} s={s} is {ev}")
+      print(*[f"{self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})" for s_p in self.env.states for r in self.env.r], sep='\n')
     return ev
-
 
   def policy_evaluation(self):
     """Updates V according to current pi."""
+    counter = 0
     while True:
+      counter += 1
+      print(f"iteration #{counter}")
       delta = 0
       for s in self.env.states:
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                             for a in self.env.moves])
+        print(*[f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
+                            for a in self.env.moves], sep='\n')
         delta = max(delta, abs(v-self.V[s]))
-      if delta < self.theta:
+      self.print_values()
+      if delta < self.theta or counter >= 10:
         break
 
   def deterministic_pi(self, s):
@@ -93,11 +113,10 @@ class DynamicProgramming:
     return policy_stable
 
   def policy_iteration(self, max_iter=np.inf):
-    if not self.pi:
-      self.initialize_deterministic_pi()
+    self.initialize_deterministic_pi(self.pi_init)
 
     counter = 0
-    self.print_policy_car_rental()
+    self.print_policy()
     self.print_values()
     while True and counter < max_iter:
       print(f"counter={counter}")
@@ -109,5 +128,5 @@ class DynamicProgramming:
       if self.policy_improvement():
         return self.V, self.pi
       print(f"improvement took {time.time()-start}s")
-      self.print_policy_car_rental()
+      self.print_policy()
       counter += 1
