@@ -135,3 +135,11 @@ dmypy.json
 
 # temp figs
 numpy/2/figs/
+
+# virtualenv
+bin/
+lib/
+pyvenv.cfg
+
+# workflow
+poms.txt
