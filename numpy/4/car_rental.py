@@ -56,11 +56,12 @@ class CarRentalEnv(MDP):
 
   def _p(self, s_p, r, s, a):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a
-    if (n1_p < 0 or n2_p < 0 or not (0 <= m <= MAX_CAR_MOVES)
+    if (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= MAX_CAR_MOVES)
         or not (0 <= n1 <= self.max_car_cap)
         or not (0 <= n2 <= self.max_car_cap)
-        or not (0 <= n1 - m)):
+        or not (0 <= n1 - m) or not (0 <= n2 + m)):
       return 0
+
 
     def proba_move_loc(n_p, n, new_cars, location):
       idx = n_p - n + new_cars
