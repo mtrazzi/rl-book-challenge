@@ -72,6 +72,8 @@ class DynamicProgramming:
     ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
                 (r + self.gamma * self.V[s_p])
                 for s_p in self.env.states for r in self.env.r])
+    print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
+                for s_p in self.env.states for r in self.env.r], sep="\n")
     return ev
 
   def policy_evaluation(self):
@@ -79,15 +81,15 @@ class DynamicProgramming:
     counter = 0
     while True:
       counter += 1
-      print(f"at the start of iteration #{counter}")
+      # print(f"at the start of iteration #{counter}")
       delta = 0
-      self.print_values()
+      # self.print_values()
       for s in self.env.states:
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                             for a in self.env.moves])
-        # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
-                              #  for a in self.env.moves], sep=' ')
+        print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
+                               for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:# or counter >= 100:
         break

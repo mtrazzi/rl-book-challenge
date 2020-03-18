@@ -38,12 +38,12 @@ def fig_4_2(size=None):
   # from utils import print_transitions
   # print_psums(env)
   # print_transitions(env)
-  # overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
-  subject_policy = {s: 0 for s in env.states}
-  alg = DynamicProgramming(env, pi=subject_policy, gamma=0.9, theta=1e-4)
+  overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
+  # subject_policy = {s: 0 for s in env.states}
+  alg = DynamicProgramming(env, pi=overflow_policy, gamma=0.9, theta=1e-4)
   alg.policy_iteration()
-  # alg.print_values()
-  # alg.print_policy_car_rental()
+  alg.print_values()
+  alg.print_policy_car_rental()
 
 
 PLOT_FUNCTION = {
