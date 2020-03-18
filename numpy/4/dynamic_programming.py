@@ -4,6 +4,7 @@ from utils import trans_id
 import time
 from car_rental import CarRentalEnv
 
+
 class DynamicProgramming:
   """
   Dynamic Programming algorithms to run the gridworld and car_rental
@@ -71,9 +72,6 @@ class DynamicProgramming:
     ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
                 (r + self.gamma * self.V[s_p])
                 for s_p in self.env.states for r in self.env.r])
-    if a == 1 and s == (1, 0):
-      print(f"expected value for a={a} s={s} is {ev}")
-      print(*[f"{self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})" for s_p in self.env.states for r in self.env.r], sep='\n')
     return ev
 
   def policy_evaluation(self):
@@ -81,17 +79,17 @@ class DynamicProgramming:
     counter = 0
     while True:
       counter += 1
-      print(f"iteration #{counter}")
+      print(f"at the start of iteration #{counter}")
       delta = 0
+      self.print_values()
       for s in self.env.states:
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                             for a in self.env.moves])
-        print(*[f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
-                            for a in self.env.moves], sep='\n')
+        # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
+                              #  for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))
-      self.print_values()
-      if delta < self.theta or counter >= 10:
+      if delta < self.theta:# or counter >= 100:
         break
 
   def deterministic_pi(self, s):
