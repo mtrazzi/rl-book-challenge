@@ -3,7 +3,7 @@ import numpy as np
 from utils import trans_id
 import time
 from car_rental import CarRentalEnv
-from itertools import product
+
 
 class DynamicProgramming:
   """
@@ -28,6 +28,11 @@ class DynamicProgramming:
       for a in self.env.moves:
         self.pi[(a, s)] = int(a == arb_d[s])
 
+  def compute_pi_vects(self):
+    """Initializing vectors for pi(.|s) for faster policy evaluation."""
+    self.pi_vect = {s: [self.pi[(a, s)] for a in self.env.moves]
+                    for s in self.env.states}
+
   def print_policy_gridworld(self):
     to_print = [[None] * self.env.size for _ in range(self.env.size)]
     max_length = max([len(move_name) for move_name in self.env.moves])
@@ -44,7 +49,7 @@ class DynamicProgramming:
     print("printing policy car rental")
     transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
     print(*transposed_Z, sep='\n')
-    CS = ax.contour(X, Y, transposed_Z)
+    CS = ax.contour(X, Y, Z)
     ax.clabel(CS, inline=1, fontsize=10)
     ax.set_title('Figure 4.2')
     plt.show()
@@ -70,14 +75,13 @@ class DynamicProgramming:
       ax = fig.add_subplot(111, projection='3d')
       # coords = list(product(idxs, idxs))
       # def get_j(crds, j): return [crd[j] for crd in crds]
-      # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))  
+      # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))
       (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
       ax.set_xlabel('# of cars at second location', fontsize=10)
       ax.set_ylabel('# of cars at first location', fontsize=10)
       ax.set_xticks([idxs[0], idxs[-1]])
       ax.set_yticks([idxs[0], idxs[-1]])
       ax.set_zticks([np.min(Z), np.max(Z)])
-      import ipdb; ipdb.set_trace()
       ax.plot_surface(X, Y, Z)
       plt.show()
       print(to_print_term)
@@ -85,25 +89,32 @@ class DynamicProgramming:
       print(np.array(to_print))
 
   def expected_value(self, s, a):
-    ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
-                (r + self.gamma * self.V[s_p])
-                for s_p in self.env.states for r in self.env.r])
+    # ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
+                # (r + self.gamma * self.V[s_p])
+                # for s_p in self.env.states for r in self.env.r])
+    p_r = self.env.p[trans_id('', 'r', s, a)]
+    p_s_p = self.env.p[trans_id('s_p', '', s, a)]
+    V_vect = np.array([self.V[s_p] for s_p in self.env.states])
+    return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
     # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
                 # for s_p in self.env.states for r in self.env.r], sep="\n")
-    return ev
+    # return ev
 
   def policy_evaluation(self):
     """Updates V according to current pi."""
     counter = 0
+    self.compute_pi_vects()
     while True:
       counter += 1
-      # print(f"at the start of iteration #{counter}")
+      print(f"iteration #{counter}")
       delta = 0
       # self.print_values()
       for s in self.env.states:
         v = self.V[s]
-        self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
-                            for a in self.env.moves])
+        expected_values = [self.expected_value(s, a) for a in self.env.moves]
+        self.V[s] = np.dot(self.pi_vect[s], expected_values)
+        # self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
+        #                     for a in self.env.moves]) #TODO: vectorize
         # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
         #                        for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))

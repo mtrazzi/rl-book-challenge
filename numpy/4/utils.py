@@ -14,7 +14,6 @@ def print_transitions(env, print_zeros=False):
                         p_sum += proba
 
 
-
 def print_psums(env):
     for s in env.states:
         for a in env.moves:
