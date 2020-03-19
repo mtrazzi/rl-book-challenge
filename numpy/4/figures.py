@@ -35,12 +35,12 @@ def fig_4_2(size=None):
     size = DEF_FIG_4_2_SIZE
   # size - 1 because nb of cars from 0 to "size" param
   env = CarRentalEnv(size - 1)
-  # from utils import print_transitions
-  # print_psums(env)
-  # print_transitions(env)
-  overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
-  # subject_policy = {s: 0 for s in env.states}
-  alg = DynamicProgramming(env, pi=overflow_policy, gamma=0.9, theta=1e-4)
+  from utils import print_transitions, print_old_psums, print_psums
+  # print _psums(env)
+  # print_transitions(env, print_zeros=True)
+  # overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
+  subject_policy = {s: 0 for s in env.states}
+  alg = DynamicProgramming(env, pi=subject_policy, gamma=0.9, theta=1)
   alg.policy_iteration()
   alg.print_values()
   alg.print_policy_car_rental()

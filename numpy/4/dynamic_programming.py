@@ -3,7 +3,7 @@ import numpy as np
 from utils import trans_id
 import time
 from car_rental import CarRentalEnv
-
+from itertools import product
 
 class DynamicProgramming:
   """
@@ -44,10 +44,10 @@ class DynamicProgramming:
     print("printing policy car rental")
     transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
     print(*transposed_Z, sep='\n')
-    # CS = ax.contour(X, Y, transposed_Z)
-    # ax.clabel(CS, inline=1, fontsize=10)
-    # ax.set_title('Figure 4.2')
-    # plt.show()
+    CS = ax.contour(X, Y, transposed_Z)
+    ax.clabel(CS, inline=1, fontsize=10)
+    ax.set_title('Figure 4.2')
+    plt.show()
 
   def print_policy(self):
     if isinstance(self.env, CarRentalEnv):
@@ -59,21 +59,37 @@ class DynamicProgramming:
     np.set_printoptions(2)
     size = self.env.size
     to_print = np.zeros((size, size))
-    idxs = range(size)
+    idxs = list(range(size))
     for x in idxs:
       for y in idxs:
         to_print[x][y] = self.V[(x, y)]
     print("printing value function V")
     if isinstance(self.env, CarRentalEnv):
-      to_print = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
-    print(np.array(to_print))
+      to_print_term = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
+      fig = plt.figure()
+      ax = fig.add_subplot(111, projection='3d')
+      # coords = list(product(idxs, idxs))
+      # def get_j(crds, j): return [crd[j] for crd in crds]
+      # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))  
+      (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
+      ax.set_xlabel('# of cars at second location', fontsize=10)
+      ax.set_ylabel('# of cars at first location', fontsize=10)
+      ax.set_xticks([idxs[0], idxs[-1]])
+      ax.set_yticks([idxs[0], idxs[-1]])
+      ax.set_zticks([np.min(Z), np.max(Z)])
+      import ipdb; ipdb.set_trace()
+      ax.plot_surface(X, Y, Z)
+      plt.show()
+      print(to_print_term)
+    else:
+      print(np.array(to_print))
 
   def expected_value(self, s, a):
     ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
                 (r + self.gamma * self.V[s_p])
                 for s_p in self.env.states for r in self.env.r])
-    print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
-                for s_p in self.env.states for r in self.env.r], sep="\n")
+    # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
+                # for s_p in self.env.states for r in self.env.r], sep="\n")
     return ev
 
   def policy_evaluation(self):
@@ -88,8 +104,8 @@ class DynamicProgramming:
         v = self.V[s]
         self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
                             for a in self.env.moves])
-        print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
-                               for a in self.env.moves], sep=' ')
+        # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
+        #                        for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:# or counter >= 100:
         break
@@ -116,17 +132,17 @@ class DynamicProgramming:
     self.initialize_deterministic_pi(self.pi_init)
 
     counter = 0
-    self.print_policy()
-    self.print_values()
+    # self.print_policy()
+    # self.print_values()
     while True and counter < max_iter:
       print(f"counter={counter}")
       start = time.time()
       self.policy_evaluation()
       print(f"evaluation took {time.time()-start}s")
-      self.print_values()
+      # self.print_values()
       start = time.time()
       if self.policy_improvement():
         return self.V, self.pi
       print(f"improvement took {time.time()-start}s")
-      self.print_policy()
+      # self.print_policy()   
       counter += 1

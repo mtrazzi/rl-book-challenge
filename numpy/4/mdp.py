@@ -13,8 +13,8 @@ class MDP(ABC):
         print("starting to compute transitions p...")
         start = time.time()
         self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a)
-                  for a in self.moves for s in self.states for r in self.r
-                  for s_p in self.states}
+                  for s in self.states for a in self.moves
+                  for s_p in self.states for r in self.r}
         print(f"finished after {time.time()-start}s")
 
     @abstractmethod

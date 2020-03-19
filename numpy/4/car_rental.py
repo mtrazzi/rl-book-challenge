@@ -76,16 +76,22 @@ class CarRentalEnv(MDP):
     move_cost = abs(m) * CAR_MOVE_COST
     max_ben = (n1 + n2) * RENT_BEN
     nb_sells = (r + move_cost) // RENT_BEN
-    # print(f"nb_sells={nb_sells}, n1p={n1_p}, n2p={n2_p},n1={n1}, n2={n2}, m={m}")
+    # print(f"nb_sells={nb_sells}, n1p={n1_p}, n2p={n2_p},n1={n1}, n2={n2}, m={m}, r={r}")
     if (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= MAX_CAR_MOVES)
         or not (0 <= n1 <= self.max_car_cap)
         or not (0 <= n2 <= self.max_car_cap)
         or not (0 <= n1 - m) or not (0 <= n2 + m)
         or not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))):
+      # print(f"p({s_p},{r}|{s},{a}) = 0", end='')
+      # if not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN)):
+      #   print(f" (bc {r} not in {list(range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))})")
+      # else:
+      #   print()
       return 0
 
     def p_ret(n_p, n, req, moved_cars, loc):
-      if req >= (n - moved_cars):
+      if req > (n - moved_cars):
+        # print(f"{req} >= ({n} - {moved_cars})")
         return 0
       idx = n_p - (n - moved_cars) + req
       # print(f"(loc {loc}) (idx){idx} = (n_p){n_p} - (n){n} + (req){req} + (moved_cars){moved_cars}")
@@ -96,6 +102,7 @@ class CarRentalEnv(MDP):
     p_diff = sum([p_ret(n1_p, n1, k, m, 0)
                   * p_ret(n2_p, n2, nb_sells - k, -m, 1)
                   for k in range(nb_sells + 1)])
+    # print(f"p({s_p},{r}|{s},{a}) = {p_sells * p_diff} (= {p_sells} * {p_diff})")
     return p_sells * p_diff
 
   def renormalize(self):
