@@ -3,7 +3,6 @@ from scipy.stats import skellam, poisson
 from mdp import MDP
 from utils import trans_id
 
-MAX_CAR_MOVES = 1
 REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]
 CAR_MOVE_COST = 2
@@ -14,9 +13,9 @@ NB_LOC = 2
 class CarRentalEnv(MDP):
   def __init__(self, size):
     self.max_car_cap = size
+    self.max_car_moves = max(self.max_car_cap // 4, 1)
     self.init_probs()
     super().__init__()
-    self.renormalize()
 
   @property
   def size(self):
@@ -25,7 +24,7 @@ class CarRentalEnv(MDP):
 
   @property
   def moves(self):
-    return list(range(-MAX_CAR_MOVES, MAX_CAR_MOVES + 1))
+    return list(range(-self.max_car_moves, self.max_car_moves + 1))
 
   @property
   def states(self):
@@ -35,7 +34,7 @@ class CarRentalEnv(MDP):
   @property
   def r(self):
     return [-CAR_MOVE_COST * car_moves + RENT_BEN * car_solds
-            for car_moves in range(MAX_CAR_MOVES + 1)
+            for car_moves in range(self.max_car_moves + 1)
             for car_solds in range(self.max_car_cap * NB_LOC + 1)]
 
   def is_valid(self, s):
@@ -50,8 +49,8 @@ class CarRentalEnv(MDP):
     # can only sell cars up to max capacity * nb of locations
     self.poiss_pmfs = [poisson.pmf(j, sum(REQUEST_LAMBDA))
                        for j in range(max(self.r) + 1)]
-    pmf_range = list(range(-self.max_car_cap - MAX_CAR_MOVES,
-                     self.max_car_cap + MAX_CAR_MOVES + 1))
+    pmf_range = list(range(-self.max_car_cap - self.max_car_moves,
+                     self.max_car_cap + self.max_car_moves + 1))
     for i in range(NB_LOC):
       lam_ret, lam_rent = RETURNS_LAMBDA[i], REQUEST_LAMBDA[i]
       self.skell_pmfs[i] = {j: skellam.pmf(j, lam_ret, lam_rent)
@@ -77,7 +76,7 @@ class CarRentalEnv(MDP):
     max_ben = (n1 + n2) * RENT_BEN
     nb_sells = (r + move_cost) // RENT_BEN
     # print(f"nb_sells={nb_sells}, n1p={n1_p}, n2p={n2_p},n1={n1}, n2={n2}, m={m}, r={r}")
-    if (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= MAX_CAR_MOVES)
+    if (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= self.max_car_moves)
         or not (0 <= n1 <= self.max_car_cap)
         or not (0 <= n2 <= self.max_car_cap)
         or not (0 <= n1 - m) or not (0 <= n2 + m)
@@ -104,16 +103,6 @@ class CarRentalEnv(MDP):
                   for k in range(nb_sells + 1)])
     # print(f"p({s_p},{r}|{s},{a}) = {p_sells * p_diff} (= {p_sells} * {p_diff})")
     return p_sells * p_diff
-
-  def renormalize(self):
-    for s in self.states:
-        for a in self.moves:
-            p_sum = sum([self._p(s_p, r, s, a) for s_p in self.states
-                        for r in self.r])
-            if p_sum > 0:
-              for s_p in self.states:
-                for r in self.r:
-                  self.p[trans_id(s_p, r, s, a)] /= p_sum
 
   def is_terminal(self, s):
     return not self.is_valid(s)

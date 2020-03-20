@@ -60,7 +60,7 @@ class DynamicProgramming:
     else:
       self.print_policy_gridworld()
 
-  def print_values(self):
+  def print_values(self, show_matplotlib=False):
     np.set_printoptions(2)
     size = self.env.size
     to_print = np.zeros((size, size))
@@ -71,20 +71,21 @@ class DynamicProgramming:
     print("printing value function V")
     if isinstance(self.env, CarRentalEnv):
       to_print_term = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
-      fig = plt.figure()
-      ax = fig.add_subplot(111, projection='3d')
-      # coords = list(product(idxs, idxs))
-      # def get_j(crds, j): return [crd[j] for crd in crds]
-      # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))
-      (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
-      ax.set_xlabel('# of cars at second location', fontsize=10)
-      ax.set_ylabel('# of cars at first location', fontsize=10)
-      ax.set_xticks([idxs[0], idxs[-1]])
-      ax.set_yticks([idxs[0], idxs[-1]])
-      ax.set_zticks([np.min(Z), np.max(Z)])
-      ax.plot_surface(X, Y, Z)
-      plt.show()
-      print(to_print_term)
+      if show_matplotlib:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        # coords = list(product(idxs, idxs))
+        # def get_j(crds, j): return [crd[j] for crd in crds]
+        # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))
+        (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
+        ax.set_xlabel('# of cars at second location', fontsize=10)
+        ax.set_ylabel('# of cars at first location', fontsize=10)
+        ax.set_xticks([idxs[0], idxs[-1]])
+        ax.set_yticks([idxs[0], idxs[-1]])
+        ax.set_zticks([np.min(Z), np.max(Z)])
+        ax.plot_surface(X, Y, Z)
+        plt.show()
+      print(np.array(to_print_term))
     else:
       print(np.array(to_print))
 
@@ -95,6 +96,7 @@ class DynamicProgramming:
     p_r = self.env.p[trans_id('', 'r', s, a)]
     p_s_p = self.env.p[trans_id('s_p', '', s, a)]
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
+    # print(f"{int(np.dot(self.env.r, p_r))} + {self.gamma} * {int(np.dot(V_vect, p_s_p))}")
     return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
     # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
                 # for s_p in self.env.states for r in self.env.r], sep="\n")
@@ -108,17 +110,18 @@ class DynamicProgramming:
       counter += 1
       print(f"iteration #{counter}")
       delta = 0
-      # self.print_values()
+      self.print_values()
       for s in self.env.states:
         v = self.V[s]
         expected_values = [self.expected_value(s, a) for a in self.env.moves]
+        # print(expected_values)
         self.V[s] = np.dot(self.pi_vect[s], expected_values)
         # self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
         #                     for a in self.env.moves]) #TODO: vectorize
         # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
         #                        for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))
-      if delta < self.theta:# or counter >= 100:
+      if delta < self.theta:# or counter >= 1:
         break
 
   def deterministic_pi(self, s):

@@ -42,7 +42,7 @@ def fig_4_2(size=None):
   subject_policy = {s: 0 for s in env.states}
   alg = DynamicProgramming(env, pi=subject_policy, gamma=0.9, theta=1)
   alg.policy_iteration()
-  alg.print_values()
+  alg.print_values(show_matplotlib=True)
   alg.print_policy_car_rental()
 
 
