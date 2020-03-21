@@ -8,14 +8,16 @@ RETURNS_LAMBDA = [3, 2]
 CAR_MOVE_COST = 2
 RENT_BEN = 10
 NB_LOC = 2
+ABSORBING_STATE = (-1, -1)
 
 
 class CarRentalEnv(MDP):
   def __init__(self, size):
     self.max_car_cap = size
-    self.max_car_moves = max(self.max_car_cap // 4, 1)
+    self.max_car_moves = self.max_car_cap // 5 + 1
     self.init_probs()
     super().__init__()
+    # print(f"self.max_car_moves is {self.max_car_moves}")
 
   @property
   def size(self):
@@ -29,7 +31,7 @@ class CarRentalEnv(MDP):
   @property
   def states(self):
     return [(x, y) for x in range(self.max_car_cap + 1)
-            for y in range(self.max_car_cap + 1)]
+            for y in range(self.max_car_cap + 1)] + [ABSORBING_STATE]
 
   @property
   def r(self):
@@ -62,47 +64,40 @@ class CarRentalEnv(MDP):
   def init_probs(self):
     # can only sell cars up to max capacity * nb of locations
     sell_range = range(self.max_car_cap * NB_LOC + 1)
-    self.req_pmfs = [poisson.pmf(j, sum(REQUEST_LAMBDA))
-                     for j in sell_range]
+    self.req_pmfs = {i: [poisson.pmf(j, REQUEST_LAMBDA[i])
+                     for j in sell_range] for i in range(NB_LOC)}
+    self.req_cdf = {i: [poisson.cdf(j, REQUEST_LAMBDA[i])
+                   for j in sell_range] for i in range(NB_LOC)}
     self.ret_pmfs = {i: [poisson.pmf(j, RETURNS_LAMBDA[i])
                      for j in sell_range] for i in range(NB_LOC)}
-    self.ret_sf_pmfs = {i: [poisson.pmf(j, RETURNS_LAMBDA[i]) +
-                            poisson.sf(j, RETURNS_LAMBDA[i])
-                            for j in sell_range] for i in range(NB_LOC)}
+    self.ret_sf = {i: [poisson.sf(j, RETURNS_LAMBDA[i])
+                   for j in sell_range] for i in range(NB_LOC)}
 
   def _p(self, s_p, r, s, a):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a
     move_cost = abs(m) * CAR_MOVE_COST
     max_ben = (n1 + n2) * RENT_BEN
     nb_sells = (r + move_cost) // RENT_BEN
-    # print(f"nb_sells={nb_sells}, n1p={n1_p}, n2p={n2_p},n1={n1}, n2={n2}, m={m}, r={r}")
-    if (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= self.max_car_moves)
-        or not (0 <= n1 <= self.max_car_cap)
-        or not (0 <= n2 <= self.max_car_cap)
-        or not (0 <= n1 - m) or not (0 <= n2 + m)
-        or not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))):
-      # print(f"p({s_p},{r}|{s},{a}) = 0", end='')
-      # if not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN)):
-      #   print(f" (bc {r} not in {list(range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))})")
-      # else:
-      #   print()
+    if self.is_terminal(s):
+      return (s_p == s) and (r == 0)
+    elif self.is_terminal(s_p) and m <= n1 and -m <= n2:
+      return (1 - self.req_cdf[0][n1 - m] * self.req_cdf[1][n2 + m]) * (r == 0)
+    elif (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= self.max_car_moves)
+          or not (0 <= n1 <= self.max_car_cap)
+          or not (0 <= n2 <= self.max_car_cap)
+          or not (0 <= n1 - m) or not (0 <= n2 + m)
+          or not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))
+          or s == ABSORBING_STATE):
       return 0
 
     def p_ret(n_p, n, req, moved_cars, loc):
-      if req > (n - moved_cars):
-        # print(f"{req} >= ({n} - {moved_cars})")
-        return 0
       idx = n_p - (n - moved_cars) + req
-      # print(f"(loc {loc}) (idx){idx} = (n_p){n_p} - (n){n} + (req){req} + (moved_cars){moved_cars}")
-      p_fn = self.ret_sf_pmfs if n_p == self.max_car_cap else self.ret_pmfs
-      return p_fn[loc][idx]
-
-    p_sells = self.req_pmfs[nb_sells]
-    p_diff = sum([p_ret(n1_p, n1, k, m, 0)
-                  * p_ret(n2_p, n2, nb_sells - k, -m, 1)
-                  for k in range(nb_sells + 1)])
-    # print(f"p({s_p},{r}|{s},{a}) = {p_sells * p_diff} (= {p_sells} * {p_diff})")
-    return p_sells * p_diff
+      return ((self.ret_sf[loc][idx] + self.ret_pmfs[loc][idx])
+              if n_p == self.max_car_cap else self.ret_pmfs[loc][idx])
+    return sum([p_ret(n1_p, n1, k, m, 0)
+                * p_ret(n2_p, n2, nb_sells - k, -m, 1)
+                * self.req_pmfs[0][k] * self.req_pmfs[1][nb_sells - k]
+                for k in range(nb_sells - n2 - m, n1 - m + 1)])
 
   def is_terminal(self, s):
     return not self.is_valid(s)

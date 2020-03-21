@@ -20,7 +20,7 @@ class DynamicProgramming:
 
   def initialize_deterministic_pi(self, arb_d=None):
     """Initializes a deterministic policy pi."""
-    print(arb_d)
+    # print(arb_d)
     if arb_d is None or not arb_d:
       arb_d = {s: self.env.moves[np.random.randint(len(self.env.moves))]
                for s in self.env.states}
@@ -52,7 +52,7 @@ class DynamicProgramming:
     CS = ax.contour(X, Y, Z)
     ax.clabel(CS, inline=1, fontsize=10)
     ax.set_title('Figure 4.2')
-    plt.show()
+    # plt.show()
 
   def print_policy(self):
     if isinstance(self.env, CarRentalEnv):
@@ -84,7 +84,7 @@ class DynamicProgramming:
         ax.set_yticks([idxs[0], idxs[-1]])
         ax.set_zticks([np.min(Z), np.max(Z)])
         ax.plot_surface(X, Y, Z)
-        plt.show()
+        # plt.show()
       print(np.array(to_print_term))
     else:
       print(np.array(to_print))
@@ -96,7 +96,8 @@ class DynamicProgramming:
     p_r = self.env.p[trans_id('', 'r', s, a)]
     p_s_p = self.env.p[trans_id('s_p', '', s, a)]
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    # print(f"{int(np.dot(self.env.r, p_r))} + {self.gamma} * {int(np.dot(V_vect, p_s_p))}")
+    # if s[0] == 5 and s[1] == 0:
+    #   print(f"(expected value of {a}) {int(np.dot(self.env.r, p_r))} + {self.gamma} * {int(np.dot(V_vect, p_s_p))}")
     return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
     # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
                 # for s_p in self.env.states for r in self.env.r], sep="\n")
@@ -108,9 +109,9 @@ class DynamicProgramming:
     self.compute_pi_vects()
     while True:
       counter += 1
-      print(f"iteration #{counter}")
+      # print(f"iteration #{counter}")
       delta = 0
-      self.print_values()
+      # self.print_values()
       for s in self.env.states:
         v = self.V[s]
         expected_values = [self.expected_value(s, a) for a in self.env.moves]
@@ -137,6 +138,8 @@ class DynamicProgramming:
     policy_stable = True
     for s in self.env.states:
       old_action = self.deterministic_pi(s)
+      # print(f"for s={s}, old action = {old_action}")
+      # print([self.expected_value(s, a) for a in self.env.moves])
       self.update_pi(s, self.env.moves[np.argmax([self.expected_value(s, a)
                      for a in self.env.moves])])
       policy_stable = policy_stable and (old_action == self.deterministic_pi(s))

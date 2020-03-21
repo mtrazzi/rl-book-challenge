@@ -28,6 +28,10 @@ def print_old_psums(env):
             p_sum = sum([env._p(s_p, r, s, a) for s_p in env.states
                         for r in env.r])
             print(f"sum of p(., .| {s}, {a}) = {p_sum}")
+            if s == (0, 0) and a == 0:
+                for s_p in env.states:
+                    pr = sum([env._p(s_p, r, s, a) for r in env.r])
+                    print(f"sum(p({s_p},.|{s},{a})) = {pr}")
 
 
 def print_one_psum(env, s, a):
