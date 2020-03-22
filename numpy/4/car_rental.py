@@ -82,12 +82,9 @@ class CarRentalEnv(MDP):
       return (s_p == s) and (r == 0)
     elif self.is_terminal(s_p) and m <= n1 and -m <= n2:
       return (1 - self.req_cdf[0][n1 - m] * self.req_cdf[1][n2 + m]) * (r == 0)
-    elif (n1_p < 0 or n2_p < 0 or not (0 <= abs(m) <= self.max_car_moves)
-          or not (0 <= n1 <= self.max_car_cap)
-          or not (0 <= n2 <= self.max_car_cap)
-          or not (0 <= n1 - m) or not (0 <= n2 + m)
-          or not (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))
-          or s == ABSORBING_STATE):
+    elif not ((0 <= n1 - m <= self.max_car_cap)
+              and (0 <= n2 + m <= self.max_car_cap)
+              and (r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN))):
       return 0
 
     def p_ret(n_p, n, req, moved_cars, loc):

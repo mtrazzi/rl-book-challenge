@@ -26,8 +26,6 @@ class MDP(ABC):
         self.p = {trans_id(s_p, r, s, a): self._p(s_p, r, s, a)
                   for s in self.states for a in self.moves
                   for s_p in self.states for r in self.r}
-        from utils import print_old_psums
-        print_old_psums(self)
         # hardcoded normalization to avoid overflow
         self.renormalize()
 
