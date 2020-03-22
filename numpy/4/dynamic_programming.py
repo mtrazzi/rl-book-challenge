@@ -45,7 +45,7 @@ class DynamicProgramming:
   def print_policy_car_rental(self):
     fig, ax = plt.subplots()
     X = Y = list(range(self.env.size))
-    print(*[f"({s}) {self.deterministic_pi(s)}" for s in self.env.states], sep='\n')
+    # print(*[f"({s}) {self.deterministic_pi(s)}" for s in self.env.states], sep='\n')
     Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
     print("printing policy car rental")
     transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
@@ -97,9 +97,9 @@ class DynamicProgramming:
     p_r = self.env.p[trans_id('', 'r', s, a)]
     p_s_p = self.env.p[trans_id('s_p', '', s, a)]
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    if s == (1, 0):
-      ev = np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
-      print(f"(expected value of {a}) {ev} = {np.dot(self.env.r, p_r)} + {self.gamma} * {np.dot(V_vect, p_s_p)}")
+    # if s == (1, 1):
+    #   ev = np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
+    #   print(f"(expected value of {s}, {a}) {ev} = {np.dot(self.env.r, p_r)} + {self.gamma} * {np.dot(V_vect, p_s_p)}")
       # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
                   # for s_p in self.env.states for r in self.env.r], sep="\n")
     return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
@@ -154,14 +154,14 @@ class DynamicProgramming:
     # self.print_policy()
     # self.print_values()
     while True and counter < max_iter:
-      print(f"counter={counter}")
+      # print(f"pol iteration step #{counter}")
       start = time.time()
       self.policy_evaluation()
-      print(f"evaluation took {time.time()-start}s")
+      # print(f"evaluation took {time.time()-start}s")
       # self.print_values()
       start = time.time()
       if self.policy_improvement():
         return self.V, self.pi
-      print(f"improvement took {time.time()-start}s")
+      # print(f"improvement took {time.time()-start}s")
       # self.print_policy()   
       counter += 1
