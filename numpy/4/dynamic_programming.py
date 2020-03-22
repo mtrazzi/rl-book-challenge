@@ -97,9 +97,9 @@ class DynamicProgramming:
     p_r = self.env.p[trans_id('', 'r', s, a)]
     p_s_p = self.env.p[trans_id('s_p', '', s, a)]
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    # if s == (1, 1):
-    #   ev = np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
-    #   print(f"(expected value of {s}, {a}) {ev} = {np.dot(self.env.r, p_r)} + {self.gamma} * {np.dot(V_vect, p_s_p)}")
+    # if s == (0, 0):
+      # ev = np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
+      # print(f"(expected value of {s}, {a}) {ev} = {np.dot(self.env.r, p_r)} + {self.gamma} * {np.dot(V_vect, p_s_p)}")
       # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
                   # for s_p in self.env.states for r in self.env.r], sep="\n")
     return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)

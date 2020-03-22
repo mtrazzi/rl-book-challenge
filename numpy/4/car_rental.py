@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.stats import skellam, poisson
 from mdp import MDP
-from utils import trans_id
+import time
+import line_profiler
 
 REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]
@@ -39,10 +40,6 @@ class CarRentalEnv(MDP):
             for car_moves in range(self.max_car_moves + 1)
             for car_solds in range(self.max_car_cap * NB_LOC + 1)]
 
-  def is_valid(self, s):
-    car_arr = np.array(s)
-    return np.all((0 <= car_arr) & (car_arr <= self.max_car_cap))
-
   def init_probs_old(self):
     # nb cars returned yesterday - nb cars rented today is a diff of poisson
     # which follows a skellman distribution
@@ -63,6 +60,7 @@ class CarRentalEnv(MDP):
 
   def init_probs(self):
     # can only sell cars up to max capacity * nb of locations
+    start = time.time()
     sell_range = range(self.max_car_cap * NB_LOC + 1)
     self.req_pmfs = {i: [poisson.pmf(j, REQUEST_LAMBDA[i])
                      for j in sell_range] for i in range(NB_LOC)}
@@ -70,8 +68,11 @@ class CarRentalEnv(MDP):
                    for j in sell_range] for i in range(NB_LOC)}
     self.ret_pmfs = {i: [poisson.pmf(j, RETURNS_LAMBDA[i])
                      for j in sell_range] for i in range(NB_LOC)}
-    self.ret_sf = {i: [poisson.sf(j, RETURNS_LAMBDA[i])
-                   for j in sell_range] for i in range(NB_LOC)}
+    self.ret_sf_pmfs = {i: [poisson.sf(j, RETURNS_LAMBDA[i]) +
+                        self.ret_pmfs[i][j] for j in sell_range]
+                        for i in range(NB_LOC)}
+    print(f"init probs took: {time.time()-start:.2f}s")
+    self.req_pmfs_prod = {(k, n_sells - k): self.req_pmfs[0][k] * self.req_pmfs[1][n_sells - k] for n_sells in sell_range for k in range(n_sells + 1)}
 
   def _p(self, s_p, r, s, a):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a
@@ -89,12 +90,13 @@ class CarRentalEnv(MDP):
 
     def p_ret(n_p, n, req, moved_cars, loc):
       idx = n_p - (n - moved_cars) + req
-      return ((self.ret_sf[loc][idx] + self.ret_pmfs[loc][idx])
+      return ((self.ret_sf_pmfs[loc][idx])
               if n_p == self.max_car_cap else self.ret_pmfs[loc][idx])
+    # print(f"(nb_sells={nb_sells}) {nb_sells}-{n2}-{m}={nb_sells - n2 - m}->{n1 - m}={n1}-{m}")
     return sum([p_ret(n1_p, n1, k, m, 0)
                 * p_ret(n2_p, n2, nb_sells - k, -m, 1)
-                * self.req_pmfs[0][k] * self.req_pmfs[1][nb_sells - k]
-                for k in range(nb_sells - n2 - m, n1 - m + 1)])
+                * self.req_pmfs_prod[(k, nb_sells - k)]
+                for k in range(nb_sells + 1)])
 
   def is_terminal(self, s):
-    return not self.is_valid(s)
+    return s == ABSORBING_STATE
