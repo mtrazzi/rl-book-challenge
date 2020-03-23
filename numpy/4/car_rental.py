@@ -16,11 +16,10 @@ class CarRentalEnv(MDP):
     self.max_car_moves = self.max_car_cap // 5 + 1
     self.init_probs()
     super().__init__()
-    # print(f"self.max_car_moves is {self.max_car_moves}")
 
   @property
   def size(self):
-    # possible nb of cars can go frmo 0 to max car capacity
+    # possible nb of cars can go from 0 to max car capacity
     return self.max_car_cap + 1
 
   @property
@@ -38,38 +37,22 @@ class CarRentalEnv(MDP):
             for car_moves in range(self.max_car_moves + 1)
             for car_solds in range(self.max_car_cap * NB_LOC + 1)]
 
-  def init_probs_old(self):
-    # nb cars returned yesterday - nb cars rented today is a diff of poisson
-    # which follows a skellman distribution
-    self.skell_pmfs = {i: {} for i in range(NB_LOC)}
-    self.skell_sf_pmfs = {i: {} for i in range(NB_LOC)}
-    # can only sell cars up to max capacity * nb of locations
-    self.poiss_pmfs = [poisson.pmf(j, sum(REQUEST_LAMBDA))
-                       for j in range(max(self.r) + 1)]
-    pmf_range = list(range(-self.max_car_cap - self.max_car_moves,
-                     self.max_car_cap + self.max_car_moves + 1))
-    for i in range(NB_LOC):
-      lam_ret, lam_rent = RETURNS_LAMBDA[i], REQUEST_LAMBDA[i]
-      self.skell_pmfs[i] = {j: skellam.pmf(j, lam_ret, lam_rent)
-                            for j in pmf_range}
-      self.skell_sf_pmfs[i] = {j: (skellam.pmf(j, lam_ret, lam_rent) +
-                               skellam.sf(j, lam_ret, lam_rent))
-                               for j in pmf_range}
-
   def init_probs(self):
-    # can only sell cars up to max capacity * nb of locations
-    start = time.time()
+    """Computing some probabilities in advance to make it go faster."""
     sell_range = range(self.max_car_cap * NB_LOC + 1)
     self.req_pmfs = {i: [poisson.pmf(j, REQUEST_LAMBDA[i])
                      for j in sell_range] for i in range(NB_LOC)}
     self.req_cdf = {i: [poisson.cdf(j, REQUEST_LAMBDA[i])
-                   for j in sell_range] for i in range(NB_LOC)}
+                    for j in sell_range] for i in range(NB_LOC)}
     self.ret_pmfs = {i: [poisson.pmf(j, RETURNS_LAMBDA[i])
                      for j in sell_range] for i in range(NB_LOC)}
     self.ret_sf_pmfs = {i: [poisson.sf(j, RETURNS_LAMBDA[i]) +
                         self.ret_pmfs[i][j] for j in sell_range]
                         for i in range(NB_LOC)}
-    self.req_pmfs_prod = {(k, n_sells - k): self.req_pmfs[0][k] * self.req_pmfs[1][n_sells - k] for n_sells in sell_range for k in range(n_sells + 1)}
+    self.req_pmfs_prod = {(k, n_sells - k): (self.req_pmfs[0][k] *
+                                             self.req_pmfs[1][n_sells - k])
+                          for n_sells in sell_range
+                          for k in range(n_sells + 1)}
 
   def _p(self, s_p, r, s, a):
     (n1, n2), (n1_p, n2_p), m = s, s_p, a

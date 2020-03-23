@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import trans_id
-import time
 from car_rental import CarRentalEnv
 
 
@@ -52,7 +50,7 @@ class DynamicProgramming:
     CS = ax.contour(X, Y, Z)
     ax.clabel(CS, inline=1, fontsize=10)
     ax.set_title('Figure 4.2')
-    # plt.show()
+    plt.show()
 
   def print_policy(self):
     if isinstance(self.env, CarRentalEnv):
@@ -88,10 +86,6 @@ class DynamicProgramming:
 
   def expected_value(self, s, a):
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    # if s == (0, 0) and a == 0:
-      # for (i, s_p) in enumerate(self.env.states):
-      # print(*[f"{s_p}: {V_vect[i] * self.env.psp[(s, a)][i]} = {V_vect[i]} * {self.env.psp[(s, a)][i]}" for (i, s_p) in enumerate(self.env.states)], sep='\n')
-      # input()
     return (np.dot(self.env.r, self.env.pr[(s, a)])
             + self.gamma * np.dot(V_vect, self.env.psp[(s, a)]))
 
