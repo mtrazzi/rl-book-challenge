@@ -47,7 +47,8 @@ class DynamicProgramming:
     print("printing policy car rental")
     transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
     print(*transposed_Z, sep='\n')
-    CS = ax.contour(X, Y, Z)
+    pol_range = list(range(np.min(transposed_Z), np.max(transposed_Z) + 1))
+    CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
     ax.clabel(CS, inline=1, fontsize=10)
     ax.set_title('Figure 4.2')
     plt.show()
