@@ -41,3 +41,15 @@ python gradient_bandit.py
 ```bash
 python summary.py 2.6
 ```
+
+### Figure 4.2:
+
+![fig4.2.png](fig4.2.png)
+
+![fig4.2.png](fig4.2_policy.png)
+
+```bash
+python figures 4.2 --size 8
+```
+
+(theoretically, removing --size defaults to 20 and would give something similar to the 20x20 example from the book)
