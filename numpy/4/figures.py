@@ -41,7 +41,7 @@ def fig_4_2(size=None):
   # print_transitions(env, print_zeros=True)
   # overflow_policy = {(0, 0): 0, (1, 0): 1, (0, 1): 0, (1, 1): 0}
   subject_policy = {s: 0 for s in env.states}
-  alg = DynamicProgramming(env, pi=subject_policy, gamma=0.9, theta=1e-4)
+  alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
   alg.policy_iteration()
   alg.print_values(show_matplotlib=False)
   alg.print_policy_car_rental()

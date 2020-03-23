@@ -2,7 +2,6 @@ import numpy as np
 from scipy.stats import skellam, poisson
 from mdp import MDP
 import time
-import line_profiler
 
 REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]

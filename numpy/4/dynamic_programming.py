@@ -10,27 +10,27 @@ class DynamicProgramming:
   Dynamic Programming algorithms to run the gridworld and car_rental
   examples (fig 4.1 and 4.2).
   """
-  def __init__(self, env, pi=None, theta=1e-4, gamma=0.9):
+  def __init__(self, env, pi=None, det_pi=None, theta=1e-4, gamma=0.9):
     self.theta = theta
-    self.env = env  # environment with transitions p
+    self.env = env
     self.V = {tuple(s): 0 for s in self.env.states}
     self.gamma = gamma
-    self.pi_init = {} if pi is None else pi  # initial policy (optional)
-    self.pi = {}  # deterministic pi
+    self.pi_init = {} if pi is None else pi
+    self.initialize_deterministic_pi(det_pi)
+    self.compute_pi_vects()
 
-  def initialize_deterministic_pi(self, arb_d=None):
+  def initialize_deterministic_pi(self, det_pi_dict=None):
     """Initializes a deterministic policy pi."""
-    # print(arb_d)
-    if arb_d is None or not arb_d:
-      arb_d = {s: self.env.moves[np.random.randint(len(self.env.moves))]
+    if det_pi_dict is None or not det_pi_dict:
+      det_pi_dict = {s: self.env.moves[np.random.randint(len(self.env.moves))]
+                     for s in self.env.states}
+    self.pi = {(a, s): int(a == det_pi_dict[s]) for a in self.env.moves
                for s in self.env.states}
-    for s in self.env.states:
-      for a in self.env.moves:
-        self.pi[(a, s)] = int(a == arb_d[s])
 
   def compute_pi_vects(self):
     """Initializing vectors for pi(.|s) for faster policy evaluation."""
-    self.pi_vect = {s: [self.pi[(a, s)] for a in self.env.moves]
+    pi = self.pi if not self.pi_init else self.pi_init
+    self.pi_vect = {s: [pi[(a, s)] for a in self.env.moves]
                     for s in self.env.states}
 
   def print_policy_gridworld(self):
@@ -45,7 +45,6 @@ class DynamicProgramming:
   def print_policy_car_rental(self):
     fig, ax = plt.subplots()
     X = Y = list(range(self.env.size))
-    # print(*[f"({s}) {self.deterministic_pi(s)}" for s in self.env.states], sep='\n')
     Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
     print("printing policy car rental")
     transposed_Z = [[Z[self.env.size - x - 1][y] for y in Y] for x in X]
@@ -91,40 +90,22 @@ class DynamicProgramming:
       print(np.array(to_print))
 
   def expected_value(self, s, a):
-    # ev = np.sum([self.env.p[trans_id(s_p, r, s, a)] *
-                # (r + self.gamma * self.V[s_p])
-                # for s_p in self.env.states for r in self.env.r])
-    p_r = self.env.p[trans_id('', 'r', s, a)]
-    p_s_p = self.env.p[trans_id('s_p', '', s, a)]
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    # if s == (0, 0):
-      # ev = np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
-      # print(f"(expected value of {s}, {a}) {ev} = {np.dot(self.env.r, p_r)} + {self.gamma} * {np.dot(V_vect, p_s_p)}")
-      # print(*[f"({s_p}, {r}|{s},{a}) {self.env.p[trans_id(s_p, r, s, a)]} * ({r} + {self.gamma} * {self.V[s_p]})"
-                  # for s_p in self.env.states for r in self.env.r], sep="\n")
-    return np.dot(self.env.r, p_r) + self.gamma * np.dot(V_vect, p_s_p)
-    # return ev
+    # print(f"{(s,a)}: {np.dot(self.env.r, self.env.pr[(s, a)])} + {self. gamma} * {np.dot(V_vect, self.env.psp[(s, a)])}")
+    return (np.dot(self.env.r, self.env.pr[(s, a)])
+            + self.gamma * np.dot(V_vect, self.env.psp[(s, a)]))
 
   def policy_evaluation(self):
     """Updates V according to current pi."""
-    counter = 0
-    self.compute_pi_vects()
+    self.compute_pi_vects()  # for faster policy evaluation
     while True:
-      counter += 1
-      # print(f"iteration #{counter}")
       delta = 0
-      # self.print_values()
       for s in self.env.states:
         v = self.V[s]
         expected_values = [self.expected_value(s, a) for a in self.env.moves]
-        # print(expected_values)
         self.V[s] = np.dot(self.pi_vect[s], expected_values)
-        # self.V[s] = np.sum([self.pi[(a, s)] * self.expected_value(s, a)
-        #                     for a in self.env.moves]) #TODO: vectorize
-        # print([f"({a}, {s}): {self.pi[(a, s)]} * {self.expected_value(s, a)}"
-        #                        for a in self.env.moves], sep=' ')
         delta = max(delta, abs(v-self.V[s]))
-      if delta < self.theta:# or counter >= 1:
+      if delta < self.theta:
         break
 
   def deterministic_pi(self, s):
@@ -140,28 +121,15 @@ class DynamicProgramming:
     policy_stable = True
     for s in self.env.states:
       old_action = self.deterministic_pi(s)
-      # print(f"for s={s}, old action = {old_action}")
-      # print([self.expected_value(s, a) for a in self.env.moves])
       self.update_pi(s, self.env.moves[np.argmax([self.expected_value(s, a)
                      for a in self.env.moves])])
       policy_stable = policy_stable and (old_action == self.deterministic_pi(s))
     return policy_stable
 
   def policy_iteration(self, max_iter=np.inf):
-    self.initialize_deterministic_pi(self.pi_init)
-
     counter = 0
-    # self.print_policy()
-    # self.print_values()
     while True and counter < max_iter:
-      # print(f"pol iteration step #{counter}")
-      start = time.time()
       self.policy_evaluation()
-      # print(f"evaluation took {time.time()-start}s")
-      # self.print_values()
-      start = time.time()
       if self.policy_improvement():
         return self.V, self.pi
-      # print(f"improvement took {time.time()-start}s")
-      # self.print_policy()   
       counter += 1

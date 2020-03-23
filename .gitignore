@@ -143,3 +143,6 @@ pyvenv.cfg
 
 # workflow
 poms.txt
+
+# profiling
+*.lprof
