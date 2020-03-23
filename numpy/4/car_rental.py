@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.stats import skellam, poisson
 from mdp import MDP
 import time
@@ -70,7 +69,6 @@ class CarRentalEnv(MDP):
     self.ret_sf_pmfs = {i: [poisson.sf(j, RETURNS_LAMBDA[i]) +
                         self.ret_pmfs[i][j] for j in sell_range]
                         for i in range(NB_LOC)}
-    print(f"init probs took: {time.time()-start:.2f}s")
     self.req_pmfs_prod = {(k, n_sells - k): self.req_pmfs[0][k] * self.req_pmfs[1][n_sells - k] for n_sells in sell_range for k in range(n_sells + 1)}
 
   def _p(self, s_p, r, s, a):
@@ -91,7 +89,6 @@ class CarRentalEnv(MDP):
       idx = n_p - (n - moved_cars) + req
       return ((self.ret_sf_pmfs[loc][idx])
               if n_p == self.max_car_cap else self.ret_pmfs[loc][idx])
-    # print(f"(nb_sells={nb_sells}) {nb_sells}-{n2}-{m}={nb_sells - n2 - m}->{n1 - m}={n1}-{m}")
     return sum([p_ret(n1_p, n1, k, m, 0)
                 * p_ret(n2_p, n2, nb_sells - k, -m, 1)
                 * self.req_pmfs_prod[(k, nb_sells - k)]

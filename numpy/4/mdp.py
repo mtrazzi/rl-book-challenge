@@ -14,7 +14,8 @@ class MDP(ABC):
     def renormalize(self):
         for s in self.states:
             for a in self.moves:
-                p_sum = sum([self.p[(s_p, r, s, a)] for s_p in self.states for r in self.r])
+                p_sum = sum([self.p[(s_p, r, s, a)] for s_p in self.states
+                             for r in self.r])
                 if p_sum > 0:
                     for s_p in self.states:
                         for r in self.r:
@@ -32,15 +33,20 @@ class MDP(ABC):
         def p_sum(s_p_list, r_list, s_list, a_list):
             return np.sum([self.p[(s_p, r, s, a)] for s_p in s_p_list
                            for r in r_list for s in s_list for a in a_list])
-        self.pr = {(s, a): [p_sum(self.states, [r], [s], [a]) for r in self.r]
+        self.pr = {(s, a): np.array([p_sum(self.states, [r], [s], [a]) for r in self.r])
                    for s in self.states for a in self.moves}
-        self.psp = {(s, a): [p_sum([s_p], self.r, [s], [a])
-                             for s_p in self.states]
+        self.psp = {(s, a): np.array([p_sum([s_p], self.r, [s], [a])
+                             for s_p in self.states])
                     for s in self.states for a in self.moves}
-        # self.psp[trans_id('s_p', '', s, a)] = [p_sum([s_p], self.r, [s],
-                                                    #  [a])
-                                                    #  for s_p in self.states]
-        # print(*[f"{(self.p[trans_id(s_p, r, s, a)]-self.p[trans_id(s_p, r - 2, s, a + 1)]) / self.p[trans_id(s_p, r - 2, s, a + 1)]}" for s_p in self.states], sep='\n')
+        # def normalize(d): return {(s, a): (1 / sum(d[s, a])) * d[s, a]
+        #                           for s in self.states for a in self.moves}
+        # self.pr = normalize(self.pr)
+        # print(self.psp[(0,0), 0])
+        # input("after->")
+        # self.psp = normalize(self.psp)
+        # print(self.psp[(0,0), 0])
+        # input()
+        # import ipdb; ipdb.set_trace()
         print(f"finished after {time.time()-start}s")
 
     @abstractmethod

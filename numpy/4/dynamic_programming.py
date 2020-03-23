@@ -74,9 +74,6 @@ class DynamicProgramming:
       if show_matplotlib:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        # coords = list(product(idxs, idxs))
-        # def get_j(crds, j): return [crd[j] for crd in crds]
-        # X, Y, Z = get_j(coords, 0), get_j(coords, 1), np.ravel(np.array(to_print))
         (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
         ax.set_xlabel('# of cars at second location', fontsize=10)
         ax.set_ylabel('# of cars at first location', fontsize=10)
@@ -84,14 +81,17 @@ class DynamicProgramming:
         ax.set_yticks([idxs[0], idxs[-1]])
         ax.set_zticks([np.min(Z), np.max(Z)])
         ax.plot_surface(X, Y, Z)
-        # plt.show()
+        plt.show()
       print(np.array(to_print_term))
     else:
       print(np.array(to_print))
 
   def expected_value(self, s, a):
     V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    # print(f"{(s,a)}: {np.dot(self.env.r, self.env.pr[(s, a)])} + {self. gamma} * {np.dot(V_vect, self.env.psp[(s, a)])}")
+    # if s == (0, 0) and a == 0:
+      # for (i, s_p) in enumerate(self.env.states):
+      # print(*[f"{s_p}: {V_vect[i] * self.env.psp[(s, a)][i]} = {V_vect[i]} * {self.env.psp[(s, a)][i]}" for (i, s_p) in enumerate(self.env.states)], sep='\n')
+      # input()
     return (np.dot(self.env.r, self.env.pr[(s, a)])
             + self.gamma * np.dot(V_vect, self.env.psp[(s, a)]))
 
