@@ -59,10 +59,23 @@ def ex_4_4(size=None):
   # alg.policy_iteration()  # only converge if lucky fixed point
 
 
+def ex_4_5(size=None):
+  """
+  Testing policy evaluation and policy iteration on gridworld using Q values.
+  """
+  if size is None:
+    size = DEF_EX_4_4_SIZE
+  env = Gridworld(size, cost_move=0)
+  det_pi = {s: env.moves[0] for s in env.states}
+  alg = DynamicProgramming(env, det_pi=det_pi, theta=1e-5, gamma=1)
+  alg.policy_evaluation_Q()
+
+
 PLOT_FUNCTION = {
   '4.1': fig_4_1,
   '4.2': fig_4_2,
   'ex4.4': ex_4_4,
+  'ex4.5': ex_4_5,
 }
 
 

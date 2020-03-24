@@ -11,11 +11,21 @@ class DynamicProgramming:
   def __init__(self, env, pi=None, det_pi=None, theta=1e-4, gamma=0.9):
     self.theta = theta
     self.env = env
-    self.V = {tuple(s): 0 for s in self.env.states}
+    self.V = {s: 0 for s in env.states}
+    # vect for vectorized computation
+    self.V_vect = np.array([self.V[s] for s in self.env.states]).astype(float)
     self.gamma = gamma
     self.pi_init = {} if pi is None else pi
     self.initialize_deterministic_pi(det_pi)
     self.compute_pi_vects()
+    # expected reward of s, a
+    self.er = {(s, a): np.dot(env.r, env.pr[(s, a)]) for s in env.states
+               for a in env.moves}
+    # Q is for if we want to use action values instead of state values
+    self.Q = {(s, a): 0 for s in self.env.states for a in self.env.moves}
+    self.Q_vect = {s: np.array([self.Q[(s, a)]
+                   for a in self.env.moves]).astype(float)
+                   for s in self.env.states}
 
   def initialize_deterministic_pi(self, det_pi_dict=None):
     """Initializes a deterministic policy pi."""
@@ -85,10 +95,8 @@ class DynamicProgramming:
     else:
       print(np.array(to_print))
 
-  def expected_value(self, s, a):
-    V_vect = np.array([self.V[s_p] for s_p in self.env.states])
-    return (np.dot(self.env.r, self.env.pr[(s, a)])
-            + self.gamma * np.dot(V_vect, self.env.psp[(s, a)]))
+  def expected_value(self, s, a, arr):
+    return self.er[(s, a)] + self.gamma * np.dot(arr, self.env.psp[(s, a)])
 
   def policy_evaluation(self):
     """Updates V according to current pi."""
@@ -97,8 +105,10 @@ class DynamicProgramming:
       delta = 0
       for s in self.env.states:
         v = self.V[s]
-        expected_values = [self.expected_value(s, a) for a in self.env.moves]
-        self.V[s] = np.dot(self.pi_vect[s], expected_values)
+        expected_values = [self.expected_value(s, a, self.V_vect)
+                           for a in self.env.moves]
+        bellman_right_side = np.dot(self.pi_vect[s], expected_values)
+        self.V[s] = self.V_vect[self.env.states.index(s)] = bellman_right_side
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
@@ -116,7 +126,8 @@ class DynamicProgramming:
     policy_stable = True
     for s in self.env.states:
       a_old = self.deterministic_pi(s)
-      ev = np.array([self.expected_value(s, a) for a in self.env.moves])
+      ev = np.array([self.expected_value(s, a, self.V_vect)
+                    for a in self.env.moves])
       a_new = self.env.moves[np.random.choice(np.flatnonzero(ev == ev.max()))]
       self.update_pi(s, a_new)
       policy_stable = policy_stable and (a_old == a_new)
@@ -137,3 +148,19 @@ class DynamicProgramming:
       if policy_stable or pol_str in past_policies:
         return self.V, self.pi
       past_policies.append(pol_str)
+
+  def policy_evaluation_Q(self):
+    """Updates Q according to current pi."""
+    self.compute_pi_vects()  # for faster policy evaluation
+    while True:
+      delta = 0
+      for s in self.env.states:
+        for a in self.env.moves:
+          q = self.Q[(s, a)]
+          expected_Q = [np.dot(self.pi_vect[s_p], self.Q_vect[s_p])
+                        for s_p in self.env.states]
+          self.Q[(s, a)] = self.expected_value(s, a, expected_Q)
+          self.Q_vect[s][self.env.moves.index(a)] = self.Q[(s, a)]
+          delta = max(delta, abs(q-self.Q[(s, a)]))
+      if delta < self.theta:
+        break
