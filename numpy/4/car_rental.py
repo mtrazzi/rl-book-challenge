@@ -1,6 +1,5 @@
-from scipy.stats import skellam, poisson
+from scipy.stats import poisson
 from mdp import MDP
-import time
 
 REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]

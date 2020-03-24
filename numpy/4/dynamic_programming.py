@@ -115,16 +115,25 @@ class DynamicProgramming:
     """Improves pi according to current V. Returns True if policy is stable."""
     policy_stable = True
     for s in self.env.states:
-      old_action = self.deterministic_pi(s)
-      self.update_pi(s, self.env.moves[np.argmax([self.expected_value(s, a)
-                     for a in self.env.moves])])
-      policy_stable = policy_stable and (old_action == self.deterministic_pi(s))
+      a_old = self.deterministic_pi(s)
+      ev = np.array([self.expected_value(s, a) for a in self.env.moves])
+      a_new = self.env.moves[np.random.choice(np.flatnonzero(ev == ev.max()))]
+      self.update_pi(s, a_new)
+      policy_stable = policy_stable and (a_old == a_new)
     return policy_stable
 
-  def policy_iteration(self, max_iter=np.inf):
-    counter = 0
-    while True and counter < max_iter:
+  def policy_iteration(self):
+    while True:
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi
-      counter += 1
+
+  def policy_iteration_improved(self):
+    past_policies = [str(self.pi)]
+    while True:
+      self.policy_evaluation()
+      policy_stable = self.policy_improvement()
+      pol_str = str(self.pi)
+      if policy_stable or pol_str in past_policies:
+        return self.V, self.pi
+      past_policies.append(pol_str)

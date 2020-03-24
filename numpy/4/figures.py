@@ -7,6 +7,7 @@ from gridworld import Gridworld
 
 DEF_FIG_4_1_SIZE = 4
 DEF_FIG_4_2_SIZE = 21
+DEF_EX_4_4_SIZE = 3
 
 
 def random_policy(env):
@@ -27,7 +28,7 @@ def fig_4_1(size=None):
   # show the optimal policy
   while not alg.policy_improvement():
     pass
-  alg.print_policy_gridworld()
+  alg.print_policy()
 
 
 def fig_4_2(size=None):
@@ -39,12 +40,29 @@ def fig_4_2(size=None):
   alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
   alg.policy_iteration()
   alg.print_values(show_matplotlib=True)
-  alg.print_policy_car_rental()
+  alg.print_policy()
+
+
+def ex_4_4(size=None):
+  """
+  Testing a policy iteration that stops when policy encountered twice on
+  environment where all policies are equally bad (gridworld with cost of move
+  equal to zero).
+  """
+  if size is None:
+    size = DEF_EX_4_4_SIZE
+  env = Gridworld(size, cost_move=0)
+  det_pi = {s: env.moves[0] for s in env.states}
+  alg = DynamicProgramming(env, det_pi=det_pi, theta=1e-5, gamma=1)
+  # uncomment/comment for the difference between improvement and not improvement
+  alg.policy_iteration_improved()
+  # alg.policy_iteration()  # only converge if lucky fixed point
 
 
 PLOT_FUNCTION = {
   '4.1': fig_4_1,
   '4.2': fig_4_2,
+  'ex4.4': ex_4_4,
 }
 
 
@@ -53,7 +71,7 @@ def main():
 
   parser.add_argument('figure', type=str, default=None,
                       help='Figure to reproduce.',
-                      choices=['4.1', '4.2'])
+                      choices=PLOT_FUNCTION.keys())
   parser.add_argument('-s', '--size', type=int, default=None,
                       help='Size of the environment (size * size states).')
   args = parser.parse_args()
