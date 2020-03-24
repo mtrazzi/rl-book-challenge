@@ -53,7 +53,7 @@ def ex_4_4(size=None):
     size = DEF_EX_4_4_SIZE
   env = Gridworld(size, cost_move=0)
   det_pi = {s: env.moves[0] for s in env.states}
-  alg = DynamicProgramming(env, det_pi=det_pi, theta=1e-5, gamma=1)
+  alg = DynamicProgramming(env, det_pi=det_pi, theta=1e-7, gamma=1)
   # uncomment/comment for the difference between improvement and not improvement
   alg.policy_iteration_improved()
   # alg.policy_iteration()  # only converge if lucky fixed point
@@ -65,10 +65,12 @@ def ex_4_5(size=None):
   """
   if size is None:
     size = DEF_EX_4_4_SIZE
-  env = Gridworld(size, cost_move=0)
-  det_pi = {s: env.moves[0] for s in env.states}
-  alg = DynamicProgramming(env, det_pi=det_pi, theta=1e-5, gamma=1)
-  alg.policy_evaluation_Q()
+  env = Gridworld(size)
+  pi_rand = random_policy(env)
+  pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
+  alg = DynamicProgramming(env, pi=pi_init, theta=1e-4, gamma=1)
+  alg.policy_iteration_Q()
+  alg.print_policy()
 
 
 PLOT_FUNCTION = {

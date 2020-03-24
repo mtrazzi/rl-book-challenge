@@ -95,6 +95,14 @@ class DynamicProgramming:
     else:
       print(np.array(to_print))
 
+  def print_Q_values(self):
+    for s in self.env.states:
+      self.V[s] = np.dot(self.pi_vect[s], self.Q_vect[s])
+      print(f"{s}:", end=' ')
+      print(*[f"{a}: {self.Q[(s, a)]}" for a in self.env.moves])
+    self.print_values()
+    self.print_policy()
+
   def expected_value(self, s, a, arr):
     return self.er[(s, a)] + self.gamma * np.dot(arr, self.env.psp[(s, a)])
 
@@ -155,12 +163,32 @@ class DynamicProgramming:
     while True:
       delta = 0
       for s in self.env.states:
+        # computing the sum over a_p of pi(a_p|s_p)Q(s_p, a_p)
+        # in advance so Q doesn't change between updates
+        expected_Q = [np.dot(self.pi_vect[s_p], self.Q_vect[s_p])
+                      for s_p in self.env.states]
         for a in self.env.moves:
           q = self.Q[(s, a)]
-          expected_Q = [np.dot(self.pi_vect[s_p], self.Q_vect[s_p])
-                        for s_p in self.env.states]
           self.Q[(s, a)] = self.expected_value(s, a, expected_Q)
           self.Q_vect[s][self.env.moves.index(a)] = self.Q[(s, a)]
           delta = max(delta, abs(q-self.Q[(s, a)]))
       if delta < self.theta:
         break
+
+  def policy_improvement_Q(self):
+    """Improves pi according to current Q. Returns True if policy is stable."""
+    policy_stable = True
+    for s in self.env.states:
+      a_old = self.deterministic_pi(s)
+      best_actions = np.flatnonzero(self.Q_vect[s] == self.Q_vect[s].max())
+      a_new = self.env.moves[np.random.choice(best_actions)]
+      self.update_pi(s, a_new)
+      policy_stable = policy_stable and (a_old == a_new)
+    return policy_stable
+
+  def policy_iteration_Q(self):
+    """Policy iteration using Q values."""
+    while True:
+      self.policy_evaluation_Q()
+      if self.policy_improvement_Q():
+        return self.Q, self.pi
