@@ -1,5 +1,6 @@
 from scipy.stats import poisson
 from mdp import MDP
+import numpy as np
 
 REQUEST_LAMBDA = [3, 4]
 RETURNS_LAMBDA = [3, 2]
@@ -7,13 +8,15 @@ CAR_MOVE_COST = 2
 RENT_BEN = 10
 NB_LOC = 2
 ABSORBING_STATE = (-1, -1)
+PARKING_COST = 10
 
 
 class CarRentalEnv(MDP):
-  def __init__(self, size):
+  def __init__(self, size, ex_4_7=False):
     self.max_car_cap = size
     self.max_car_moves = self.max_car_cap // 5 + 1
     self.init_probs()
+    self.ex_4_7 = ex_4_7  # is the pb modified for exercise 4.7 or not
     super().__init__()
 
   @property
@@ -32,9 +35,41 @@ class CarRentalEnv(MDP):
 
   @property
   def r(self):
-    return [-CAR_MOVE_COST * car_moves + RENT_BEN * car_solds
+    if self.ex_4_7:
+      return np.unique([self.compute_reward(n1, n2, m, car_sold)
+                        for n1 in range(self.max_car_cap + 1)
+                        for n2 in range(self.max_car_cap + 1)
+                        for m in range(-self.max_car_moves,
+                                       self.max_car_moves + 1)
+                        for car_sold in range(self.max_car_cap * NB_LOC + 1)])
+    return [-CAR_MOVE_COST * car_moves + RENT_BEN * car_sold
             for car_moves in range(self.max_car_moves + 1)
-            for car_solds in range(self.max_car_cap * NB_LOC + 1)]
+            for car_sold in range(self.max_car_cap * NB_LOC + 1)]
+
+  def move_cost(self, m):
+    if not self.ex_4_7:
+      return abs(m) * CAR_MOVE_COST
+    return CAR_MOVE_COST * abs(m - 1 if m > 0 else m)
+
+  def compute_reward(self, n1, n2, m, car_sold):
+    """
+    Compute the reward associated with an action according to the description
+    of exercise 4.7.
+    """
+    if (n1 - m) < 0 or (n2 + m) < 0:
+      return 0
+    parking_cost = (PARKING_COST *
+                    ((n1 + m) >= self.max_car_cap or
+                     (n2 - m) >= self.max_car_cap))
+    return RENT_BEN * car_sold - (parking_cost + self.move_cost(m))
+
+  def is_possible_reward(self, n1, n2, m, r, move_cost, max_ben):
+    if not self.ex_4_7:
+      return r in range(-move_cost, -move_cost + max_ben + 1, RENT_BEN)
+    for car_sold in range(self.max_car_cap * NB_LOC + 1):
+      if self.compute_reward(n1, n2, m, car_sold) == r:
+        return True
+    return False
 
   def init_probs(self):
     """Computing some probabilities in advance to make it go faster."""
