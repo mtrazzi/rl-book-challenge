@@ -50,7 +50,7 @@ class DynamicProgramming:
     print("printing policy gridworld")
     print(*to_print, sep='\n')
 
-  def print_policy_car_rental(self):
+  def print_policy_car_rental(self, title='Figure 4.2'):
     fig, ax = plt.subplots()
     X = Y = list(range(self.env.size))
     Z = [[self.deterministic_pi((x, y)) for y in Y] for x in X]
@@ -60,7 +60,7 @@ class DynamicProgramming:
     pol_range = list(range(np.min(transposed_Z), np.max(transposed_Z) + 1))
     CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
     ax.clabel(CS, inline=1, fontsize=10)
-    ax.set_title('Figure 4.2')
+    ax.set_title(title)
     plt.show()
 
   def print_policy(self):

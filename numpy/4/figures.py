@@ -82,7 +82,7 @@ def ex_4_7(size=None):
   alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
   alg.policy_iteration()
   alg.print_values(show_matplotlib=True)
-  alg.print_policy()
+  alg.print_policy_car_rental('Exercise 4.7')
 
 
 PLOT_FUNCTION = {
