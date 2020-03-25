@@ -78,6 +78,8 @@ def ex_4_7(size=None):
   # size - 1 because nb of cars from 0 to "size" param
   env = CarRentalEnv(size - 1, ex_4_7=True)
   print(env.r)
+  from utils import print_old_psums
+  print_old_psums(env)
   # subject_policy = {s: 0 for s in env.states}
   # alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
   # alg.policy_iteration()
