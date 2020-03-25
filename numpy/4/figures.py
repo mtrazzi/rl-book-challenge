@@ -72,19 +72,17 @@ def ex_4_5(size=None):
   alg.policy_iteration_Q()
   alg.print_policy()
 
+
 def ex_4_7(size=None):
   if size is None:
     size = DEF_FIG_4_2_SIZE
   # size - 1 because nb of cars from 0 to "size" param
   env = CarRentalEnv(size - 1, ex_4_7=True)
-  print(env.r)
-  from utils import print_old_psums
-  print_old_psums(env)
-  # subject_policy = {s: 0 for s in env.states}
-  # alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
-  # alg.policy_iteration()
-  # alg.print_values(show_matplotlib=True)
-  # alg.print_policy()
+  subject_policy = {s: 0 for s in env.states}
+  alg = DynamicProgramming(env, det_pi=subject_policy, gamma=0.9, theta=1e-4)
+  alg.policy_iteration()
+  alg.print_values(show_matplotlib=True)
+  alg.print_policy()
 
 
 PLOT_FUNCTION = {

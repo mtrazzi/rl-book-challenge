@@ -93,8 +93,6 @@ class CarRentalEnv(MDP):
     Compute the reward associated with an action according to the description
     of exercise 4.7.
     """
-    # if (n1 - m) < 0 or (n2 + m) < 0:
-    #   return 0
     return RENT_BEN * car_sold - (self.park_cost(n1, n2, m) + self.move_cost(m))
 
   def _p(self, s_p, r, s, a):
@@ -115,6 +113,9 @@ class CarRentalEnv(MDP):
 
     def p_ret(n_p, n, req, moved_cars, loc):
       idx = n_p - (n - moved_cars) + req
+      if req > n:
+        return 0
+      # print(f"{idx} = {n_p} - ({n} - {moved_cars}) + {req}")
       return ((self.ret_sf_pmfs[loc][idx])
               if n_p == self.max_car_cap else self.ret_pmfs[loc][idx])
     return sum([p_ret(n1_p, n1, k, m, 0)
