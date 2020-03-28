@@ -15,8 +15,7 @@ class DynamicProgramming:
     # vect for vectorized computation
     self.V_vect = np.array([self.V[s] for s in self.env.states]).astype(float)
     self.gamma = gamma
-    self.pi_init = {} if pi is None else pi
-    self.initialize_deterministic_pi(det_pi)
+    self.pi = self.initialize_deterministic_pi(det_pi) if pi is None else pi
     self.compute_pi_vects()
     # expected reward of s, a
     self.er = {(s, a): np.dot(env.r, env.pr[(s, a)]) for s in env.states
@@ -32,13 +31,12 @@ class DynamicProgramming:
     if det_pi_dict is None or not det_pi_dict:
       det_pi_dict = {s: self.env.moves[np.random.randint(len(self.env.moves))]
                      for s in self.env.states}
-    self.pi = {(a, s): int(a == det_pi_dict[s]) for a in self.env.moves
-               for s in self.env.states}
+    return {(a, s): int(a == det_pi_dict[s]) for a in self.env.moves
+            for s in self.env.states}
 
   def compute_pi_vects(self):
     """Initializing vectors for pi(.|s) for faster policy evaluation."""
-    pi = self.pi if not self.pi_init else self.pi_init
-    self.pi_vect = {s: [pi[(a, s)] for a in self.env.moves]
+    self.pi_vect = {s: [self.pi[(a, s)] for a in self.env.moves]
                     for s in self.env.states}
 
   def print_policy_gridworld(self):
@@ -142,11 +140,7 @@ class DynamicProgramming:
     return policy_stable
 
   def policy_iteration(self):
-    counter = 0
-    np.random.seed(0)
     while True:
-      counter += 1
-      print(counter)
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi
