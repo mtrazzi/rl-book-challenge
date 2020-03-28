@@ -142,7 +142,11 @@ class DynamicProgramming:
     return policy_stable
 
   def policy_iteration(self):
+    counter = 0
+    np.random.seed(0)
     while True:
+      counter += 1
+      print(counter)
       self.policy_evaluation()
       if self.policy_improvement():
         return self.V, self.pi
@@ -192,3 +196,15 @@ class DynamicProgramming:
       self.policy_evaluation_Q()
       if self.policy_improvement_Q():
         return self.Q, self.pi
+
+  def value_iteration(self):
+    while True:
+      delta = 0
+      for s in self.env.states:
+        v = self.V[s]
+        expected_values = [self.expected_value(s, a, self.V_vect)
+                           for a in self.env.moves]
+        self.V[s] = self.V_vect[self.env.states.index(s)] = max(expected_values)
+        delta = max(delta, abs(v-self.V[s]))
+      if delta < self.theta:
+        break
