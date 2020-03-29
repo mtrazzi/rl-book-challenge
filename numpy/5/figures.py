@@ -14,7 +14,7 @@ def fig_5_1(size=None):
   env = BlackjackEnv()
   pi_rand = random_policy(env)
   pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
-  alg = MonteCarloFirstVisit(env, pi=pi_init, gamma=0.9)
+  alg = MonteCarloFirstVisit(env, pi=pi_init, gamma=1) # undiscounted
   alg.first_visit_mc_prediction()
   alg.print_values()
 
