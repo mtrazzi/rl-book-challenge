@@ -75,10 +75,10 @@ class DynamicProgramming:
     else:
       self.print_policy_gridworld()
 
-  def print_values(self, show_matplotlib=False):
+  def print_values(self, show_matplotlib=False, title="Figure 4.3"):
     if isinstance(self.env, GamblerEnv):
       plt.plot([self.V[s] for s in self.env.states[1:-1]])
-      plt.title("Figure 4.3")
+      plt.title(title)
       plt.show()
       return
     np.set_printoptions(2)

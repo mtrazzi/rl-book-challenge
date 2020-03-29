@@ -3,14 +3,18 @@ from mdp import MDP
 LOSE = 0
 R_LOSE = 0
 R_WIN = 1
-P_HEAD = 0.4
 
 
 class GamblerEnv(MDP):
-  def __init__(self, size=100):
+  def __init__(self, size=100, p_heads=0.4):
     # size of the problem is the goal in dollars
     self._goal = size
+    self._p_heads = p_heads
     super().__init__()
+
+  @property
+  def p_heads(self):
+    return self._p_heads
 
   @property
   def goal(self):
@@ -38,7 +42,8 @@ class GamblerEnv(MDP):
         or (r == R_WIN and target_capital != self.goal)
         or (r == R_LOSE) and target_capital == self.goal):
         return 0
-    return P_HEAD * (target_capital >= s) + (1 - P_HEAD) * (target_capital <= s)
+    return (self.p_heads * (target_capital >= s) +
+            (1 - self.p_heads) * (target_capital <= s))
 
   def is_terminal(self, s):
     return s == LOSE or s == self.goal

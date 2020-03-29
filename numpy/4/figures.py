@@ -7,6 +7,7 @@ from gambler import GamblerEnv
 
 DEF_FIG_4_1_SIZE = 4
 DEF_FIG_4_2_SIZE = 21
+DEF_FIG_4_3_SIZE = 100
 DEF_EX_4_4_SIZE = 3
 
 
@@ -85,16 +86,25 @@ def ex_4_7(size=None):
   alg.print_policy_car_rental('Exercise 4.7')
 
 
-def fig_4_3(size=None):
+def run_gambler(size=None, title='Figure 4.3', p_heads=0.4, theta=1e-4):
   if size is None:
-    size = DEF_FIG_4_2_SIZE
-  env = GamblerEnv(size)
-  pi_rand = random_policy(env)
-  pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
-  alg = DynamicProgramming(env, pi=pi_init, gamma=1, theta=1e-4)
+    size = DEF_FIG_4_3_SIZE
+  env = GamblerEnv(size, p_heads=p_heads)
+  status_quo_policy = {s: 0 for s in env.states}
+  alg = DynamicProgramming(env, det_pi=status_quo_policy, gamma=1, theta=theta)
   alg.value_iteration()
-  alg.print_values()
-  alg.print_policy()
+  full_title = title + f" p_h={p_heads}"
+  alg.print_values(title=full_title)
+  alg.print_policy_gambler(full_title)
+
+
+def fig_4_3(size=None):
+  run_gambler(size, p_heads=0.4, title='Figure 4.3', theta=1e-15)
+
+
+def ex_4_9(size=None):
+  run_gambler(size, p_heads=0.25, title='Exercise 4.9', theta=1e-15)
+  run_gambler(size, p_heads=0.55, title='Exercise 4.9', theta=1e-15)
 
 
 PLOT_FUNCTION = {
@@ -104,6 +114,7 @@ PLOT_FUNCTION = {
   'ex4.5': ex_4_5,
   'ex4.7': ex_4_7,
   '4.3': fig_4_3,
+  'ex4.9': ex_4_9,
 }
 
 
