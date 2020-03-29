@@ -3,7 +3,7 @@ import argparse
 from car_rental import CarRentalEnv
 from dynamic_programming import DynamicProgramming
 from gridworld import Gridworld
-
+from gambler import GamblerEnv
 
 DEF_FIG_4_1_SIZE = 4
 DEF_FIG_4_2_SIZE = 21
@@ -23,16 +23,13 @@ def fig_4_1(size=None):
   pi_rand = random_policy(env)
   pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
   alg = DynamicProgramming(env, pi=pi_init, theta=1e-4, gamma=1)  # undiscounted
-  # print("Policy evaluation")
-  # alg.policy_evaluation()
-  # alg.print_values()
-  # # show the optimal policy
-  # while not alg.policy_improvement():
-  #   pass
-  # alg.print_policy()
-  alg.policy_iteration()
+  alg.policy_evaluation()
   alg.print_values()
+  # show the optimal policy
+  while not alg.policy_improvement():
+    pass
   alg.print_policy()
+
 
 def fig_4_2(size=None):
   if size is None:
@@ -91,12 +88,13 @@ def ex_4_7(size=None):
 def fig_4_3(size=None):
   if size is None:
     size = DEF_FIG_4_2_SIZE
-  env = Gridworld(size)
+  env = GamblerEnv(size)
   pi_rand = random_policy(env)
   pi_init = {(a, s): pi_rand(s, a) for s in env.states for a in env.moves}
   alg = DynamicProgramming(env, pi=pi_init, gamma=1, theta=1e-4)
   alg.value_iteration()
   alg.print_values()
+  alg.print_policy()
 
 
 PLOT_FUNCTION = {

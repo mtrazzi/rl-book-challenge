@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from car_rental import CarRentalEnv
+from gambler import GamblerEnv
 
 
 class DynamicProgramming:
@@ -61,13 +62,25 @@ class DynamicProgramming:
     ax.set_title(title)
     plt.show()
 
+  def print_policy_gambler(self, title='Figure 4.3'):
+    plt.plot([self.deterministic_pi(s) for s in self.env.states[1:-1]])
+    plt.title(title)
+    plt.show()
+
   def print_policy(self):
     if isinstance(self.env, CarRentalEnv):
       self.print_policy_car_rental()
+    elif isinstance(self.env, GamblerEnv):
+      self.print_policy_gambler()
     else:
       self.print_policy_gridworld()
 
   def print_values(self, show_matplotlib=False):
+    if isinstance(self.env, GamblerEnv):
+      plt.plot([self.V[s] for s in self.env.states[1:-1]])
+      plt.title("Figure 4.3")
+      plt.show()
+      return
     np.set_printoptions(2)
     size = self.env.size
     to_print = np.zeros((size, size))
@@ -146,14 +159,14 @@ class DynamicProgramming:
         return self.V, self.pi
 
   def policy_iteration_improved(self):
-    past_policies = [str(self.pi)]
+    past_policies_str = [str(self.pi)]
     while True:
       self.policy_evaluation()
       policy_stable = self.policy_improvement()
       pol_str = str(self.pi)
-      if policy_stable or pol_str in past_policies:
+      if policy_stable or pol_str in past_policies_str:
         return self.V, self.pi
-      past_policies.append(pol_str)
+      past_policies_str.append(pol_str)
 
   def policy_evaluation_Q(self):
     """Updates Q according to current pi."""
@@ -192,6 +205,8 @@ class DynamicProgramming:
         return self.Q, self.pi
 
   def value_iteration(self):
+    import time
+    start = time.time()
     while True:
       delta = 0
       for s in self.env.states:
@@ -202,3 +217,7 @@ class DynamicProgramming:
         delta = max(delta, abs(v-self.V[s]))
       if delta < self.theta:
         break
+    print(f"finished value iteration after {time.time()-start}s")
+    self.policy_improvement()
+    # for s in self.env.states:
+    #   self.pi[()]
