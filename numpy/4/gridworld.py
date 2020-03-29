@@ -12,8 +12,9 @@ UNIQUE_TERMINAL_STATE = (0, 0)
 
 
 class Gridworld(MDP):
-  def __init__(self, size=4):
+  def __init__(self, size=4, cost_move=1):
     self.size_val = size
+    self.cost_move = cost_move
     super().__init__()
 
   @property
@@ -46,7 +47,7 @@ class Gridworld(MDP):
       return candidate
 
   def reward(self, s, a):
-    return 0 if self.is_terminal(s) else -1
+    return 0 if self.is_terminal(s) else -self.cost_move
 
   def is_valid(self, s):
     def is_valid_coord(x):
