@@ -30,7 +30,7 @@ class BlackjackEnv(MDP):
   @property
   def states(self):
     # states are encoded using: player's sum, dealer's showing card * ace or not
-    return list(range((BLACKJACK - MIN_SUM + 1) * MAX_DEAL_CARD * ACE_STATES)
+    return list(range((BLACKJACK - MIN_SUM + 1) * MAX_DEAL_CARD * ACE_STATES))
 
   @property
   def r(self):
@@ -43,12 +43,31 @@ class BlackjackEnv(MDP):
   def sample_card(self):
     return random.randint(ACE_HIGH, NB_VALUES)
 
-  def reset(self):
-    player_cards, dealer_card = [sample_card(), sample_card()], sample_card()
-    self.player_sum = sum(player_cards)
+  def cards_to_values(self, card):
+    """Replace the value of kings, queens, jacks to 10."""
+    return min(card, 10)
+
+  def deal(self):
+    player_cards, self.dealer_card = ([self.sample_card(), self.sample_card()],
+                                      self.sample_card())
+    self.player_score = map(self.cards_to_values, player_cards)
+    self.dealer_score = self.cards_to_values(self.dealer_card)
+    self.player_sum = sum(self.player_score)
     self.usable_ace = (ACE_LOW in player_cards)
     if self.player_sum + ACE_DIFF <= BLACKJACK:
       self.player_sum += ACE_DIFF
+
+  def compute_state(self, player_sum, usable_ace, dealer_score):
+    nb_player_sums = BLACKJACK - MIN_SUM + 1
+    nb_dealer_scores = MAX_DEAL_CARD
+    return (usable_ace * nb_player_sums * nb_dealer_scores +
+            nb_player_sums * (dealer_score - 1) +
+            (player_sum - 1))
+
+  def reset(self):
+    self.deal()
+    return self.compute_state(self.player_sum, self.usable_ace,
+                              self.dealer_score)
 
   def _p(self, s_p, r, s, a):
     """Transition function defined in private because p dictionary in mdp.py."""
