@@ -4,6 +4,7 @@ import random
 R_LOSE = -1
 R_DRAW = 0
 R_WIN = 1
+R_STEP = 0
 HIT = 1
 STICK = 0
 MIN_SUM = 12
@@ -24,6 +25,8 @@ class Player:
   def __init__(self, n_initial_cards):
     """Player starts with two, dealer with one hidden / one visible."""
     self.n_initial_cards = n_initial_cards
+    self.cards = []
+    self.sum = 0
     self.reset()
 
   def sample_card(self):
@@ -35,20 +38,23 @@ class Player:
 
   def new_card(self):
     self.cards.append(self.sample_card())
-    self.sum += self.cards_to_values(self.cards[-1])
+    new_card_value = self.cards_to_values(self.cards[-1])
+    # TODO: maybe some edge cases below with two aces etc.
+    if self.sum + new_card_value <= BLACKJACK:
+      self.sum += self.cards_to_values(self.cards[-1])
+    else:
+      self.bust = True
 
-  def blackjack(self):
-    return self.sum == BLACKJACK
-
-  def bust(self):
-    return self.sum > BLACKJACK
+  def update_aces(self):
+    # TODO: maybe some edge cases below with two aces etc.
+    self.usable_ace = (ACE_LOW in self.cards)
+    if self.usable_ace and (self.player_sum + ACE_DIFF <= BLACKJACK):
+      self.sum += ACE_DIFF
 
   def reset(self):
     for _ in range(self.n_initial_cards):
       self.new_card()
-    self.usable_ace = (ACE_LOW in self.cards)
-    if self.usable_ace and (self.player_sum + ACE_DIFF <= BLACKJACK):
-      self.sum += ACE_DIFF
+    self.update_aces()
 
 
 class BlackjackEnv(MDP):
@@ -70,24 +76,29 @@ class BlackjackEnv(MDP):
   def r(self):
     return [R_LOSE, R_DRAW, R_WIN]
 
-  def player_won(self):
-    return self.player_sum == BLACKJACK
-
   def is_natural(self):
     return self.player_won() and self.usable_ace
 
   def get_result(self):
-    self.players['dealer'].new_card()
+    sum_diff = self.players["player"].sum - self.players["dealer"].sum
+    if sum_diff > 0:
+      return R_WIN
+    elif sum_diff == 0:
+      return R_DRAW
+    else:
+      return R_LOSE
 
-  def do_hit(self):
+  def hit(self):
     s = self.get_state()
-    self.player_sum += self.cards_to_values(self.sample_card())
-    if self.went_bust():
-      return s, R_LOSE, {}
-    return 0, 0, 0, {}
+    self.players["player"].new_card()
+    done = not self.players["player"].bust
+    if done:
+      return s, R_LOSE, done, {}
+    return self.get_state(), R_STEP, done, {}
 
-  def do_stick(self):
-    return 0, 0, 0, {}
+  def stick(self):
+    self.players['dealer'].new_card()
+    return self.get_state(), self.get_result(), True, {}
 
   def step(self, action):
     if self.is_natural():
