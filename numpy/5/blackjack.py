@@ -1,9 +1,9 @@
 from mdp import MDP
 import random
 
-LOSE_REW = -1
-DRAW_REW = 0
-WIN_REW = 1
+R_LOSE = -1
+R_DRAW = 0
+R_WIN = 1
 HIT = 1
 STICK = 0
 MIN_SUM = 12
@@ -16,12 +16,46 @@ NB_VALUES = NUMBER_CARDS // NUMBER_COLORS
 ACE_LOW = 1
 ACE_HIGH = 11
 ACE_DIFF = ACE_HIGH - ACE_LOW
+N_CARD_DEALER = 1
+N_CARD_PLAYER = 2
+
+
+class Player:
+  def __init__(self, n_initial_cards):
+    """Player starts with two, dealer with one hidden / one visible."""
+    self.n_initial_cards = n_initial_cards
+    self.reset()
+
+  def sample_card(self):
+    return random.randint(ACE_HIGH, NB_VALUES)
+
+  def cards_to_values(self, card):
+    """Replace the value of kings, queens, jacks to 10."""
+    return min(card, 10)
+
+  def new_card(self):
+    self.cards.append(self.sample_card())
+    self.sum += self.cards_to_values(self.cards[-1])
+
+  def blackjack(self):
+    return self.sum == BLACKJACK
+
+  def bust(self):
+    return self.sum > BLACKJACK
+
+  def reset(self):
+    for _ in range(self.n_initial_cards):
+      self.new_card()
+    self.usable_ace = (ACE_LOW in self.cards)
+    if self.usable_ace and (self.player_sum + ACE_DIFF <= BLACKJACK):
+      self.sum += ACE_DIFF
 
 
 class BlackjackEnv(MDP):
   def __init__(self):
     super().__init__()
-    self.reset()
+    self.players = {"dealer": Player(N_CARD_DEALER),
+                    "player": Player(N_CARD_PLAYER)}
 
   @property
   def moves(self):
@@ -34,40 +68,47 @@ class BlackjackEnv(MDP):
 
   @property
   def r(self):
-    return [LOSE_REW, DRAW_REW, WIN_REW]
+    return [R_LOSE, R_DRAW, R_WIN]
+
+  def player_won(self):
+    return self.player_sum == BLACKJACK
+
+  def is_natural(self):
+    return self.player_won() and self.usable_ace
+
+  def get_result(self):
+    self.players['dealer'].new_card()
+
+  def do_hit(self):
+    s = self.get_state()
+    self.player_sum += self.cards_to_values(self.sample_card())
+    if self.went_bust():
+      return s, R_LOSE, {}
+    return 0, 0, 0, {}
+
+  def do_stick(self):
+    return 0, 0, 0, {}
 
   def step(self, action):
-    current_sum = s
-    return
+    if self.is_natural():
+      return self.get_state(), R_WIN, True, {}
+    return self.do_hit() if action == HIT else self.do_stick()
 
-  def sample_card(self):
-    return random.randint(ACE_HIGH, NB_VALUES)
-
-  def cards_to_values(self, card):
-    """Replace the value of kings, queens, jacks to 10."""
-    return min(card, 10)
-
-  def deal(self):
-    player_cards, self.dealer_card = ([self.sample_card(), self.sample_card()],
-                                      self.sample_card())
-    self.player_score = map(self.cards_to_values, player_cards)
-    self.dealer_score = self.cards_to_values(self.dealer_card)
-    self.player_sum = sum(self.player_score)
-    self.usable_ace = (ACE_LOW in player_cards)
-    if self.player_sum + ACE_DIFF <= BLACKJACK:
-      self.player_sum += ACE_DIFF
-
-  def compute_state(self, player_sum, usable_ace, dealer_score):
+  def compute_state(self, player_sum, usable_ace, dealer_card):
     nb_player_sums = BLACKJACK - MIN_SUM + 1
     nb_dealer_scores = MAX_DEAL_CARD
     return (usable_ace * nb_player_sums * nb_dealer_scores +
-            nb_player_sums * (dealer_score - 1) +
+            nb_player_sums * (dealer_card - 1) +
             (player_sum - 1))
 
+  def get_state(self):
+    return self.compute_state(self.players['player'].sum,
+                              self.players['player'].usable_ace,
+                              self.players['dealer'].cards[0])
+
   def reset(self):
-    self.deal()
-    return self.compute_state(self.player_sum, self.usable_ace,
-                              self.dealer_score)
+    for player in self.players.values():
+      player.reset()
 
   def _p(self, s_p, r, s, a):
     """Transition function defined in private because p dictionary in mdp.py."""
