@@ -5,11 +5,11 @@ R_LOSE = -1
 R_DRAW = 0
 R_WIN = 1
 R_STEP = 0
-HIT = 1
 STICK = 0
+HIT = 1
 MIN_SUM = 12
 BLACKJACK = 21
-MAX_DEAL_CARD = 10
+N_DEAL_SCORES = 10
 ACE_STATES = 2
 NUMBER_CARDS = 52
 NUMBER_COLORS = 4
@@ -19,6 +19,8 @@ ACE_HIGH = 11
 ACE_DIFF = ACE_HIGH - ACE_LOW
 N_CARD_DEALER = 1
 N_CARD_PLAYER = 2
+N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_SUM + 1
+DEALER_THRESHOLD = 17
 
 
 class Player:
@@ -70,46 +72,49 @@ class BlackjackEnv(MDP):
   @property
   def states(self):
     # states are encoded using: player's sum, dealer's showing card * ace or not
-    return list(range((BLACKJACK - MIN_SUM + 1) * MAX_DEAL_CARD * ACE_STATES))
+    return list(range((BLACKJACK - MIN_SUM + 1) * N_DEAL_SCORES * ACE_STATES))
 
   @property
   def r(self):
     return [R_LOSE, R_DRAW, R_WIN]
 
   def is_natural(self):
-    return self.player_won() and self.usable_ace
+    return (self.players['player'].sum == BLACKJACK
+            and len(self.players['player'].cards) == 2)
 
   def get_result(self):
     sum_diff = self.players["player"].sum - self.players["dealer"].sum
-    if sum_diff > 0:
+    if sum_diff > 0 or self.players['dealer'].bust:
       return R_WIN
     elif sum_diff == 0:
       return R_DRAW
     else:
       return R_LOSE
 
+  def play_dealer(self):
+    while self.players['dealer'].sum < DEALER_THRESHOLD:
+      self.players['dealer'].new_card()
+
   def hit(self):
     s = self.get_state()
-    self.players["player"].new_card()
-    done = not self.players["player"].bust
+    self.players['player'].new_card()
+    done = not self.players['player'].bust
     if done:
-      return s, R_LOSE, done, {}
+      return s, R_LOSE, done, {}  # returning s is arbitrary
     return self.get_state(), R_STEP, done, {}
 
   def stick(self):
-    self.players['dealer'].new_card()
+    self.play_dealer()
     return self.get_state(), self.get_result(), True, {}
 
   def step(self, action):
     if self.is_natural():
       return self.get_state(), R_WIN, True, {}
-    return self.do_hit() if action == HIT else self.do_stick()
+    return self.hit() if action == HIT else self.stick()
 
   def compute_state(self, player_sum, usable_ace, dealer_card):
-    nb_player_sums = BLACKJACK - MIN_SUM + 1
-    nb_dealer_scores = MAX_DEAL_CARD
-    return (usable_ace * nb_player_sums * nb_dealer_scores +
-            nb_player_sums * (dealer_card - 1) +
+    return (usable_ace * N_POSSIBLE_PLAY_SUMS * N_DEAL_SCORES +
+            N_POSSIBLE_PLAY_SUMS * (dealer_card - 1) +
             (player_sum - 1))
 
   def get_state(self):
@@ -117,9 +122,18 @@ class BlackjackEnv(MDP):
                               self.players['player'].usable_ace,
                               self.players['dealer'].cards[0])
 
+  def decode_state(self, s):
+    """Inverse of the function get_state but with state as input."""
+    player_sum = (s % N_POSSIBLE_PLAY_SUMS) + 1
+    s = (s - (player_sum - 1)) // N_POSSIBLE_PLAY_SUMS
+    dealer_card = (s % N_DEAL_SCORES) + 1
+    player_usable_ace = (s - (dealer_card - 1)) // N_DEAL_SCORES
+    return player_sum, player_usable_ace, dealer_card
+
   def reset(self):
     for player in self.players.values():
       player.reset()
+    return self.get_state()
 
   def _p(self, s_p, r, s, a):
     """Transition function defined in private because p dictionary in mdp.py."""
