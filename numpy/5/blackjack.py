@@ -30,33 +30,46 @@ class Player:
     self.cards = []
     self.sum = 0
     self.reset()
+    self.bust = False
 
   def sample_card(self):
-    return random.randint(ACE_HIGH, NB_VALUES)
+    return random.randint(ACE_LOW, NB_VALUES)
 
   def cards_to_values(self, card):
     """Replace the value of kings, queens, jacks to 10."""
     return min(card, 10)
 
   def new_card(self):
+    print(f"new card begin (sum={self.sum})")
     self.cards.append(self.sample_card())
+    print(f"added card {self.cards[-1]}")
     new_card_value = self.cards_to_values(self.cards[-1])
     # TODO: maybe some edge cases below with two aces etc.
-    if self.sum + new_card_value <= BLACKJACK:
-      self.sum += self.cards_to_values(self.cards[-1])
-    else:
-      self.bust = True
+    # if self.sum + new_card_value <= BLACKJACK:
+    #   self.sum += self.cards_to_values(self.cards[-1])
+    # else:
+    #   self.bust = True
+    self.sum += self.cards_to_values(self.cards[-1])
+    self.bust = self.sum > BLACKJACK
+    print(f"new card ends (sum={self.sum})")
 
   def update_aces(self):
     # TODO: maybe some edge cases below with two aces etc.
     self.usable_ace = (ACE_LOW in self.cards)
-    if self.usable_ace and (self.player_sum + ACE_DIFF <= BLACKJACK):
+    if self.usable_ace and (self.sum + ACE_DIFF <= BLACKJACK):
       self.sum += ACE_DIFF
 
   def reset(self):
+    self.cards = []
+    self.sum = 0
     for _ in range(self.n_initial_cards):
       self.new_card()
     self.update_aces()
+
+  def __str__(self):
+    return (f"CARDS={self.cards}, " +
+            f"SUM={self.sum}, " +
+            f"USABLE_ACE={self.usable_ace}")
 
 
 class BlackjackEnv(MDP):
@@ -113,6 +126,7 @@ class BlackjackEnv(MDP):
     return self.hit() if action == HIT else self.stick()
 
   def compute_state(self, player_sum, usable_ace, dealer_card):
+    # print(player_sum, usable_ace, dealer_card)
     return (usable_ace * N_POSSIBLE_PLAY_SUMS * N_DEAL_SCORES +
             N_POSSIBLE_PLAY_SUMS * (dealer_card - 1) +
             (player_sum - 1))
@@ -138,3 +152,7 @@ class BlackjackEnv(MDP):
   def _p(self, s_p, r, s, a):
     """Transition function defined in private because p dictionary in mdp.py."""
     pass
+
+  def __str__(self):
+    return (f"#####\nPLAYER: {self.players['player']}\n" +
+            f"DEALER: {self.players['dealer']}")
