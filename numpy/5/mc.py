@@ -25,7 +25,6 @@ class MonteCarlo:
       s = s_p
       if done:
         break
-    print(trajs)
     return trajs
 
 
@@ -34,12 +33,13 @@ class MonteCarloFirstVisit(MonteCarlo):
     super().__init__(env, pi, gamma)
     self.returns = {s: [] for s in env.states}
 
-  def first_visit_mc_prediction(self):
-    trajs = self.generate_trajectory()
-    G = 0
-    states = [s for (s, _, _) in trajs]
-    for (i, (s, a, r)) in enumerate(trajs[::-1]):
-      G = self.gamma * G + r
-      if s not in states[:-(i + 1)]:  # logging only first visits
-        self.returns[s].append(G)
-        self.V[s] = np.mean(self.returns[s])
+  def first_visit_mc_prediction(self, n_episodes):
+    for _ in range(n_episodes):
+      trajs = self.generate_trajectory()
+      G = 0
+      states = [s for (s, _, _) in trajs]
+      for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        G = self.gamma * G + r
+        if s not in states[:-(i + 1)]:  # logging only first visits
+          self.returns[s].append(G)
+          self.V[s] = np.mean(self.returns[s])
