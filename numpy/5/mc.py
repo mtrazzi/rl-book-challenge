@@ -18,8 +18,7 @@ class MonteCarlo:
   def generate_trajectory(self):
     trajs = []
     s = self.env.reset()
-    while True and len(trajs) < 10:
-      print(self.env)
+    while True:
       a = self.sample_action(s)
       s_p, r, done, _ = self.env.step(a)
       trajs.append((s, a, r))
