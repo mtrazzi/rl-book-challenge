@@ -98,3 +98,32 @@ class MonteCarloES(MonteCarlo):
           val = np.array([self.Q[(s, a)] for a in self.env.moves])
           a_max_idx = np.random.choice(np.flatnonzero(val == val.max()))
           self.update_det_pi(s, self.env.moves[a_max_idx])
+
+
+class OnPolicyFirstVisitMonteCarlo(MonteCarlo):
+  def __init__(self, env, pi, det_pi, gamma=0.9, epsilon=0.1):
+    super().__init__(env, pi, None, gamma)
+    self.returns = {(s, a): [] for s in env.states for a in env.moves}
+    self.return_counts = {key: 0 for key in self.returns.keys()}
+    self.epsilon = epsilon
+
+  def update_pi_soft(self, s, a_max):
+    n_act = len(self.env.moves)
+    for a in self.env.moves:
+      self.pi[(a, s)] = self.epsilon / n_act + (1 - self.epsilon) * (a == a_max)
+
+  def estimate_optimal_policy(self, n_episodes):
+    for _ in range(n_episodes):
+      trajs = self.generate_trajectory(det=False)
+      G = 0
+      pairs = [(s, a) for (s, a, _) in trajs]
+      for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        G = self.gamma * G + r
+        if (s, a) not in pairs[:-(i + 1)]:  # logging only first visits
+          self.returns[(s, a)].append(G)
+          self.return_counts[(s, a)] += 1
+          self.Q[(s, a)] += ((1 / self.return_counts[(s, a)]) *
+                             (G - self.Q[(s, a)]))
+          val = np.array([self.Q[(s, a)] for a in self.env.moves])
+          a_max_idx = np.random.choice(np.flatnonzero(val == val.max()))
+          self.update_pi_soft(s, self.env.moves[a_max_idx])

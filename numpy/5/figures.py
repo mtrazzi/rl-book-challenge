@@ -6,7 +6,7 @@ import seaborn as sns
 
 
 from blackjack import BlackjackEnv
-from mc import MonteCarloFirstVisit, MonteCarloES
+from mc import MonteCarloFirstVisit, MonteCarloES, OnPolicyFirstVisitMonteCarlo
 
 STICK = 0
 HIT = 1
@@ -50,7 +50,7 @@ def print_policy(alg, usab_ace, title, fig, fig_id):
   states = [alg.env.decode_state(i) for i in alg.V.keys()]
   for (i, (player_sum, usab, dealer_card)) in enumerate(states):
     if usab == usab_ace:
-      a = alg.sample_action(i)
+      a = alg.sample_action(i, det=alg.det_pi is not None)
       to_print[player_sum - MIN_PLAY_SUM, dealer_card - MIN_DEAL_CARD] = a
   X = Y = list(range(to_print.shape[0]))
   Z = [[to_print[x, y] for y in Y] for x in X]
@@ -92,11 +92,16 @@ def fig_5_1():
   plt.show()
 
 
-def fig_5_3(n_episodes=int(1e5)):
+def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
   env = BlackjackEnv()
   fig = plt.figure()
   fig.suptitle('Figure 5.3')
-  alg = MonteCarloES(env, pi=blackjack_policy(env), det_pi=blackjack_det_policy(env), gamma=1)
+  if on_policy_instead:
+    alg = OnPolicyFirstVisitMonteCarlo(env, pi=blackjack_policy(env),
+                                       det_pi=None, gamma=1, epsilon=1e-2)
+  else:
+    alg = MonteCarloES(env, pi=blackjack_policy(env),
+                       det_pi=blackjack_det_policy(env), gamma=1)
   alg.estimate_optimal_policy(n_episodes=n_episodes)
   alg.estimate_V_from_Q()
   for (j, usable_ace) in enumerate([True, False]):
@@ -122,10 +127,12 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   parser.add_argument('-n', '--n_ep', type=int, default=None,
                       help='Number of episodes.')
+  parser.add_argument('-o', '--on_policy_instead', type=bool, default=False,
+                      help='For testing on-policy first visit MC control.')
   args = parser.parse_args()
 
   if args.figure in ['5.3']:
-    PLOT_FUNCTION[args.figure](args.n_ep)
+    PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
   else:
     PLOT_FUNCTION[args.figure]()
 
