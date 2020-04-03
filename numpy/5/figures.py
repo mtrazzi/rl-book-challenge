@@ -56,12 +56,9 @@ def print_policy(alg, usab_ace, title, fig, fig_id):
   Z = [[to_print[x, y] for y in Y] for x in X]
   dealer_idxs = np.arange(MIN_DEAL_CARD, MIN_DEAL_CARD + N_DEAL_SCORES)
   player_idxs = np.arange(MIN_PLAY_SUM, BLACKJACK + 1)
-  # df = pd.dataframe(Z)
-  sns.heatmap(Z, xticklabels=dealer_idxs, yticklabels=player_idxs)
+  sns.heatmap(Z, xticklabels=dealer_idxs, yticklabels=player_idxs,
+              cbar_kws={'label': '0 = STICK, 1 = HIT'})
   ax.invert_yaxis()
-  # pol_range = list(range(int(np.min(Z)), int(np.max(Z)) + 1))
-  # CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
-  # ax.clabel(CS, inline=1, fontsize=10)
   ax.set_title(title)
 
 
@@ -70,6 +67,13 @@ def blackjack_policy(env):
     player_sum, _, _ = env.decode_state(s)
     return a == (STICK if player_sum >= POLICY_THRESHOLD else HIT)
   return {(a, s): policy(s, a) for s in env.states for a in env.moves}
+
+
+def blackjack_det_policy(env):
+  def policy(s):
+    player_sum, _, _ = env.decode_state(s)
+    return STICK if player_sum >= POLICY_THRESHOLD else HIT
+  return {s: policy(s) for s in env.states}
 
 
 def fig_5_1():
@@ -92,7 +96,7 @@ def fig_5_3(n_episodes=int(1e5)):
   env = BlackjackEnv()
   fig = plt.figure()
   fig.suptitle('Figure 5.3')
-  alg = MonteCarloES(env, pi=blackjack_policy(env), gamma=1)
+  alg = MonteCarloES(env, pi=blackjack_policy(env), det_pi=blackjack_det_policy(env), gamma=1)
   alg.estimate_optimal_policy(n_episodes=n_episodes)
   alg.estimate_V_from_Q()
   for (j, usable_ace) in enumerate([True, False]):

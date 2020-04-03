@@ -2,9 +2,10 @@ import numpy as np
 
 
 class MonteCarlo:
-  def __init__(self, env, pi, gamma=0.9):
+  def __init__(self, env, pi=None, det_pi=None, gamma=0.9):
     self.env = env
     self.pi = pi
+    self.det_pi = det_pi
     self.gamma = gamma
     self.V = {s: 0 for s in env.states}
     self.Q = {(s, a): 0 for s in env.states for a in env.moves}
@@ -12,15 +13,18 @@ class MonteCarlo:
   def print_values(self):
     print(self.V)
 
-  def sample_action(self, s):
-    pi_dist = [self.pi[(a, s)] for a in self.env.moves]
-    return np.random.choice(self.env.moves, p=pi_dist)
+  def sample_action(self, s, det=True):
+    if not det:
+      pi_dist = [self.pi[(a, s)] for a in self.env.moves]
+      return np.random.choice(self.env.moves, p=pi_dist)
+    else:
+      return self.det_pi[s]
 
-  def generate_trajectory(self, start_state=None):
+  def generate_trajectory(self, start_state=None, det=True):
     trajs = []
     s = self.env.reset() if start_state is None else start_state
     while True:
-      a = self.sample_action(s)
+      a = self.sample_action(s, det)
       s_p, r, done, _ = self.env.step(a)
       trajs.append((s, a, r))
       s = s_p
@@ -33,14 +37,17 @@ class MonteCarlo:
     for a_p in self.env.moves:
       self.pi[(a_p, s)] = (a == a_p)
 
+  def update_det_pi(self, s, a):
+    self.det_pi[s] = a
+
   def estimate_V_from_Q(self):
     for s in self.env.states:
       self.V[s] = max(self.Q[(s, a)] for a in self.env.moves)
 
 
 class MonteCarloFirstVisit(MonteCarlo):
-  def __init__(self, env, pi, gamma=0.9):
-    super().__init__(env, pi, gamma)
+  def __init__(self, env, pi, det_pi, gamma=0.9):
+    super().__init__(env, pi, det_pi, gamma)
     self.returns = {s: [] for s in env.states}
 
   def first_visit_mc_prediction(self, n_episodes):
@@ -56,9 +63,9 @@ class MonteCarloFirstVisit(MonteCarlo):
 
 
 class MonteCarloES(MonteCarlo):
-  def __init__(self, env, pi, gamma=0.9):
+  def __init__(self, env, pi, det_pi, gamma=0.9):
     """Monte Carlo Exploring Starts (page 99)."""
-    super().__init__(env, pi, gamma)
+    super().__init__(env, pi, det_pi, gamma)
     self.returns = {(s, a): [] for s in env.states for a in env.moves}
     self.return_counts = {key: 0 for key in self.returns.keys()}
 
@@ -67,18 +74,18 @@ class MonteCarloES(MonteCarlo):
     def random_choice(l): return l[np.random.randint(len(l))]
     return map(random_choice, (self.env.states, self.env.moves))
 
-  def generate_trajectory_exploring_starts(self):
+  def generate_trajectory_exploring_starts(self, det=True):
     s, a = self.exploring_starts()
     self.env.force_state(s)
     s_p, r, done, _ = self.env.step(a)
     first_step = [(s, a, r)]
     if done:
       return first_step
-    return first_step + self.generate_trajectory(start_state=s_p)
+    return first_step + self.generate_trajectory(start_state=s_p, det=det)
 
   def estimate_optimal_policy(self, n_episodes):
     for _ in range(n_episodes):
-      trajs = self.generate_trajectory_exploring_starts()
+      trajs = self.generate_trajectory_exploring_starts(det=True)
       G = 0
       pairs = [(s, a) for (s, a, _) in trajs]
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
@@ -90,4 +97,4 @@ class MonteCarloES(MonteCarlo):
                              (G - self.Q[(s, a)]))
           val = np.array([self.Q[(s, a)] for a in self.env.moves])
           a_max_idx = np.random.choice(np.flatnonzero(val == val.max()))
-          self.update_pi(s, self.env.moves[a_max_idx])
+          self.update_det_pi(s, self.env.moves[a_max_idx])
