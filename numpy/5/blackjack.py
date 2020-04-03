@@ -60,8 +60,8 @@ class Player:
     while self.sum < self.stick_threshold:
       self.new_card()
 
-  def reset(self):
-    self.cards = []
+  def reset(self, initial_cards=None):
+    self.cards = [] if initial_cards is None else initial_cards
     self.card_sum = 0
     self.deal_cards()
 
@@ -141,8 +141,25 @@ class BlackjackEnv(MDP):
     player_usable_ace = (s - (dealer_card - MIN_DEAL_CARD)) // N_DEAL_SCORES
     return player_sum, player_usable_ace, dealer_card
 
+  def player_cards(self, player_sum, player_usable_ace):
+    cards = []
+    if player_usable_ace:
+      cards.append(ACE_LOW)
+      player_sum -= ACE_HIGH
+    while player_sum > 0:
+      card = min(player_sum, 10)
+      cards.append(card)
+      player_sum -= card
+    return cards
+
+  def force_state(self, s):
+    """Forces initial state to be s (e.g. for exploring starts)."""
+    player_sum, usable_ace, dealer_card = self.decode_state(s)
+    self.players['player'].reset(self.player_cards(player_sum, usable_ace))
+    self.players['dealer'].reset([dealer_card])
+
   def reset(self):
-    for key, player in self.players.items():
+    for player in self.players.values():
       player.reset()
     return self.get_state()
 

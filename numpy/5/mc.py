@@ -65,6 +65,7 @@ class MonteCarloES(MonteCarlo):
 
   def generate_trajectory_exploring_starts(self):
     s, a = self.exploring_starts()
+    self.env.force_state(s)
     s_p, r, done, _ = self.env.step(a)
     first_step = [(s, a, r)]
     if done:
