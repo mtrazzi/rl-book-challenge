@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from blackjack import BlackjackEnv
-from mc import MonteCarloFirstVisit
+from mc import MonteCarloFirstVisit, MonteCarloES
 
 STICK = 0
 HIT = 1
@@ -51,7 +51,7 @@ def fig_5_1():
   env = BlackjackEnv()
   fig = plt.figure()
   fig.suptitle('Figure 5.1')
-  for (i, n_episodes) in enumerate([10000, 500000]):
+  for (i, n_episodes) in enumerate([1000, 5000]):
     alg = MonteCarloFirstVisit(env, pi=blackjack_policy(env), gamma=1)
     alg.first_visit_mc_prediction(n_episodes=n_episodes)
     for (j, usable_ace) in enumerate([True, False]):
@@ -63,8 +63,17 @@ def fig_5_1():
   plt.show()
 
 
+def fig_5_3():
+  env = BlackjackEnv()
+  fig = plt.figure()
+  fig.suptitle('Figure 5.1')
+  alg = MonteCarloES(env, pi=blackjack_policy(env), gamma=1)
+  alg.estimate_optimal_policy(n_episodes=100)
+
+
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
+  '5.3': fig_5_3,
 }
 
 
