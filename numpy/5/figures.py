@@ -1,6 +1,9 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+# import pandas as pd
+import seaborn as sns
+
 
 from blackjack import BlackjackEnv
 from mc import MonteCarloFirstVisit, MonteCarloES
@@ -26,10 +29,10 @@ def values_to_grid(env, V, usable_ace):
 
 
 def print_plot(to_print, title, fig, fig_id):
-  """Prints the grid `to_print` as presented in Figure 5.1."""
+  """Prints the grid `to_print` as presented in Figure 5.1. and 5.3."""
   dealer_idxs = np.arange(MIN_DEAL_CARD, MIN_DEAL_CARD + N_DEAL_SCORES)
   player_idxs = np.arange(MIN_PLAY_SUM, BLACKJACK + 1)
-  ax = fig.add_subplot('22' + str(fig_id), projection='3d')
+  ax = fig.add_subplot(fig_id, projection='3d')
   ax.set_title(title, fontsize=10)
   (X, Y), Z = np.meshgrid(dealer_idxs, player_idxs), to_print
   ax.set_xlabel('Dealer showing', fontsize=8)
@@ -38,6 +41,28 @@ def print_plot(to_print, title, fig, fig_id):
   ax.set_yticks([player_idxs.min(), player_idxs.max()])
   ax.set_zticks([-1, 1])
   ax.plot_surface(X, Y, Z)
+
+
+def print_policy(alg, usab_ace, title, fig, fig_id):
+  ax = fig.add_subplot(fig_id)
+  ax.set_title(title, fontsize=10)
+  to_print = np.zeros((N_POSSIBLE_PLAY_SUMS, N_DEAL_SCORES))
+  states = [alg.env.decode_state(i) for i in alg.V.keys()]
+  for (i, (player_sum, usab, dealer_card)) in enumerate(states):
+    if usab == usab_ace:
+      a = alg.sample_action(i)
+      to_print[player_sum - MIN_PLAY_SUM, dealer_card - MIN_DEAL_CARD] = a
+  X = Y = list(range(to_print.shape[0]))
+  Z = [[to_print[x, y] for y in Y] for x in X]
+  dealer_idxs = np.arange(MIN_DEAL_CARD, MIN_DEAL_CARD + N_DEAL_SCORES)
+  player_idxs = np.arange(MIN_PLAY_SUM, BLACKJACK + 1)
+  # df = pd.dataframe(Z)
+  sns.heatmap(Z, xticklabels=dealer_idxs, yticklabels=player_idxs)
+  ax.invert_yaxis()
+  # pol_range = list(range(int(np.min(Z)), int(np.max(Z)) + 1))
+  # CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
+  # ax.clabel(CS, inline=1, fontsize=10)
+  ax.set_title(title)
 
 
 def blackjack_policy(env):
@@ -55,7 +80,7 @@ def fig_5_1():
     alg = MonteCarloFirstVisit(env, pi=blackjack_policy(env), gamma=1)
     alg.first_visit_mc_prediction(n_episodes=n_episodes)
     for (j, usable_ace) in enumerate([True, False]):
-      fig_id = 2 * j + i + 1
+      fig_id = '22' + str(2 * j + i + 1)
       title = f"After {n_episodes} episodes "
       title += f"({'No usable' if not usable_ace else 'Usable'} ace)"
       print_plot(values_to_grid(env, alg.V, usable_ace=usable_ace),
@@ -63,12 +88,20 @@ def fig_5_1():
   plt.show()
 
 
-def fig_5_3():
+def fig_5_3(n_episodes=int(1e5)):
   env = BlackjackEnv()
   fig = plt.figure()
-  fig.suptitle('Figure 5.1')
+  fig.suptitle('Figure 5.3')
   alg = MonteCarloES(env, pi=blackjack_policy(env), gamma=1)
-  alg.estimate_optimal_policy(n_episodes=100)
+  alg.estimate_optimal_policy(n_episodes=n_episodes)
+  alg.estimate_V_from_Q()
+  for (j, usable_ace) in enumerate([True, False]):
+    def fig_id(j, policy): return '22' + str(2 * (j + 1) - policy)
+    title = f"({'No usable' if not usable_ace else 'Usable'} ace)"
+    print_policy(alg, usable_ace, title, fig, fig_id(j, policy=True))
+    print_plot(values_to_grid(env, alg.V, usable_ace=usable_ace),
+               title='v*' + title, fig=fig, fig_id=fig_id(j, policy=False))
+  plt.show()
 
 
 PLOT_FUNCTION = {
@@ -83,11 +116,14 @@ def main():
   parser.add_argument('figure', type=str, default=None,
                       help='Figure to reproduce.',
                       choices=PLOT_FUNCTION.keys())
-  parser.add_argument('-s', '--size', type=int, default=None,
-                      help='Size of the environment (size * size states).')
+  parser.add_argument('-n', '--n_ep', type=int, default=None,
+                      help='Number of episodes.')
   args = parser.parse_args()
 
-  PLOT_FUNCTION[args.figure]()
+  if args.figure in ['5.3']:
+    PLOT_FUNCTION[args.figure](args.n_ep)
+  else:
+    PLOT_FUNCTION[args.figure]()
 
 
 if __name__ == "__main__":

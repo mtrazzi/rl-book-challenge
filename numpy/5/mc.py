@@ -33,6 +33,10 @@ class MonteCarlo:
     for a_p in self.env.moves:
       self.pi[(a_p, s)] = (a == a_p)
 
+  def estimate_V_from_Q(self):
+    for s in self.env.states:
+      self.V[s] = max(self.Q[(s, a)] for a in self.env.moves)
+
 
 class MonteCarloFirstVisit(MonteCarlo):
   def __init__(self, env, pi, gamma=0.9):
