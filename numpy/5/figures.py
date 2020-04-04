@@ -1,7 +1,6 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
-# import pandas as pd
 import seaborn as sns
 
 
@@ -17,12 +16,12 @@ MIN_DEAL_CARD = 1
 BLACKJACK = 21
 N_DEAL_SCORES = 10
 N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
-N_RUNS = 100
+N_RUNS = 10
 FIG_5_3_STATE_VALUE = 0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
-FIG_5_3_STEP_LIST = [5, 10, 50, 100, 500, 1000]
+FIG_5_3_STEP_LIST = [2, 4, 6, 8, 10, 100, 1000]
 
 
 def values_to_grid(env, V, usable_ace):
@@ -125,7 +124,7 @@ def fig_5_2(n_episodes=int(1e5), on_policy_instead=False):
   plt.show()
 
 
-def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
+def fig_5_3():
   env = BlackjackEnv()
   fig, ax = plt.subplots()
   plt.title('Figure 5.3')
@@ -135,16 +134,20 @@ def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
   def compute_errors(alg, step_list, start_state):
     errors = np.zeros(len(step_list))
     for seed in range(N_RUNS):
+      print(f"\n\n@@@@@@@@@@@ RUN #{seed} \n\n@@@@@@@@@@@\n\n")
       estimates = alg.estimate_state(step_list, start_state, seed)
-      errors += (estimates - FIG_5_3_STATE_VALUE) ** 2
+      errors = errors + (estimates - FIG_5_3_STATE_VALUE) ** 2
+      print(errors)
     return (1 / N_RUNS) * errors
   for weighted in [True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
-    color = 'g' if not weighted else 'b'
+    color = 'g' if not weighted else 'r'
     alg = OffPolicyMCPrediction(env, pi=blackjack_policy(env),
                                 weighted=weighted, b=random_policy(env))
     errors = compute_errors(alg, FIG_5_3_STEP_LIST, fig_5_3_state)
-    plt.plot(errors, color=color, label=label)
+    print(f"{label}: {errors}")
+    plt.plot(FIG_5_3_STEP_LIST, errors, color=color, label=label)
+  plt.xscale('log')
   ax.set_xticks(FIG_5_3_STEP_LIST)
   ax.set_xlabel('Episodes (log scale)')
   ax.set_ylabel('Mean square error (average over 100 runs)')
@@ -171,7 +174,7 @@ def main():
                       help='For testing on-policy first visit MC control.')
   args = parser.parse_args()
 
-  if args.figure in ['5.3']:
+  if args.figure in ['5.1']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
   else:
     PLOT_FUNCTION[args.figure]()

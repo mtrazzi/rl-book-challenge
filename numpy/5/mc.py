@@ -7,8 +7,7 @@ class MonteCarlo:
     self.pi = pi
     self.det_pi = det_pi
     self.gamma = gamma
-    self.V = {s: 0 for s in env.states}
-    self.Q = {(s, a): 0 for s in env.states for a in env.moves}
+    self.reset()
 
   def seed(self, seed):
     self.env.seed(seed)
@@ -49,6 +48,10 @@ class MonteCarlo:
   def estimate_V_from_Q(self):
     for s in self.env.states:
       self.V[s] = max(self.Q[(s, a)] for a in self.env.moves)
+
+  def reset(self):
+    self.V = {s: 0 for s in self.env.states}
+    self.Q = {(s, a): 0 for s in self.env.states for a in self.env.moves}
 
 
 class MonteCarloFirstVisit(MonteCarlo):
@@ -145,15 +148,22 @@ class OffPolicyMC(MonteCarlo):
     self.pi = b  # because self.pi used in generate_trajectory
     self.target = pi
     # are we using weighted important sampling or ordinary important sampling
-    self.weighted = True
+    self.weighted = weighted
+
+  def reset(self):
+    super().reset()
+    self.C = {(s, a): 0 for s in self.env.states for a in self.env.moves}
 
 
 class OffPolicyMCPrediction(OffPolicyMC):
   def __init__(self, env, pi, weighted=True, b=None, gamma=0.9):
     super().__init__(env, pi, weighted, b, gamma)
+    self.estimates = []
 
-  def policy_evaluation(self, n_episodes, start_state=None):
-    for _ in range(n_episodes):
+  def policy_evaluation(self, n_episodes, start_state=None, step_list=None):
+    step_list = [] if step_list is None else step_list
+    print(f"{self.weighted}")
+    for episode in range(1, n_episodes + 1):
       trajs = self.generate_trajectory(det=False, start_state=start_state)
       G = 0
       W = 1
@@ -165,15 +175,17 @@ class OffPolicyMCPrediction(OffPolicyMC):
         W *= self.target[(a, s)] / self.b[(a, s)]
         if W == 0:
           break
+      if episode in step_list:
+        print(f"{episode} in {step_list}")
+        self.estimate_V_from_Q()
+        print([self.Q[(start_state, a)] for a in self.env.moves])
+        self.estimates = [self.V[start_state]] + self.estimates
 
   def estimate_state(self, step_list, start_state=None, seed=0):
     """Returns a list of state estimates at steps `step_list` for MSE."""
     self.seed(seed)
-    n_episodes = 0
-    estimates = []
-    for step in step_list:
-      self.policy_evaluation(step - n_episodes, start_state=start_state)
-      n_episodes += step
-      self.estimate_V_from_Q()
-      estimates.append(self.V[start_state])
-    return np.array(estimates)
+    self.policy_evaluation(max(step_list), start_state=start_state,
+                           step_list=step_list)
+    estimates_arr = np.array(self.estimates)
+    self.estimates = []
+    return estimates_arr
