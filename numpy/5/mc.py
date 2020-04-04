@@ -46,24 +46,26 @@ class MonteCarlo:
 
 
 class MonteCarloFirstVisit(MonteCarlo):
-  def __init__(self, env, pi, det_pi, gamma=0.9):
+  def __init__(self, env, pi=None, det_pi=None, gamma=0.9):
     super().__init__(env, pi, det_pi, gamma)
     self.returns = {s: [] for s in env.states}
+    self.return_counts = {key: 0 for key in self.returns.keys()}
 
   def first_visit_mc_prediction(self, n_episodes):
     for _ in range(n_episodes):
-      trajs = self.generate_trajectory()
+      trajs = self.generate_trajectory(det=False)
       G = 0
       states = [s for (s, _, _) in trajs]
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
         if s not in states[:-(i + 1)]:  # logging only first visits
           self.returns[s].append(G)
-          self.V[s] = np.mean(self.returns[s])
+          self.return_counts[s] += 1
+          self.V[s] += (1 / self.return_counts[s]) * (G - self.V[s])
 
 
 class MonteCarloES(MonteCarlo):
-  def __init__(self, env, pi, det_pi, gamma=0.9):
+  def __init__(self, env, pi=None, det_pi=None, gamma=0.9):
     """Monte Carlo Exploring Starts (page 99)."""
     super().__init__(env, pi, det_pi, gamma)
     self.returns = {(s, a): [] for s in env.states for a in env.moves}
@@ -101,7 +103,7 @@ class MonteCarloES(MonteCarlo):
 
 
 class OnPolicyFirstVisitMonteCarlo(MonteCarlo):
-  def __init__(self, env, pi, det_pi, gamma=0.9, epsilon=0.1):
+  def __init__(self, env, pi=None, det_pi=None, gamma=0.9, epsilon=0.1):
     super().__init__(env, pi, None, gamma)
     self.returns = {(s, a): [] for s in env.states for a in env.moves}
     self.return_counts = {key: 0 for key in self.returns.keys()}

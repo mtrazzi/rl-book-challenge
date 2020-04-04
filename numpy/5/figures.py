@@ -80,7 +80,7 @@ def fig_5_1():
   env = BlackjackEnv()
   fig = plt.figure()
   fig.suptitle('Figure 5.1')
-  for (i, n_episodes) in enumerate([1000, 5000]):
+  for (i, n_episodes) in enumerate([10000, 500000]):
     alg = MonteCarloFirstVisit(env, pi=blackjack_policy(env), gamma=1)
     alg.first_visit_mc_prediction(n_episodes=n_episodes)
     for (j, usable_ace) in enumerate([True, False]):
