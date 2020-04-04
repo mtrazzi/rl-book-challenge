@@ -17,6 +17,12 @@ MIN_DEAL_CARD = 1
 BLACKJACK = 21
 N_DEAL_SCORES = 10
 N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
+N_RUNS = 100
+FIG_5_3_STATE_VALUE = 0.27726
+FIG_5_3_PLAYER_SUM = 13
+FIG_5_3_USABLE_ACE = True
+FIG_5_3_DEALER_CARD = 2
+FIG_5_3_STEP_LIST = [5, 10, 50, 100, 500, 1000]
 
 
 def values_to_grid(env, V, usable_ace):
@@ -61,6 +67,11 @@ def print_policy(alg, usab_ace, title, fig, fig_id):
               cbar_kws={'label': '0 = STICK, 1 = HIT'})
   ax.invert_yaxis()
   ax.set_title(title)
+
+
+def random_policy(env):
+  p_uniform = 1 / len(env.moves)
+  return {(a, s): p_uniform for a in env.moves for s in env.states}
 
 
 def blackjack_policy(env):
@@ -118,11 +129,23 @@ def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
   env = BlackjackEnv()
   fig, ax = plt.subplots()
   plt.title('Figure 5.3')
+  fig_5_3_state = env.compute_state(FIG_5_3_PLAYER_SUM, FIG_5_3_USABLE_ACE,
+                                    FIG_5_3_DEALER_CARD)
+
+  def compute_errors(alg, step_list, start_state):
+    errors = np.zeros(len(step_list))
+    for seed in range(N_RUNS):
+      estimates = alg.estimate_state(step_list, start_state, seed)
+      errors += (estimates - FIG_5_3_STATE_VALUE) ** 2
+    return (1 / N_RUNS) * errors
   for weighted in [True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
     color = 'g' if not weighted else 'b'
-    alg = OffPolicyMCPrediction(env, blackjack_policy(env), weighted=weighted)
-    plt.plot(alg.errors, color=color, label=label)
+    alg = OffPolicyMCPrediction(env, pi=blackjack_policy(env),
+                                weighted=weighted, b=random_policy(env))
+    errors = compute_errors(alg, FIG_5_3_STEP_LIST, fig_5_3_state)
+    plt.plot(errors, color=color, label=label)
+  ax.set_xticks(FIG_5_3_STEP_LIST)
   ax.set_xlabel('Episodes (log scale)')
   ax.set_ylabel('Mean square error (average over 100 runs)')
   plt.legend()

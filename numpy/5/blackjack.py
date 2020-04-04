@@ -77,6 +77,9 @@ class BlackjackEnv(MDP):
     self.players = {"dealer": Player(DEAL_THRES),
                     "player": Player(PLAY_THRES)}
 
+  def seed(self, seed=0):
+    random.seed(seed)
+
   @property
   def moves(self):
     return [STICK, HIT]
