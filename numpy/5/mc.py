@@ -129,3 +129,36 @@ class OnPolicyFirstVisitMonteCarlo(MonteCarlo):
           val = np.array([self.Q[(s, a)] for a in self.env.moves])
           a_max_idx = np.random.choice(np.flatnonzero(val == val.max()))
           self.update_pi_soft(s, self.env.moves[a_max_idx])
+
+
+class OffPolicyMC(MonteCarlo):
+  def __init__(self, env, pi, weighted=True, b=None, gamma=0.9):
+    super().__init__(env, pi, None, gamma)
+    self.C = {(s, a): 0 for s in env.states for a in env.moves}
+    self.b = pi if b is None else b
+    self.pi = b  # because self.pi used in generate_trajectory
+    self.target = pi
+    # are we using weighted important sampling or ordinary important sampling
+    self.weighted = weighted
+    self.errors = []  # for plotting
+
+
+class OffPolicyMCPrediction(OffPolicyMC):
+  def __init__(self, env, pi, weighted=True, b=None, gamma=0.9):
+    super().__init__(env, pi, weighted, b, gamma)
+
+  def policy_evaluation(self, n_episodes):
+    for _ in range(n_episodes):
+      trajs = self.generate_trajectory(det=False)
+      G = 0
+      W = 1
+      for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        G = self.gamma * G + r
+        self.C[(s, a)] += W
+        self.returns[(s, a)].append(G)
+        self.Q[(s, a)] += ((W / self.C[(s, a)]) *
+                           (G - self.Q[(s, a)]))
+        # TODO: append things to errors
+        W *= self.target[(s, a)] / self.b[(s, a)]
+        if W == 0:
+          break

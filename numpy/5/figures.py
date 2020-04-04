@@ -6,7 +6,8 @@ import seaborn as sns
 
 
 from blackjack import BlackjackEnv
-from mc import MonteCarloFirstVisit, MonteCarloES, OnPolicyFirstVisitMonteCarlo
+from mc import (MonteCarloFirstVisit, MonteCarloES,
+                OffPolicyMCPrediction, OnPolicyFirstVisitMonteCarlo)
 
 STICK = 0
 HIT = 1
@@ -92,10 +93,10 @@ def fig_5_1():
   plt.show()
 
 
-def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
+def fig_5_2(n_episodes=int(1e5), on_policy_instead=False):
   env = BlackjackEnv()
   fig = plt.figure()
-  fig.suptitle('Figure 5.3')
+  fig.suptitle('Figure 5.2')
   if on_policy_instead:
     alg = OnPolicyFirstVisitMonteCarlo(env, pi=blackjack_policy(env),
                                        det_pi=None, gamma=1, epsilon=1e-2)
@@ -113,8 +114,24 @@ def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
   plt.show()
 
 
+def fig_5_3(n_episodes=int(1e5), on_policy_instead=False):
+  env = BlackjackEnv()
+  fig, ax = plt.subplots()
+  plt.title('Figure 5.3')
+  for weighted in [True, False]:
+    label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
+    color = 'g' if not weighted else 'b'
+    alg = OffPolicyMCPrediction(env, blackjack_policy(env), weighted=weighted)
+    plt.plot(alg.errors, color=color, label=label)
+  ax.set_xlabel('Episodes (log scale)')
+  ax.set_ylabel('Mean square error (average over 100 runs)')
+  plt.legend()
+  plt.show()
+
+
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
+  '5.2': fig_5_2,
   '5.3': fig_5_3,
 }
 
