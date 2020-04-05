@@ -40,6 +40,14 @@ class Player:
   def usable_ace(self):
     return (self.card_sum + ACE_DIFF <= BLACKJACK) and (ACE_LOW in self.cards)
 
+  @property
+  def card_sum(self):
+    return sum(self.card_value(i) for i in range(len(self.cards)))
+
+  @property
+  def bust(self):
+    return self.sum > BLACKJACK
+
   def sample_card(self):
     return random.randint(ACE_LOW, NB_VALUES)
 
@@ -53,8 +61,6 @@ class Player:
 
   def new_card(self):
     self.cards.append(self.sample_card())
-    self.card_sum += self.card_value(-1)
-    self.bust = self.sum > BLACKJACK
 
   def deal_cards(self):
     while self.sum < self.stick_threshold:
@@ -62,7 +68,6 @@ class Player:
 
   def reset(self, initial_cards=None):
     self.cards = [] if initial_cards is None else initial_cards
-    self.card_sum = 0
     self.deal_cards()
 
   def __str__(self):

@@ -17,11 +17,12 @@ BLACKJACK = 21
 N_DEAL_SCORES = 10
 N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
 N_RUNS = 10
-FIG_5_3_STATE_VALUE = 0.27726
+FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
-FIG_5_3_STEP_LIST = [2, 4, 6, 8, 10, 100, 1000]
+FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500, 1000, 2000]#, 5000, 10000, 15000, 20000]#, 10000] #[2, 4, 6, 8, 10, 100, 1000]
+FIG_5_3_N_ESTIMATION_EP = 100
 
 
 def values_to_grid(env, V, usable_ace):
@@ -131,13 +132,20 @@ def fig_5_3():
   fig_5_3_state = env.compute_state(FIG_5_3_PLAYER_SUM, FIG_5_3_USABLE_ACE,
                                     FIG_5_3_DEALER_CARD)
 
+  # computing the value of the state from example 5.4 with first visit MC
+  # to check if we get "-0.27726"
+  # estimat_alg = MonteCarloFirstVisit(env, pi=blackjack_policy(env), gamma=1)
+
   def compute_errors(alg, step_list, start_state):
     errors = np.zeros(len(step_list))
+    all_estimates = []
     for seed in range(N_RUNS):
       print(f"\n\n@@@@@@@@@@@ RUN #{seed} \n\n@@@@@@@@@@@\n\n")
       estimates = alg.estimate_state(step_list, start_state, seed)
+      all_estimates.append(estimates)
+      print(f"estimates={estimates}")
       errors = errors + (estimates - FIG_5_3_STATE_VALUE) ** 2
-      print(errors)
+      print(f"errors={errors}")
     return (1 / N_RUNS) * errors
   for weighted in [True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
@@ -150,7 +158,7 @@ def fig_5_3():
   plt.xscale('log')
   ax.set_xticks(FIG_5_3_STEP_LIST)
   ax.set_xlabel('Episodes (log scale)')
-  ax.set_ylabel('Mean square error (average over 100 runs)')
+  ax.set_ylabel(f'Mean square error (average over {N_RUNS} runs)')
   plt.legend()
   plt.show()
 

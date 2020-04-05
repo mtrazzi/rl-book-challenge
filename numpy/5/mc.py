@@ -60,9 +60,9 @@ class MonteCarloFirstVisit(MonteCarlo):
     self.returns = {s: [] for s in env.states}
     self.return_counts = {key: 0 for key in self.returns.keys()}
 
-  def first_visit_mc_prediction(self, n_episodes):
+  def first_visit_mc_prediction(self, n_episodes, start_state=None):
     for _ in range(n_episodes):
-      trajs = self.generate_trajectory(det=False)
+      trajs = self.generate_trajectory(start_state=start_state, det=False)
       G = 0
       states = [s for (s, _, _) in trajs]
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
@@ -149,6 +149,10 @@ class OffPolicyMC(MonteCarlo):
     self.target = pi
     # are we using weighted important sampling or ordinary important sampling
     self.weighted = weighted
+    self.visit_counts = {key: 0 for key in self.C.keys()}
+
+  def target_estimate(self, s):
+    return sum(self.target[(a, s)] * self.Q[(s, a)] for a in self.env.moves)
 
   def reset(self):
     super().reset()
@@ -156,30 +160,33 @@ class OffPolicyMC(MonteCarlo):
 
 
 class OffPolicyMCPrediction(OffPolicyMC):
-  def __init__(self, env, pi, weighted=True, b=None, gamma=0.9):
+  def __init__(self, env, pi, weighted=True, b=None, gamma=1):
     super().__init__(env, pi, weighted, b, gamma)
     self.estimates = []
 
+  def Q_step(self, s, a, W, G):
+    if self.weighted:
+      return (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
+    else:
+      return (1 / self.visit_counts[(s, a)]) * (W * G - self.Q[(s, a)])
+
   def policy_evaluation(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
-    print(f"{self.weighted}")
     for episode in range(1, n_episodes + 1):
-      trajs = self.generate_trajectory(det=False, start_state=start_state)
+      trajs = self.generate_trajectory(start_state=start_state, det=False)
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
-        self.C[(s, a)] += (W if self.weighted else 1)
-        self.Q[(s, a)] += ((W / self.C[(s, a)]) *
-                           (G - self.Q[(s, a)]))
+        self.visit_counts[(s, a)] += 1
+        if self.weighted:
+          self.C[(s, a)] += W
+        self.Q[(s, a)] += self.Q_step(s, a, W, G)
         W *= self.target[(a, s)] / self.b[(a, s)]
         if W == 0:
           break
       if episode in step_list:
-        print(f"{episode} in {step_list}")
-        self.estimate_V_from_Q()
-        print([self.Q[(start_state, a)] for a in self.env.moves])
-        self.estimates = [self.V[start_state]] + self.estimates
+        self.estimates.append(self.target_estimate(start_state))
 
   def estimate_state(self, step_list, start_state=None, seed=0):
     """Returns a list of state estimates at steps `step_list` for MSE."""
