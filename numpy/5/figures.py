@@ -16,13 +16,13 @@ MIN_DEAL_CARD = 1
 BLACKJACK = 21
 N_DEAL_SCORES = 10
 N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
-N_RUNS = 10
+N_RUNS = 1
 FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
 FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500, 1000, 2000]#, 5000, 10000, 15000, 20000]#, 10000] #[2, 4, 6, 8, 10, 100, 1000]
-FIG_5_3_N_ESTIMATION_EP = 100
+FIG_5_3_N_ESTIMATION_EP = 100000
 
 
 def values_to_grid(env, V, usable_ace):
@@ -135,6 +135,9 @@ def fig_5_3():
   # computing the value of the state from example 5.4 with first visit MC
   # to check if we get "-0.27726"
   # estimat_alg = MonteCarloFirstVisit(env, pi=blackjack_policy(env), gamma=1)
+  # estimat_alg.first_visit_mc_prediction(FIG_5_3_N_ESTIMATION_EP, fig_5_3_state)
+  # print(estimat_alg.V[fig_5_3_state])
+  # -> result: turns out i get -0.28051 after 100000 episodes!
 
   def compute_errors(alg, step_list, start_state):
     errors = np.zeros(len(step_list))
@@ -147,11 +150,12 @@ def fig_5_3():
       errors = errors + (estimates - FIG_5_3_STATE_VALUE) ** 2
       print(f"errors={errors}")
     return (1 / N_RUNS) * errors
-  for weighted in [True, False]:
+  for weighted in [False]:#[True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
     color = 'g' if not weighted else 'r'
     alg = OffPolicyMCPrediction(env, pi=blackjack_policy(env),
-                                weighted=weighted, b=random_policy(env))
+                                weighted=weighted, b=random_policy(env),
+                                gamma=1)
     errors = compute_errors(alg, FIG_5_3_STEP_LIST, fig_5_3_state)
     print(f"{label}: {errors}")
     plt.plot(FIG_5_3_STEP_LIST, errors, color=color, label=label)

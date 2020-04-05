@@ -168,20 +168,25 @@ class OffPolicyMCPrediction(OffPolicyMC):
     if self.weighted:
       return (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
     else:
+      print(f"({s}, {a}) (1 / {self.visit_counts[(s, a)]}) * ({W} * {G} - {self.Q[(s, a)]})")
       return (1 / self.visit_counts[(s, a)]) * (W * G - self.Q[(s, a)])
 
   def policy_evaluation(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
-    for episode in range(1, n_episodes + 1):
+    for episode in range(1, 50):#n_episodes + 1):
       trajs = self.generate_trajectory(start_state=start_state, det=False)
       G = 0
       W = 1
+      print("\n\n", trajs)
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
         self.visit_counts[(s, a)] += 1
         if self.weighted:
           self.C[(s, a)] += W
-        self.Q[(s, a)] += self.Q_step(s, a, W, G)
+        q_step = self.Q_step(s, a, W, G)
+        if s == start_state:
+          print(f"(action {a}) {self.Q[(s, a)]} += {q_step}")
+        self.Q[(s, a)] += q_step #self.Q_step(s, a, W, G)
         W *= self.target[(a, s)] / self.b[(a, s)]
         if W == 0:
           break
