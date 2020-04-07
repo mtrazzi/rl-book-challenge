@@ -142,13 +142,11 @@ class OnPolicyFirstVisitMonteCarlo(MonteCarlo):
 class OffPolicyMC(MonteCarlo):
   def __init__(self, env, pi, weighted=True, b=None, gamma=0.9):
     super().__init__(env, pi, None, gamma)
-    self.C = {(s, a): 0 for s in env.states for a in env.moves}
     self.b = pi if b is None else b
     self.pi = b  # because self.pi used in generate_trajectory
     self.target = pi
-    # are we using weighted important sampling or ordinary important sampling
-    self.weighted = weighted
-    self.visit_counts = {key: 0 for key in self.C.keys()}
+    self.weighted = weighted # weighted or ordinary important sampling
+    self.reset()
 
   def target_estimate(self, s):
     return sum(self.target[(a, s)] * self.Q[(s, a)] for a in self.env.moves)
@@ -156,54 +154,52 @@ class OffPolicyMC(MonteCarlo):
   def reset(self):
     super().reset()
     self.C = {(s, a): 0 for s in self.env.states for a in self.env.moves}
+    self.visit_counts = {key: 0 for key in self.C.keys()}
 
 
 class OffPolicyMCPrediction(OffPolicyMC):
   def __init__(self, env, pi, weighted=True, b=None, gamma=1):
     super().__init__(env, pi, weighted, b, gamma)
-    self.estimates = []
-    self.returns = {(s, a): [] for s in env.states for a in env.moves}
+    self.reset()
 
-  def Q_step(self, s, a, W, G):
-    if self.weighted:
-      return (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
-    else:
-      #print(f"({s}, {a}) (1 / {self.visit_counts[(s, a)]}) * ({W} * {G} - {self.Q[(s, a)]})")
-      return W * G#(1 / self.visit_counts[(s, a)]) * (W * G - self.Q[(s, a)])
-  
+  def reset(self):
+    super().reset()
+    self.estimates = []
+    # returns scaled by importance sampling ratio
+    self.is_returns = {(s, a): [] for s in self.env.states for a in self.env.moves}
+
   def ordinary_is(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
-    self.returns
+    q_steps = []
     for episode in range(n_episodes + 1):
       trajs = self.generate_trajectory(start_state=start_state, det=False)
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
-        self.visit_counts[(s, a)] += 1
+        self.is_returns[(s, a)].append(W * G)
         W *= self.target[(a, s)] / self.b[(a, s)]
-        self.returns[(s, a)].append(W * G)
         if W == 0:
           break
       if episode in step_list:
         for a in self.env.moves:
-            self.Q[(start_state, a)] = np.sum(self.returns[(s, a)]) / self.visit_counts[(s,a)]
+          self.Q[(start_state, a)] = np.sum(self.is_returns[(s, a)]) / episode
         self.estimates.append(self.target_estimate(start_state))
 
   def weighted_is(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
+    q_steps = []
     for episode in range(n_episodes + 1):
       trajs = self.generate_trajectory(start_state=start_state, det=False)
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
-        self.visit_counts[(s, a)] += 1
-        if self.weighted:
-          self.C[(s, a)] += W
-        q_step = self.Q_step(s, a, W, G)
+        self.C[(s, a)] += W
+        q_step = (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
         self.Q[(s, a)] += q_step
-        W *= self.target[(a, s)] / self.b[(a, s)]
+        if s == start_state and a == 1:
+          q_steps.append(q_step)
         if W == 0:
           break
       if episode in step_list:
