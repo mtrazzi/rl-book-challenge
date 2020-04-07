@@ -16,12 +16,12 @@ MIN_DEAL_CARD = 1
 BLACKJACK = 21
 N_DEAL_SCORES = 10
 N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
-N_RUNS = 1
+N_RUNS = 20
 FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
-FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500, 1000, 2000]#, 5000, 10000, 15000, 20000]#, 10000] #[2, 4, 6, 8, 10, 100, 1000]
+FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500]#, 1000, 2000]#, 5000, 10000, 15000, 20000]#, 10000] #[2, 4, 6, 8, 10, 100, 1000]
 FIG_5_3_N_ESTIMATION_EP = 100000
 
 
@@ -77,7 +77,7 @@ def random_policy(env):
 def blackjack_policy(env):
   def policy(s, a):
     player_sum, _, _ = env.decode_state(s)
-    return a == (STICK if player_sum >= POLICY_THRESHOLD else HIT)
+    return float(a == (STICK if player_sum >= POLICY_THRESHOLD else HIT))
   return {(a, s): policy(s, a) for s in env.states for a in env.moves}
 
 
@@ -150,7 +150,7 @@ def fig_5_3():
       errors = errors + (estimates - FIG_5_3_STATE_VALUE) ** 2
       print(f"errors={errors}")
     return (1 / N_RUNS) * errors
-  for weighted in [False]:#[True, False]:
+  for weighted in [True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
     color = 'g' if not weighted else 'r'
     alg = OffPolicyMCPrediction(env, pi=blackjack_policy(env),
