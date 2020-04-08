@@ -17,6 +17,9 @@ class Velocity:
     self.x = v_x 
     self.y = v_y
 
+  def __eq__(self, other_vel):
+    return self.x == other_vel.x and self.y == other_vel.y
+
   def __str__(self):
     return f"({self.x}, {self.y})"
 
@@ -24,6 +27,9 @@ class Position:
   def __init__(self, x, y):
     self.x = x
     self.y = y
+ 
+  def __eq__(self, other_pos):
+    return self.x == other_pos.x and self.y == other_pos.y
 
   def __str__(self):
     return f"({self.x}, {self.y})"
@@ -33,11 +39,17 @@ class RaceState:
     self.p = pos
     self.v = vel
 
-  def __str__(self):
+  def __str__(self): 
     return f"pos={self.p}, vel={self.v}"
 
-  def is_valid(self, racemap):
-    return (self.p in racemap.valid_pos
+  def __eq__(self, other_state):
+    return self.p == other_state.p# and self.v == other_state.v
+
+  def __hash__(self):
+    return hash((self.p.x, self.p.y, self.v.x, self.v.y))
+
+  def is_valid(self, race_map):
+    return (self.p in race_map.valid_pos
             and (self.v.x > 0 or self.v.y > 0
                  or self in race_map.initial_states))
 
@@ -102,12 +114,16 @@ class RacetrackEnv(MDP):
     random.seed(seed)
 
   @property
+  def velocities(self):
+    return [Velocity(*vel) for vel in VEL_LIST]
+
+  @property
   def moves(self):
     return [(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
 
   @property
   def states(self):
-    return [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in VEL_LIST if RaceState(pos, vel).is_valid(self.race_map)]
+    return [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in self.velocities if RaceState(pos, vel).is_valid(self.race_map)]
 
   @property
   def r(self):
@@ -120,7 +136,7 @@ class RacetrackEnv(MDP):
     pass
 
   def step(self, action):
-    return 0, 0, 0, {}
+    return self.state, R_STEP, True, {}
 
   def force_state(self, s):
     self.state = s

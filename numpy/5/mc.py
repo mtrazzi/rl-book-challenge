@@ -1,4 +1,5 @@
 import numpy as np
+from ipdb import set_trace as d
 
 class MonteCarlo:
   def __init__(self, env, pi=None, det_pi=None, gamma=0.9):
@@ -18,7 +19,7 @@ class MonteCarlo:
   def sample_action(self, s, det=True):
     if not det:
       pi_dist = [self.pi[(a, s)] for a in self.env.moves]
-      return np.random.choice(self.env.moves, p=pi_dist)
+      return self.env.moves[np.random.choice(np.arange(len(self.env.moves)), p=pi_dist)]
     else:
       return self.det_pi[s]
 
@@ -245,7 +246,7 @@ class OffPolicyMCControl(OffPolicyMC):
         self.C[(s, a)] += W
         self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
         self.update_det_target(s)
-        if a != self.det_target[s]:
+        if not np.all(a == self.det_target[s]):
           break
         W *= 1 / self.b[(a, s)]
       if episode in step_list:
