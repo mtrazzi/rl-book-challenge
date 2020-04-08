@@ -206,11 +206,12 @@ def fig_5_4(n_episodes):
                 f'import. samp. ({FIG_5_4_N_RUNS} runs)')
   plt.show()
 
-def fig_5_5(n_episodes): 
+def fig_5_5(n_episodes, config_file): 
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
+  config_file = '1.txt' if config_file is None else config_file
   fig, ax = plt.subplots()
   plt.title('Figure 5.5')
-  env = RacetrackEnv("configs/1.txt")
+  env = RacetrackEnv(config_file)
   start_state = env.reset() 
 
   # runs
@@ -240,12 +241,16 @@ def main():
                       help='Number of episodes.')
   parser.add_argument('-o', '--on_policy_instead', type=bool, default=False,
                       help='For testing on-policy first visit MC control.')
+  parser.add_argument('-c', '--config', type=str, default='configs/trivial.txt',
+                      help='Config file for the maps of figure 5.5.')
   args = parser.parse_args()
 
   if args.figure in ['5.1']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
-  elif args.figure in ['5.3', '5.4', '5.5']:
+  elif args.figure in ['5.3', '5.4']:
     PLOT_FUNCTION[args.figure](args.n_ep)
+  elif args.figure in ['5.5']:
+    PLOT_FUNCTION[args.figure](args.n_ep, args.config)
 
 if __name__ == "__main__":
   main()

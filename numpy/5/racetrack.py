@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import random
 
+from ipdb import set_trace as d
+
 VEL_CHANGES = [-1, 0, 1]
 VEL_MIN = 0
 VEL_MAX = 5
@@ -15,39 +17,85 @@ class Velocity:
     self.x = v_x 
     self.y = v_y
 
+  def __str__(self):
+    return f"({self.x}, {self.y})"
+
 class Position:
   def __init__(self, x, y):
     self.x = x
     self.y = y
+
+  def __str__(self):
+    return f"({self.x}, {self.y})"
 
 class RaceState:
   def __init__(self, pos, vel):
     self.p = pos
     self.v = vel
 
+  def __str__(self):
+    return f"pos={self.p}, vel={self.v}"
+
   def is_valid(self, racemap):
-    return self.p in racemap.valid_pos_list
+    return (self.p in racemap.valid_pos
+            and (self.v.x > 0 or self.v.y > 0
+                 or self in race_map.initial_states))
 
 class RaceMap:
   def __init__(self, filename):
     """reads file and builds corresponding map"""
-    self.build_map(np.array(pd.read_csv(filename)))
+    self.file_arr = np.array(pd.read_csv(filename))
+    self.build_map() 
 
-  def build_map(self, pos_list):
-    self.valid_pos_list = pos_list
-    self.initial_states = pos_list[0]
+  def build_map(self):
+    self.grid = self.grid_from_lines()
+    self.extreme_left = self.get_extreme_left()
+    self.fill_grid()
+    print(self.grid)
+    print(self.extreme_left)
+    print([str(state) for state in self.initial_states])
+    print([str(pos) for pos in self.valid_pos])
 
-  def rectangles_from_lines(self, file_arr):
-    import ipdb; ipdb.set_trace()
-    y_shifts = file_arr[:, 0]
+  @property
+  def valid_pos(self):
+    valid_pos_list = []
+    for x in range(self.grid.shape[0]):
+      for y in range(self.grid.shape[1]):
+        valid_pos_list.append(Position(x, y))
+    return valid_pos_list
+
+  @property
+  def initial_states(self):
+    y_0 = abs(self.extreme_left)
+    return [RaceState(Position(y_0, y_0 + i), Velocity(0, 0)) for i in range(self.file_arr[0, 2])]
+
+  def get_extreme_left(self):
+    """Returns position of extreme left from first rectangle."""
+    pos = min_y = 0
+    for (shift, _, _) in self.file_arr:
+      pos += shift
+      if pos < min_y:
+        min_y = pos
+    return min_y
+
+  def fill_grid(self):
+    x, y = 0, abs(self.extreme_left)
+    for (shift, n_rows, n_cols) in self.file_arr:
+      y += shift
+      self.grid[x:x + n_rows, y:y + n_cols] = True
+      x += n_rows
+
+  def grid_from_lines(self):
+    y_shifts = self.file_arr[:, 0]
     y_left, y_right = [np.dot(y_shifts, (y_shifts * sign) > 0) for sign in [-1, 1]]
-    height = file_arr.shape[0]
-    grid_map = np.zeros((x_right - x_left + 1, height)) 
+    max_width = self.file_arr[:, 2].max()
+    height = self.file_arr[:, 1].sum()
+    grid_map = np.zeros((y_right - y_left + max_width, height))  
+    return grid_map
 
 class RacetrackEnv(MDP):
   def __init__(self, filename):
     self.race_map = RaceMap(filename)
-    super().__init__()
     self.reset()
 
   def seed(self, seed=0):
@@ -59,7 +107,7 @@ class RacetrackEnv(MDP):
 
   @property
   def states(self):
-    return [RaceState(pos, vel) for pos in self.race_map.valid_pos_list for vel in VEL_LIST if RaceState(pos, vel).is_valid(self.race_map)]
+    return [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in VEL_LIST if RaceState(pos, vel).is_valid(self.race_map)]
 
   @property
   def r(self):
