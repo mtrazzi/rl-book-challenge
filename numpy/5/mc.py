@@ -169,6 +169,7 @@ class OffPolicyMCPrediction(OffPolicyMC):
     self.is_returns = {(s, a): [] for s in self.env.states for a in self.env.moves}
 
   def ordinary_is(self, n_episodes, start_state=None, step_list=None):
+    """Ordinary Importance Sampling when start_state happens once per episode."""
     step_list = [] if step_list is None else step_list
     q_steps = []
     for episode in range(n_episodes + 1):
@@ -187,6 +188,7 @@ class OffPolicyMCPrediction(OffPolicyMC):
         self.estimates.append(self.target_estimate(start_state))
 
   def weighted_is(self, n_episodes, start_state=None, step_list=None):
+    """Weighted Importance Sampling when start_state happens once per episode."""
     step_list = [] if step_list is None else step_list
     q_steps = []
     for episode in range(n_episodes + 1):

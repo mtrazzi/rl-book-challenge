@@ -4,25 +4,21 @@ import numpy as np
 import seaborn as sns
 
 
-from blackjack import BlackjackEnv
+from blackjack import BlackjackEnv, HIT, STICK, N_POSSIBLE_PLAY_SUMS, MIN_DEAL_CARD
 from mc import (MonteCarloFirstVisit, MonteCarloES,
                 OffPolicyMCPrediction, OnPolicyFirstVisitMonteCarlo)
+from one_state import LEFT, OneState, RIGHT, S_INIT
 
-STICK = 0
-HIT = 1
 POLICY_THRESHOLD = 20
-MIN_PLAY_SUM = 12
-MIN_DEAL_CARD = 1
-BLACKJACK = 21
-N_DEAL_SCORES = 10
-N_POSSIBLE_PLAY_SUMS = BLACKJACK - MIN_PLAY_SUM + 1
-N_RUNS = 100
+FIG_5_3_N_RUNS = 100
 FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
 FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
 FIG_5_3_N_ESTIMATION_EP = 100000
+FIG_5_4_N_RUNS = 10
+FIG_5_4_MAX_EP = 10 ** 8
 
 def values_to_grid(env, V, usable_ace):
   """Puts values V into a printable grid form depending on usable_ace."""
@@ -141,13 +137,13 @@ def fig_5_3():
   def compute_errors(alg, step_list, start_state):
     errors = np.zeros(len(step_list))
     all_estimates = []
-    for seed in range(N_RUNS):
+    for seed in range(FIG_5_3_N_RUNS):
       print(f"\n\n@@@@@@@@@@@\n\n RUN #{seed} \n\n@@@@@@@@@@@\n\n")
       alg.reset()
       estimates = alg.estimate_state(step_list, start_state, seed)
       all_estimates.append(estimates)
       errors = errors + (estimates - FIG_5_3_STATE_VALUE) ** 2
-    return (1 / N_RUNS) * errors
+    return (1 / FIG_5_3_N_RUNS) * errors
   for weighted in [True, False]:
     label = ('Weighted' if weighted else 'Ordinary') + ' Importance Sampling'
     color = 'g' if not weighted else 'r'
@@ -159,15 +155,55 @@ def fig_5_3():
   plt.xscale('log')
   ax.set_xticks(FIG_5_3_STEP_LIST)
   ax.set_xlabel('Episodes (log scale)')
-  ax.set_ylabel(f'Mean square error (average over {N_RUNS} runs)')
+  ax.set_ylabel(f'Mean square error (average over {FIG_5_3_N_RUNS} runs)')
   plt.legend()
   plt.show()
 
+def fig_5_4(n_episodes=FIG_5_4_MAX_EP):
+  # plot initialization
+  fig_5_4_step_list = []
+  fig, ax = plt.subplots()
+  plt.title('Figure 5.4')
+  fig_5_4_state = S_INIT
+  step_list = []
+  step = 1
+  base = 10
+  while step < n_episodes:
+    for i in range(1, base):
+      step_list.append(i * step)
+    step *= base
+  step_list.append(n_episodes)
+
+  # algorithm initialization
+  env = OneState()
+  always_left_policy = {(a, s): float(a == LEFT) for a in env.moves for s in env.states}
+  alg = OffPolicyMCPrediction(env, pi=always_left_policy,
+                              weighted=False, b=random_policy(env),
+                              gamma=1)
+
+  # algorithm runs
+  for seed in range(FIG_5_4_N_RUNS):
+    alg.reset()
+    estimates = alg.estimate_state(step_list, fig_5_4_state, seed)
+    plt.plot(step_list, estimates)
+
+  # plotting
+  const = np.zeros_like(step_list)
+  for y in [1, 2]:
+    plt.plot(step_list, const + y, color='black', linestyle='dashed')
+  plt.xscale('log')
+  ax.set_xticks(step_list)
+  ax.set_xlabel('Episodes (log scale)')
+  ax.set_yticks([0, 1, 2])
+  ax.set_ylabel('MC estimate of v_pi(s) with ordinary ' + 
+                f'import. samp. ({FIG_5_4_N_RUNS} runs)')
+  plt.show()
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
   '5.2': fig_5_2,
   '5.3': fig_5_3,
+  '5.4': fig_5_4, 
 }
 
 
@@ -185,6 +221,8 @@ def main():
 
   if args.figure in ['5.1']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
+  elif args.figure in ['5.4']:
+    PLOT_FUNCTION[args.figure](args.n_ep)
   else:
     PLOT_FUNCTION[args.figure]()
 
