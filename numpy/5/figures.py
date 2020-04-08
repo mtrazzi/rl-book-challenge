@@ -1,4 +1,5 @@
 import argparse
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -8,6 +9,7 @@ from blackjack import BlackjackEnv, HIT, STICK, N_POSSIBLE_PLAY_SUMS, MIN_DEAL_C
 from mc import (MonteCarloFirstVisit, MonteCarloES, OffPolicyMCControl,
                 OffPolicyMCPrediction, OnPolicyFirstVisitMonteCarlo)
 from one_state import LEFT, OneState, RIGHT, S_INIT
+from racetrack import RacetrackEnv
 
 POLICY_THRESHOLD = 20
 FIG_5_3_N_RUNS = 100
@@ -208,17 +210,15 @@ def fig_5_5(n_episodes):
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
   fig, ax = plt.subplots()
   plt.title('Figure 5.5')
-  # algorithm initialization
-  env = OneState()
-  start_state = S_INIT
-  always_left_policy = {(a, s): float(a == LEFT) for a in env.moves for s in env.states}
+  env = RacetrackEnv("configs/1.txt")
+  start_state = env.reset() 
 
   # runs
   step_list = generate_step_list(n_episodes)
-  alg = OffPolicyMCControl(env, pi=always_left_policy,
+  alg = OffPolicyMCControl(env, pi=random_policy(env),
                            b=random_policy(env),
                            gamma=1)
-  alg.optimal_policy(n_episodes=n_episodes, start_state=S_INIT, step_list=step_list)
+  alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
   plt.show()
 
 PLOT_FUNCTION = {
