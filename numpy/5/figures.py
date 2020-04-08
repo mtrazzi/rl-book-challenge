@@ -5,7 +5,7 @@ import seaborn as sns
 
 
 from blackjack import BlackjackEnv, HIT, STICK, N_POSSIBLE_PLAY_SUMS, MIN_DEAL_CARD
-from mc import (MonteCarloFirstVisit, MonteCarloES,
+from mc import (MonteCarloFirstVisit, MonteCarloES, OffPolicyMCControl,
                 OffPolicyMCPrediction, OnPolicyFirstVisitMonteCarlo)
 from one_state import LEFT, OneState, RIGHT, S_INIT
 
@@ -15,10 +15,11 @@ FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
 FIG_5_3_USABLE_ACE = True
 FIG_5_3_DEALER_CARD = 2
-FIG_5_3_STEP_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+FIG_5_3_MAX_EP = 10 ** 4
 FIG_5_3_N_ESTIMATION_EP = 100000
 FIG_5_4_N_RUNS = 10
 FIG_5_4_MAX_EP = 10 ** 8
+FIG_5_5_MAX_EP = 10 ** 2
 
 def values_to_grid(env, V, usable_ace):
   """Puts values V into a printable grid form depending on usable_ace."""
@@ -82,6 +83,15 @@ def blackjack_det_policy(env):
     return STICK if player_sum >= POLICY_THRESHOLD else HIT
   return {s: policy(s) for s in env.states}
 
+def generate_step_list(n_episodes):
+  step_list = []
+  step = 1
+  base = 10
+  while step < n_episodes:
+    for i in range(1, base):
+      step_list.append(i * step)
+    step *= base
+  return step_list + [n_episodes]
 
 def fig_5_1():
   env = BlackjackEnv()
@@ -120,12 +130,14 @@ def fig_5_2(n_episodes=int(1e5), on_policy_instead=False):
   plt.show()
 
 
-def fig_5_3():
+def fig_5_3(n_episodes):
+  n_episodes = FIG_5_3_MAX_EP if n_episodes == None else n_episodes
   env = BlackjackEnv()
   fig, ax = plt.subplots()
   plt.title('Figure 5.3')
   fig_5_3_state = env.compute_state(FIG_5_3_PLAYER_SUM, FIG_5_3_USABLE_ACE,
                                     FIG_5_3_DEALER_CARD)
+  step_list = generate_step_list(n_episodes)
 
   # computing the value of the state from example 5.4 with first visit MC
   # to check if we get "-0.27726"
@@ -150,29 +162,21 @@ def fig_5_3():
     alg = OffPolicyMCPrediction(env, pi=blackjack_policy(env),
                                 weighted=weighted, b=random_policy(env),
                                 gamma=1)
-    errors = compute_errors(alg, FIG_5_3_STEP_LIST, fig_5_3_state)
-    plt.plot(FIG_5_3_STEP_LIST, errors, color=color, label=label)
+    errors = compute_errors(alg, step_list, fig_5_3_state)
+    plt.plot(step_list, errors, color=color, label=label)
   plt.xscale('log')
-  ax.set_xticks(FIG_5_3_STEP_LIST)
+  ax.set_xticks(step_list)
   ax.set_xlabel('Episodes (log scale)')
   ax.set_ylabel(f'Mean square error (average over {FIG_5_3_N_RUNS} runs)')
   plt.legend()
   plt.show()
 
-def fig_5_4(n_episodes=FIG_5_4_MAX_EP):
+def fig_5_4(n_episodes):
+  n_episodes = FIG_5_4_MAX_EP if n_episodes == None else n_episodes
   # plot initialization
-  fig_5_4_step_list = []
   fig, ax = plt.subplots()
   plt.title('Figure 5.4')
   fig_5_4_state = S_INIT
-  step_list = []
-  step = 1
-  base = 10
-  while step < n_episodes:
-    for i in range(1, base):
-      step_list.append(i * step)
-    step *= base
-  step_list.append(n_episodes)
 
   # algorithm initialization
   env = OneState()
@@ -182,6 +186,7 @@ def fig_5_4(n_episodes=FIG_5_4_MAX_EP):
                               gamma=1)
 
   # algorithm runs
+  step_list = generate_step_list(n_episodes)
   for seed in range(FIG_5_4_N_RUNS):
     alg.reset()
     estimates = alg.estimate_state(step_list, fig_5_4_state, seed)
@@ -199,11 +204,29 @@ def fig_5_4(n_episodes=FIG_5_4_MAX_EP):
                 f'import. samp. ({FIG_5_4_N_RUNS} runs)')
   plt.show()
 
+def fig_5_5(n_episodes): 
+  n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
+  fig, ax = plt.subplots()
+  plt.title('Figure 5.5')
+  # algorithm initialization
+  env = OneState()
+  start_state = S_INIT
+  always_left_policy = {(a, s): float(a == LEFT) for a in env.moves for s in env.states}
+
+  # runs
+  step_list = generate_step_list(n_episodes)
+  alg = OffPolicyMCControl(env, pi=always_left_policy,
+                           b=random_policy(env),
+                           gamma=1)
+  alg.optimal_policy(n_episodes=n_episodes, start_state=S_INIT, step_list=step_list)
+  plt.show()
+
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
   '5.2': fig_5_2,
   '5.3': fig_5_3,
   '5.4': fig_5_4, 
+  '5.5': fig_5_5, 
 }
 
 
@@ -221,11 +244,8 @@ def main():
 
   if args.figure in ['5.1']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
-  elif args.figure in ['5.4']:
+  elif args.figure in ['5.3', '5.4', '5.5']:
     PLOT_FUNCTION[args.figure](args.n_ep)
-  else:
-    PLOT_FUNCTION[args.figure]()
-
 
 if __name__ == "__main__":
   main()

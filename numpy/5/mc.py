@@ -198,10 +198,8 @@ class OffPolicyMCPrediction(OffPolicyMC):
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
         self.C[(s, a)] += W
-        q_step = (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
-        self.Q[(s, a)] += q_step
-        if s == start_state and a == 1:
-          q_steps.append(q_step)
+        self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
+        W *= self.target[(a, s)] / self.b[(a, s)]
         if W == 0:
           break
       if episode in step_list:
@@ -219,3 +217,40 @@ class OffPolicyMCPrediction(OffPolicyMC):
     estimates_arr = np.array(self.estimates)
     self.estimates = []
     return estimates_arr
+
+class OffPolicyMCControl(OffPolicyMC):
+  def __init__(self, env, pi, b, gamma=1):
+    super().__init__(env, pi, True, b, gamma)
+    self.reset()
+    self.init_det_pi()
+
+
+  def init_det_pi(self):
+    self.det_target = {}
+    for s in self.env.states:
+      self.update_det_target(s)
+
+  def update_det_target(self, s):
+    self.det_target[s] = np.argmax([self.Q[(s, a)] for a in self.env.moves])
+
+  def optimal_policy(self, n_episodes, start_state=None, step_list=None):
+    step_list = [] if step_list is None else step_list
+    q_steps = []
+    for episode in range(n_episodes + 1):
+      trajs = self.generate_trajectory(start_state=start_state, det=False)
+      G = 0
+      W = 1
+      for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        G = self.gamma * G + r
+        self.C[(s, a)] += W
+        self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
+        self.update_det_target(s)
+        if a != self.det_target[s]:
+          break
+        W *= 1 / self.b[(a, s)]
+      if episode in step_list:
+        self.estimates.append(self.target_estimate(start_state))
+  
+  def reset(self):
+    super().reset()
+    self.estimates = []

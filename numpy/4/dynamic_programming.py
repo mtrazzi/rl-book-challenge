@@ -219,5 +219,3 @@ class DynamicProgramming:
         break
     print(f"finished value iteration after {time.time()-start}s")
     self.policy_improvement()
-    # for s in self.env.states:
-    #   self.pi[()]
