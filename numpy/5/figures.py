@@ -9,7 +9,7 @@ from blackjack import BlackjackEnv, HIT, STICK, N_POSSIBLE_PLAY_SUMS, MIN_DEAL_C
 from mc import (MonteCarloFirstVisit, MonteCarloES, OffPolicyMCControl,
                 OffPolicyMCPrediction, OnPolicyFirstVisitMonteCarlo)
 from one_state import LEFT, OneState, RIGHT, S_INIT
-from racetrack import RacetrackEnv
+from racetrack import RacetrackEnv, Position, Velocity, RaceState
 
 POLICY_THRESHOLD = 20
 FIG_5_3_N_RUNS = 100
@@ -66,6 +66,26 @@ def print_policy(alg, usab_ace, title, fig, fig_id):
   ax.invert_yaxis()
   ax.set_title(title)
 
+def print_race_policy(fig, alg):
+  env = alg.env
+  grid = env.race_map.grid
+  pi = alg.det_target
+
+  def print_speed_grid(pol, grid, axis):
+    ax = fig.add_subplot('12' + str(axis + 1))
+    ax.set_title(f'speed on axis = {"x" if axis == 0 else "y"}')
+    to_print = np.zeros_like(grid)
+    for x in range(grid.shape[0]):
+      for y in range(grid.shape[1]):
+        if grid[x, y]:
+          pos = Position(x,y)
+          to_print[x,y] = np.mean([(pi[RaceState(pos, vel)].x if axis == 0 else  pi[RaceState(pos, vel)].y) for vel in env.velocities if RaceState(pos, vel).is_valid(env.race_map)])
+          l = [(pi[RaceState(pos, vel)].x if axis == 0 else  pi[RaceState(pos, vel)].y) for vel in env.velocities if RaceState(pos, vel).is_valid(env.race_map)]
+          print(l)
+    sns.heatmap(to_print)
+  for axis in [0, 1]:
+    print_speed_grid(pi, grid, axis)
+  plt.show()
 
 def random_policy(env):
   p_uniform = 1 / len(env.moves)
@@ -221,8 +241,7 @@ def fig_5_5(n_episodes, config_file):
                            b=random_policy(env),
                            gamma=1)
   alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-  import ipdb; ipdb.set_trace()
-  #plt.show()
+  print_race_policy(fig, alg)
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,

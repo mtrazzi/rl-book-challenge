@@ -72,7 +72,6 @@ class RaceMap:
     self.y_min, self.y_max = self.get_extremes() 
     self.grid = np.zeros((self.file_arr[:,1].sum(), self.y_max - self.y_min))
     self.fill_grid()
-    print(self.grid)
     self.get_initial_states() 
     self.get_valid_pos_and_finish()
 
@@ -88,8 +87,6 @@ class RaceMap:
   def get_initial_states(self):
     y_0 = abs(self.y_min)
     self.initial_states = [RaceState(Position(0, y_0 + i),Velocity(0, 0)) for i in range(self.file_arr[0, 2])]
-    for init in self.initial_states:
-      print(init)
 
   def get_extremes(self):
     """Returns position of extreme left from first rectangle."""
@@ -126,7 +123,6 @@ class RacetrackEnv:
 
   def get_moves(self):
     self.moves = [Velocity(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
-    print([str(a) for a in self.moves])
 
   def get_states(self):
     self.states = [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in self.velocities if RaceState(pos, vel).is_valid(self.race_map)]

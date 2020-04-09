@@ -239,17 +239,17 @@ class OffPolicyMCControl(OffPolicyMC):
     q_steps = []
     ep_time = []
     for episode in range(n_episodes + 1):
-      start = time.time()
+      #start = time.time()
       trajs = self.generate_trajectory(start_state=start_state, det=False)
-      np.sqrt(2)
-      ep_time.append(time.time() - start)
-      prec = int(1e5)
-      print(f"episode done in {int(prec * ep_time[-1]) / prec}s, average = {int(prec * np.mean(ep_time)) / prec}")
+      #ep_time.append(time.time() - start)
+      #prec = int(1e5)
+      #print(f"episode done in {int(prec * ep_time[-1]) / prec}s, average = {int(prec * np.mean(ep_time)) / prec}")
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
         G = self.gamma * G + r
         self.C[(s, a)] += W
+        print(f"{self.Q[(s,a)]} += ({W}/{self.C[(s, a)]}) * ({G} - {self.Q[(s, a)]})")
         self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
         self.update_det_target(s)
         if not np.all(a == self.det_target[s]):
