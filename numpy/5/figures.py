@@ -220,7 +220,7 @@ def fig_5_5(n_episodes, config_file):
                            b=random_policy(env),
                            gamma=1)
   alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-  plt.show()
+  #plt.show()
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
