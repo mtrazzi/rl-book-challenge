@@ -72,6 +72,7 @@ class RaceMap:
     self.y_min, self.y_max = self.get_extremes() 
     self.grid = np.zeros((self.file_arr[:,1].sum(), self.y_max - self.y_min))
     self.fill_grid()
+    print(self.grid)
     self.get_initial_states() 
     self.get_valid_pos_and_finish()
 

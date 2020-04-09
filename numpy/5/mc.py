@@ -229,6 +229,9 @@ class OffPolicyMCControl(OffPolicyMC):
   def init_det_pi(self):
     self.det_target = {}
     for s in self.env.states:
+      for a in self.env.moves:
+        # initializing Q to allow some randomness in deterministic policy
+        self.Q[(s,a)] = np.random.rand()
       self.update_det_target(s)
 
   def update_det_target(self, s):
@@ -246,14 +249,18 @@ class OffPolicyMCControl(OffPolicyMC):
       #print(f"episode done in {int(prec * ep_time[-1]) / prec}s, average = {int(prec * np.mean(ep_time)) / prec}")
       G = 0
       W = 1
+      if episode > 0 and episode % 1000 == 0:
+        print(episode)
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        #print(f"new_g = {self.gamma} * {G} + {r}")
         G = self.gamma * G + r
         self.C[(s, a)] += W
-        print(f"{self.Q[(s,a)]} += ({W}/{self.C[(s, a)]}) * ({G} - {self.Q[(s, a)]})")
+        #print(f"{self.Q[(s,a)]} += ({W}/{self.C[(s, a)]}) * ({G} - {self.Q[(s, a)]})")
         self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
         self.update_det_target(s)
         if not np.all(a == self.det_target[s]):
           break
+        print("not breaking")
         W *= 1 / self.b[(a, s)]
       if episode in step_list:
         self.estimates.append(self.target_estimate(start_state))
