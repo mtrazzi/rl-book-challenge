@@ -32,9 +32,8 @@ class Position:
     self.x = x
     self.y = y
 
-  def update_pos(self, vel):
-    self.x += vel.x
-    self.y += vel.y
+  def updated_pos(self, vel):
+    return Position(self.x + vel.x, self.y + vel.y)
  
   def __eq__(self, other_pos):
     return self.x == other_pos.x and self.y == other_pos.y
@@ -73,6 +72,7 @@ class RaceMap:
     self.y_min, self.y_max = self.get_extremes() 
     self.grid = np.zeros((self.file_arr[:,1].sum(), self.y_max - self.y_min))
     self.fill_grid()
+    print(self.grid)
     self.get_initial_states() 
     self.get_valid_pos_and_finish()
 
@@ -82,12 +82,14 @@ class RaceMap:
       for y in range(self.grid.shape[1]):
         if self.grid[x, y]:
           self.valid_pos.append(Position(x, y)) 
-          if y == self.y_max:
+          if y == self.grid.shape[1] - 1:
             self.finish_line.append(Position(x, y))
 
   def get_initial_states(self):
     y_0 = abs(self.y_min)
-    self.initial_states = [RaceState(Position(y_0, y_0 + i),Velocity(0, 0)) for i in range(self.file_arr[0, 2])]
+    self.initial_states = [RaceState(Position(0, y_0 + i),Velocity(0, 0)) for i in range(self.file_arr[0, 2])]
+    for init in self.initial_states:
+      print(init)
 
   def get_extremes(self):
     """Returns position of extreme left from first rectangle."""
@@ -111,19 +113,20 @@ class RaceMap:
 class RacetrackEnv:
   def __init__(self, filename):
     self.race_map = RaceMap(filename)
+    self.get_velocities()
     self.get_states()
+    self.get_moves()
     self.reset()
 
   def seed(self, seed=0):
     random.seed(seed)
 
-  @property
-  def velocities(self):
-    return [Velocity(*vel) for vel in VEL_LIST]
+  def get_velocities(self):
+    self.velocities = [Velocity(*vel) for vel in VEL_LIST]
 
-  @property
-  def moves(self):
-    return [Velocity(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
+  def get_moves(self):
+    self.moves = [Velocity(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
+    print([str(a) for a in self.moves])
 
   def get_states(self):
     self.states = [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in self.velocities if RaceState(pos, vel).is_valid(self.race_map)]
@@ -132,15 +135,16 @@ class RacetrackEnv:
   def r(self):
     return [R_STEP]
 
-  def updated_position(self, vel):
-    s = self.state
-
   def step(self, action):
-    self.state.v += action
-    self.state.p.update_pos(self.state.v)
-    if not self.state.is_valid(self.race_map):
+    new_vel = self.state.v + action
+    if new_vel not in self.velocities:
+      return self.state, R_STEP, False, {}
+    new_pos = self.state.p.updated_pos(new_vel)
+    new_state = RaceState(new_pos, new_vel)
+    if not new_state in self.states:
       return self.reset(), R_STEP, False, {}
-    return self.state, R_STEP, self.state.p in self.race_map.finish_line, {}
+    self.state = new_state
+    return new_state, R_STEP, new_pos in self.race_map.finish_line, {}
 
   def force_state(self, s):
     self.state = s

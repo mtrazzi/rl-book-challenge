@@ -1,5 +1,5 @@
 import numpy as np
-from ipdb import set_trace as d
+import time
 
 class MonteCarlo:
   def __init__(self, env, pi=None, det_pi=None, gamma=0.9):
@@ -18,12 +18,7 @@ class MonteCarlo:
 
   def sample_action(self, s, det=True):
     if not det:
-      pi_dist = []
-      for a in self.env.moves:
-        #import ipdb; ipdb.set_trace()
-        #print(f"{a},{s}")
-        pi_dist.append(self.pi[(a, s)])# for a in self.env.moves]
-      #pi_dist = [self.pi[(a, s)] for a in self.env.moves]
+      pi_dist = [self.pi[(a, s)] for a in self.env.moves]
       return self.env.moves[np.random.choice(np.arange(len(self.env.moves)), p=pi_dist)]
     else:
       return self.det_pi[s]
@@ -242,8 +237,14 @@ class OffPolicyMCControl(OffPolicyMC):
   def optimal_policy(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
     q_steps = []
+    ep_time = []
     for episode in range(n_episodes + 1):
+      start = time.time()
       trajs = self.generate_trajectory(start_state=start_state, det=False)
+      np.sqrt(2)
+      ep_time.append(time.time() - start)
+      prec = int(1e5)
+      print(f"episode done in {int(prec * ep_time[-1]) / prec}s, average = {int(prec * np.mean(ep_time)) / prec}")
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):

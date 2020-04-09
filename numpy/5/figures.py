@@ -212,6 +212,7 @@ def fig_5_5(n_episodes, config_file):
   fig, ax = plt.subplots()
   plt.title('Figure 5.5')
   env = RacetrackEnv(config_file)
+  env.seed(0)
   start_state = env.reset() 
 
   # runs
@@ -220,6 +221,7 @@ def fig_5_5(n_episodes, config_file):
                            b=random_policy(env),
                            gamma=1)
   alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
+  import ipdb; ipdb.set_trace()
   #plt.show()
 
 PLOT_FUNCTION = {
