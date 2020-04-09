@@ -232,7 +232,7 @@ class OffPolicyMCControl(OffPolicyMC):
       self.update_det_target(s)
 
   def update_det_target(self, s):
-    self.det_target[s] = np.argmax([self.Q[(s, a)] for a in self.env.moves])
+    self.det_target[s] = self.env.moves[np.argmax([self.Q[(s, a)] for a in self.env.moves])]
 
   def optimal_policy(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list

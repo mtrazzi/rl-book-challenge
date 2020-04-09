@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import random
 
-from ipdb import set_trace as d
-
 VEL_CHANGES = [-1, 0, 1]
 VEL_MIN = 0
 VEL_MAX = 5
@@ -20,6 +18,12 @@ class Velocity:
   def __eq__(self, other_vel):
     return self.x == other_vel.x and self.y == other_vel.y
 
+  def __add__(self, other_vel):
+    return Velocity(self.x + other_vel.x, self.y + other_vel.y)
+
+  def __hash__(self):
+    return hash((self.x, self.y))
+
   def __str__(self):
     return f"({self.x}, {self.y})"
 
@@ -30,6 +34,9 @@ class Position:
  
   def __eq__(self, other_pos):
     return self.x == other_pos.x and self.y == other_pos.y
+
+  def __add__(self, other_pos):
+    return Position(self.x + other_pos.x, self.y + other_pos.y)
 
   def __str__(self):
     return f"({self.x}, {self.y})"
@@ -44,7 +51,7 @@ class RaceState:
 
   def __eq__(self, other_state):
     return self.p == other_state.p and self.v == other_state.v
-
+  
   def __hash__(self):
     return hash((self.p.x, self.p.y, self.v.x, self.v.y))
 
@@ -114,7 +121,7 @@ class RacetrackEnv:
 
   @property
   def moves(self):
-    return [(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
+    return [Velocity(x, y) for x in VEL_CHANGES for y in VEL_CHANGES]
 
   def get_states(self):
     self.states = [RaceState(pos, vel) for pos in self.race_map.valid_pos for vel in self.velocities if RaceState(pos, vel).is_valid(self.race_map)]
@@ -123,24 +130,27 @@ class RacetrackEnv:
   def r(self):
     return [R_STEP]
 
-  def update_velocities(self, action):
-    pass
+  def updated_velocity(self, action):
+    return self.state.v + action 
 
-  def update_position(self, action):
+  def updated_position(self, action):
     pass
 
   def step(self, action):
+    new_vel = self.updated_velocity(action)
     return self.state, R_STEP, True, {}
 
   def force_state(self, s):
     self.state = s
     return
 
-  def reset(self):
+  def sample_init_state(self):
     init_states = self.race_map.initial_states
     rand_idx = np.random.randint(len(init_states))
-    self.state = self.race_map.initial_states[rand_idx]
-    return self.state
+    return init_states[rand_idx]
+
+  def reset(self):
+    return self.sample_init_state()
 
   def __str__(self):
     return f"{self.state}"
