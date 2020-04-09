@@ -18,7 +18,12 @@ class MonteCarlo:
 
   def sample_action(self, s, det=True):
     if not det:
-      pi_dist = [self.pi[(a, s)] for a in self.env.moves]
+      pi_dist = []
+      for a in self.env.moves:
+        #import ipdb; ipdb.set_trace()
+        #print(f"{a},{s}")
+        pi_dist.append(self.pi[(a, s)])# for a in self.env.moves]
+      #pi_dist = [self.pi[(a, s)] for a in self.env.moves]
       return self.env.moves[np.random.choice(np.arange(len(self.env.moves)), p=pi_dist)]
     else:
       return self.det_pi[s]

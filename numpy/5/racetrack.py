@@ -31,6 +31,10 @@ class Position:
   def __init__(self, x, y):
     self.x = x
     self.y = y
+
+  def update_pos(self, vel):
+    self.x += vel.x
+    self.y += vel.y
  
   def __eq__(self, other_pos):
     return self.x == other_pos.x and self.y == other_pos.y
@@ -70,15 +74,16 @@ class RaceMap:
     self.grid = np.zeros((self.file_arr[:,1].sum(), self.y_max - self.y_min))
     self.fill_grid()
     self.get_initial_states() 
+    self.get_valid_pos_and_finish()
 
-  @property
-  def valid_pos(self):
-    valid_pos_list = []
+  def get_valid_pos_and_finish(self):
+    self.valid_pos, self.finish_line = [], []
     for x in range(self.grid.shape[0]):
       for y in range(self.grid.shape[1]):
         if self.grid[x, y]:
-          valid_pos_list.append(Position(x, y))
-    return valid_pos_list
+          self.valid_pos.append(Position(x, y)) 
+          if y == self.y_max:
+            self.finish_line.append(Position(x, y))
 
   def get_initial_states(self):
     y_0 = abs(self.y_min)
@@ -102,9 +107,6 @@ class RaceMap:
       y += shift
       self.grid[x:x + n_rows, y:y + n_cols] = True
       x += n_rows
-
-  def grid_from_lines(self):
-    return 
 
 class RacetrackEnv:
   def __init__(self, filename):
@@ -130,15 +132,15 @@ class RacetrackEnv:
   def r(self):
     return [R_STEP]
 
-  def updated_velocity(self, action):
-    return self.state.v + action 
-
-  def updated_position(self, action):
-    pass
+  def updated_position(self, vel):
+    s = self.state
 
   def step(self, action):
-    new_vel = self.updated_velocity(action)
-    return self.state, R_STEP, True, {}
+    self.state.v += action
+    self.state.p.update_pos(self.state.v)
+    if not self.state.is_valid(self.race_map):
+      return self.reset(), R_STEP, False, {}
+    return self.state, R_STEP, self.state.p in self.race_map.finish_line, {}
 
   def force_state(self, s):
     self.state = s
@@ -150,7 +152,8 @@ class RacetrackEnv:
     return init_states[rand_idx]
 
   def reset(self):
-    return self.sample_init_state()
+    self.state = self.sample_init_state()
+    return self.state
 
   def __str__(self):
     return f"{self.state}"
