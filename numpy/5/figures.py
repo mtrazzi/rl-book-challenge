@@ -24,6 +24,7 @@ FIG_5_4_N_RUNS = 10
 FIG_5_4_MAX_EP = 10 ** 8
 FIG_5_5_MAX_EP = 10 ** 2
 FIG_5_5_MAX_PRINT_VEL = 1
+FIG_5_5_BLACK_COLOR = -1
 
 def values_to_grid(env, V, usable_ace):
   """Puts values V into a printable grid form depending on usable_ace."""
@@ -99,29 +100,47 @@ def print_race_policy(alg):
 
 def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
   alg.det_pi = alg.det_target
-  traj = alg.generate_trajectory(start_state=start_state, det=True, max_steps=max_steps)
+  traj = alg.generate_trajectory(start_state=start_state, det=True, max_steps=max_steps,term=True)
   race_map = alg.env.race_map
-  grid = race_map.grid
-  mask = copy.copy(1 - grid)
+  color_grid = copy.copy(race_map.grid)
+  mask = copy.copy(1 - race_map.grid)
   fig, ax = plt.subplots()
   # we want finish_line to be red
   for pos in race_map.finish_line:
-    grid[pos.x, pos.y] = 0.5
+    color_grid[pos.x, pos.y] = 0.5
   for s_init in race_map.initial_states:
-    grid[s_init.p.x, s_init.p.y] = -0.2
-  for (s,_,_) in traj:
+    color_grid[s_init.p.x, s_init.p.y] = -0.2
+  backup_grid = copy.copy(color_grid) 
+  ax.invert_yaxis()
+
+  def color_traj(s, a, color=None):
     x, y = s.p.x, s.p.y
-    # we don't want to color initial states black
-    #if s not in race_map.initial_states:
-    grid[x, y] = -1
+    delta_x, delta_y = s.v.x + a.x, s.v.y + a.y
+    dx, dy = np.sign(delta_x), np.sign(delta_y) 
+    print(s)
+    print(a)
+    print(s.p.x + delta_x, s.p.y + delta_y)
+    while True:
+      print(x, y)
+      color_grid[x, y] = color if color is not None else backup_grid[x, y]
+      if abs(delta_x) != abs(delta_y):   
+        if (abs(x - s.p.x + 1) / abs(y - s.p.y + 1)) > (abs(delta_x) / abs(delta_y)):
+          y += dy
+        else:
+          x += dx
+      else:
+        x, y = x + dx, y + dy
+      if (x == (s.p.x + delta_x) and y == (s.p.y + delta_y)) or not (0 <= x <= color_grid.shape[0]) or not (0 <= y <= color_grid.shape[1]):
+        break
+ 
+  for (s, a, _) in traj:
+    color_traj(s, a, FIG_5_5_BLACK_COLOR)    
     if debug:
-      sns.heatmap(grid, mask=mask)
-      grid[x, y] = 1
-      ax.invert_yaxis()
+      sns.heatmap(color_grid, mask=mask)
       plt.show()
+      color_traj(s, a)    
   if not debug:
-    sns.heatmap(grid, mask=mask)
-    ax.invert_yaxis()
+    sns.heatmap(color_grid, mask=mask)
     plt.show()
 
 def random_policy(env):
@@ -267,19 +286,21 @@ def fig_5_5(n_episodes, config_file):
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
   config_file = '1.txt' if config_file is None else config_file
   env = RacetrackEnv(config_file)
-  env.seed(0)
-  start_state = env.sample_init_state()
+  for start_state in env.race_map.initial_states:
+    # training runs
+    env.seed(0)
+    step_list = generate_step_list(n_episodes)
+    alg = OffPolicyMCControl(env, pi=random_policy(env),
+                             b=random_policy(env),
+                             gamma=1)
+    alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
+    #plt.plot(alg.exp_wei_avg_l)
+    #plt.show()
 
-  # runs
-  step_list = generate_step_list(n_episodes)
-  alg = OffPolicyMCControl(env, pi=random_policy(env),
-                           b=random_policy(env),
-                           gamma=1)
-  #alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-  print_race_policy(alg)
-  plt.plot(alg.exp_wei_avg_l)
-  plt.show()
-  plot_race_traj(alg, start_state, debug=True, max_steps=10)
+    # generate trajectories without noise 
+    alg.env.noise = False
+    #print_race_policy(alg)
+    plot_race_traj(alg, start_state, debug=True, max_steps=10)
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,

@@ -26,7 +26,7 @@ class MonteCarlo:
     else:
       return self.det_pi[s]
 
-  def generate_trajectory(self, start_state=None, det=True, max_steps=np.inf):
+  def generate_trajectory(self, start_state=None, det=True, max_steps=np.inf, term=False):
     trajs = []
     s = self.env.reset() if start_state is None else start_state
     if start_state is not None:
@@ -40,6 +40,8 @@ class MonteCarlo:
       s = s_p
       if done:
         break
+    if term:
+      trajs.append((s_p, a, 0))
     return trajs
 
   def update_pi(self, s, a):

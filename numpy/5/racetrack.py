@@ -9,6 +9,7 @@ VEL_MAX = 5
 VEL_RANGE = range(VEL_MIN, VEL_MAX + 1) 
 VEL_LIST = [(x, y) for x in VEL_RANGE for y in VEL_RANGE]
 R_STEP = -1
+NOISE_PROB = 0.1
 
 class Velocity:
   def __init__(self, v_x, v_y):
@@ -109,15 +110,17 @@ class RaceMap:
       x += n_rows
 
 class RacetrackEnv:
-  def __init__(self, filename):
+  def __init__(self, filename, noise=True):
     self.race_map = RaceMap(filename)
     self.get_velocities()
     self.get_states()
     self.get_moves()
+    self.noise = noise
     self.reset()
 
   def seed(self, seed=0):
     random.seed(seed)
+    np.random.seed(seed)
 
   def get_velocities(self):
     self.velocities = [Velocity(*vel) for vel in VEL_LIST]
@@ -133,6 +136,8 @@ class RacetrackEnv:
     return [R_STEP]
 
   def step(self, action):
+    if self.noise and np.random.random() < NOISE_PROB:
+      action = Velocity(0, 0)
     new_vel = self.state.v + action
     if new_vel not in self.velocities:
       return self.state, R_STEP, False, {}
