@@ -5,7 +5,7 @@ import random
 
 VEL_CHANGES = [-1, 0, 1]
 VEL_MIN = 0
-VEL_MAX = 5
+VEL_MAX = 1
 VEL_RANGE = range(VEL_MIN, VEL_MAX + 1) 
 VEL_LIST = [(x, y) for x in VEL_RANGE for y in VEL_RANGE]
 R_STEP = -1

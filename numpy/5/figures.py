@@ -3,6 +3,7 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import time
 
 
 from blackjack import BlackjackEnv, HIT, STICK, N_POSSIBLE_PLAY_SUMS, MIN_DEAL_CARD
@@ -22,6 +23,7 @@ FIG_5_3_N_ESTIMATION_EP = 100000
 FIG_5_4_N_RUNS = 10
 FIG_5_4_MAX_EP = 10 ** 8
 FIG_5_5_MAX_EP = 10 ** 2
+FIG_5_5_MAX_PRINT_VEL = 1
 
 def values_to_grid(env, V, usable_ace):
   """Puts values V into a printable grid form depending on usable_ace."""
@@ -71,23 +73,54 @@ def print_race_policy(fig, alg):
   grid = env.race_map.grid
   pi = alg.det_target
 
-  def print_speed_grid(pol, grid, axis, vel, fig_id):
-    ax = fig.add_subplot('22' + str(fig_id))
-    #ax.set_title(f'speed on axis = {"x" if axis == 0 else "y"}')
-    to_print = np.zeros_like(grid)
+  def print_speed_grid(pol, grid, axis, vel, fig_id, fig_id_base):
+    ax = fig.add_subplot(str(fig_id_base) + str(fig_id))
+    ax.set_title(f'axis = {"x" if axis == 0 else "y"}, vel = {str(vel)}')
+    to_print = np.zeros_like(grid) - 2
     for x in range(grid.shape[0]):
       for y in range(grid.shape[1]):
-        if grid[x, y]:
-          pos = Position(x,y) 
-          to_print[x,y] = (pi[RaceState(pos, vel)].x if axis == 0 else  pi[RaceState(pos, vel)].y)
+        pos = Position(x,y) 
+        s = RaceState(pos, vel)
+        if grid[x, y] and s.is_valid(env.race_map):
+          print(str(s.p), str(s.v))
+          a_best = pi[s]
+          to_print[x,y] = (a_best.x if axis == 0 else a_best.y)
     sns.heatmap(to_print, xticklabels=[], yticklabels=[])
 
   x_vel = Velocity(1, 0)
-  y_vel = Velocity(0, 1) 
-  for (idx, vel) in enumerate([x_vel, y_vel]):
+  y_vels = [Velocity(0, y) for y in range(FIG_5_5_MAX_PRINT_VEL + 1)]
+  for (idx, vel) in enumerate(y_vels):#[x_vel, y_vel]):
     for axis in [0, 1]:
-      print_speed_grid(pi, grid, axis, vel, idx * 2 + axis + 1)
+      print_speed_grid(pi, grid, axis, vel, idx * 2 + axis + 1, str(FIG_5_5_MAX_PRINT_VEL + 1) + '2')
   plt.show()
+
+
+def plot_race_traj(alg, start_state, debug=True):
+  alg.det_pi = alg.det_target
+  traj = alg.generate_trajectory(start_state=start_state, det=True)
+  race_map = alg.env.race_map
+  grid = race_map.grid
+  mask = copy.copy(1 - grid)
+  fig = plt.figure()
+  # we want finish_line to be red
+  for pos in race_map.finish_line:
+    grid[pos.x, pos.y] = 0.5
+  for s_init in race_map.initial_states:
+    print(str(s_init))
+    grid[s_init.p.x, s_init.p.y] = -0.2
+  for (s,_,_) in traj:
+    x, y = s.p.x, s.p.y
+    # we don't want to color initial states black
+    if s not in race_map.initial_states:
+      grid[x, y] = -1
+    if debug:
+      sns.heatmap(grid, mask=mask)
+      grid[x, y] = 1
+      plt.show()
+  print("hello")
+  if not debug:
+    sns.heatmap(grid, mask=mask)
+    plt.show()
 
 def random_policy(env):
   p_uniform = 1 / len(env.moves)
@@ -231,11 +264,11 @@ def fig_5_4(n_episodes):
 def fig_5_5(n_episodes, config_file): 
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
   config_file = '1.txt' if config_file is None else config_file
-  fig, ax = plt.subplots()
-  plt.title('Figure 5.5')
+  #fig, ax = plt.subplots()
+  #plt.title('Figure 5.5')
   env = RacetrackEnv(config_file)
   env.seed(0)
-  start_state = env.reset() 
+  start_state = RaceState(Position(0,0), Velocity(0,0))
 
   # runs
   step_list = generate_step_list(n_episodes)
@@ -243,7 +276,12 @@ def fig_5_5(n_episodes, config_file):
                            b=random_policy(env),
                            gamma=1)
   alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-  print_race_policy(fig, alg)
+  #print_race_policy(fig, alg)
+  #to_plot = alg.estimates
+  #plt.plot(step_list, to_plot)
+  #print(to_plot)
+  #plt.show()
+  plot_race_traj(alg, start_state, debug=False)
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,

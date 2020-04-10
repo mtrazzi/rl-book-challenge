@@ -231,40 +231,50 @@ class OffPolicyMCControl(OffPolicyMC):
     for s in self.env.states:
       for a in self.env.moves:
         # initializing Q to allow some randomness in deterministic policy
-        self.Q[(s,a)] = np.random.rand()
+        self.Q[(s,a)] = -int(1e5)
       self.update_det_target(s)
 
   def update_det_target(self, s):
-    self.det_target[s] = self.env.moves[np.argmax([self.Q[(s, a)] for a in self.env.moves])]
+    best_move = self.env.moves[np.argmax([self.Q[(s, a)] for a in self.env.moves])]
+    self.det_target[s] = best_move
 
+  def det_target_estimate(self, s):
+    return self.Q[(s,self.det_target[s])]
+ 
   def optimal_policy(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
-    q_steps = []
-    ep_time = []
-    for episode in range(n_episodes + 1):
-      #start = time.time()
+    self.exp_wei_avg_l = []
+    exp_wei_avg = 0
+    alpha = 0.9
+    for episode in range(1, n_episodes + 1):
       trajs = self.generate_trajectory(start_state=start_state, det=False)
-      #ep_time.append(time.time() - start)
-      #prec = int(1e5)
-      #print(f"episode done in {int(prec * ep_time[-1]) / prec}s, average = {int(prec * np.mean(ep_time)) / prec}")
       G = 0
       W = 1
-      if episode > 0 and episode % 1000 == 0:
-        print(episode)
+      #print(*[f"{str(s)} --{str(a)}-->" for (s,a,_) in trajs], sep='\n')
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
-        #print(f"new_g = {self.gamma} * {G} + {r}")
         G = self.gamma * G + r
         self.C[(s, a)] += W
-        #print(f"{self.Q[(s,a)]} += ({W}/{self.C[(s, a)]}) * ({G} - {self.Q[(s, a)]})")
         self.Q[(s, a)] += (W / self.C[(s, a)]) * (G - self.Q[(s, a)])
         self.update_det_target(s)
+        #print(f"{str(a)} != {str(self.det_target[s])}")
         if not np.all(a == self.det_target[s]):
+          #print("breaking")
           break
-        print("not breaking")
+        #print("nah")
         W *= 1 / self.b[(a, s)]
       if episode in step_list:
-        self.estimates.append(self.target_estimate(start_state))
+        print(f"episode #{episode}")
+        print(self)
+        exp_wei_avg = alpha * exp_wei_avg + (1 - alpha) * G
+        self.exp_wei_avg_l.append(exp_wei_avg)
+        self.estimates.append(self.det_target_estimate(start_state))
   
   def reset(self):
     super().reset()
     self.estimates = []
+
+  def __str__(self):
+    res = ''
+    for s in self.env.states:
+      res += f"{str(s)}: {self.det_target[s]}\n"
+    return res
