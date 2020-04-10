@@ -95,9 +95,9 @@ def print_race_policy(fig, alg):
   plt.show()
 
 
-def plot_race_traj(alg, start_state, debug=True):
+def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
   alg.det_pi = alg.det_target
-  traj = alg.generate_trajectory(start_state=start_state, det=True)
+  traj = alg.generate_trajectory(start_state=start_state, det=True, max_steps=max_steps)
   race_map = alg.env.race_map
   grid = race_map.grid
   mask = copy.copy(1 - grid)
@@ -106,18 +106,16 @@ def plot_race_traj(alg, start_state, debug=True):
   for pos in race_map.finish_line:
     grid[pos.x, pos.y] = 0.5
   for s_init in race_map.initial_states:
-    print(str(s_init))
     grid[s_init.p.x, s_init.p.y] = -0.2
   for (s,_,_) in traj:
     x, y = s.p.x, s.p.y
     # we don't want to color initial states black
-    if s not in race_map.initial_states:
-      grid[x, y] = -1
+    #if s not in race_map.initial_states:
+    grid[x, y] = -1
     if debug:
       sns.heatmap(grid, mask=mask)
       grid[x, y] = 1
       plt.show()
-  print("hello")
   if not debug:
     sns.heatmap(grid, mask=mask)
     plt.show()
@@ -268,7 +266,7 @@ def fig_5_5(n_episodes, config_file):
   #plt.title('Figure 5.5')
   env = RacetrackEnv(config_file)
   env.seed(0)
-  start_state = RaceState(Position(0,0), Velocity(0,0))
+  start_state = env.sample_init_state()
 
   # runs
   step_list = generate_step_list(n_episodes)
@@ -281,7 +279,9 @@ def fig_5_5(n_episodes, config_file):
   #plt.plot(step_list, to_plot)
   #print(to_plot)
   #plt.show()
-  plot_race_traj(alg, start_state, debug=False)
+  plt.plot(alg.exp_wei_avg_l)
+  plt.show()
+  plot_race_traj(alg, start_state, debug=True, max_steps=10)
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
