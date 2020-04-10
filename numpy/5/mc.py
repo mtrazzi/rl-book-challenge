@@ -250,13 +250,15 @@ class OffPolicyMCControl(OffPolicyMC):
     step_list = [] if step_list is None else step_list
     self.exp_wei_avg_l = []
     ep_time_l = []
-    exp_wei_avg = 0
-    alpha = 0.9
+    exp_wei_avg = None
+    alpha = 0.99
     for episode in range(1, n_episodes + 1):
       start = time.time() 
       trajs = self.generate_trajectory(start_state=start_state, det=False)
       ep_time = time.time() - start
       ep_time_l.append(ep_time)
+      if episode > 0 and episode % 10 == 0:
+        print(f"episode #{episode}")
       G = 0
       W = 1
       for (i, (s, a, r)) in enumerate(trajs[::-1]):
@@ -268,8 +270,7 @@ class OffPolicyMCControl(OffPolicyMC):
           break
         W *= 1 / self.b[(a, s)]
       real_G = sum(r for (s,a,r) in trajs)
-      exp_wei_avg = alpha * exp_wei_avg + (1 - alpha) * real_G
-      print(f"episode done:\navg time per ep: {np.mean(ep_time_l)}s\navg rew per ep: {exp_wei_avg}")
+      exp_wei_avg = alpha * (exp_wei_avg if exp_wei_avg is not None else real_G)+ (1 - alpha) * real_G
       if episode in step_list:
         self.exp_wei_avg_l.append(exp_wei_avg)
         self.estimates.append(self.det_target_estimate(start_state))

@@ -68,12 +68,12 @@ def print_policy(alg, usab_ace, title, fig, fig_id):
   ax.invert_yaxis()
   ax.set_title(title)
 
-def print_race_policy(fig, alg):
+def print_race_policy(alg):
   env = alg.env
   grid = env.race_map.grid
   pi = alg.det_target
 
-  def print_speed_grid(pol, grid, axis, vel, fig_id, fig_id_base):
+  def print_speed_grid(fig, pol, grid, axis, vel, fig_id, fig_id_base):
     ax = fig.add_subplot(str(fig_id_base) + str(fig_id))
     ax.set_title(f'axis = {"x" if axis == 0 else "y"}, vel = {str(vel)}')
     to_print = np.zeros_like(grid) - 2
@@ -82,17 +82,18 @@ def print_race_policy(fig, alg):
         pos = Position(x,y) 
         s = RaceState(pos, vel)
         if grid[x, y] and s.is_valid(env.race_map):
-          print(str(s.p), str(s.v))
           a_best = pi[s]
           to_print[x,y] = (a_best.x if axis == 0 else a_best.y)
     sns.heatmap(to_print, xticklabels=[], yticklabels=[])
 
-  x_vel = Velocity(1, 0)
+  
+  x_vels = [Velocity(x, 0) for x in range(FIG_5_5_MAX_PRINT_VEL + 1)]
   y_vels = [Velocity(0, y) for y in range(FIG_5_5_MAX_PRINT_VEL + 1)]
-  for (idx, vel) in enumerate(y_vels):#[x_vel, y_vel]):
+  for (idx, vel) in enumerate(x_vels + y_vels):
+    fig = plt.figure()
     for axis in [0, 1]:
-      print_speed_grid(pi, grid, axis, vel, idx * 2 + axis + 1, str(FIG_5_5_MAX_PRINT_VEL + 1) + '2')
-  plt.show()
+      print_speed_grid(fig, pi, grid, axis, vel, axis + 1, '12')
+    plt.show()
 
 
 def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
@@ -262,8 +263,6 @@ def fig_5_4(n_episodes):
 def fig_5_5(n_episodes, config_file): 
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
   config_file = '1.txt' if config_file is None else config_file
-  #fig, ax = plt.subplots()
-  #plt.title('Figure 5.5')
   env = RacetrackEnv(config_file)
   env.seed(0)
   start_state = env.sample_init_state()
@@ -274,11 +273,7 @@ def fig_5_5(n_episodes, config_file):
                            b=random_policy(env),
                            gamma=1)
   alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-  #print_race_policy(fig, alg)
-  #to_plot = alg.estimates
-  #plt.plot(step_list, to_plot)
-  #print(to_plot)
-  #plt.show()
+  print_race_policy(alg)
   plt.plot(alg.exp_wei_avg_l)
   plt.show()
   plot_race_traj(alg, start_state, debug=True, max_steps=10)
