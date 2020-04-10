@@ -85,6 +85,7 @@ def print_race_policy(alg):
           a_best = pi[s]
           to_print[x,y] = (a_best.x if axis == 0 else a_best.y)
     sns.heatmap(to_print, xticklabels=[], yticklabels=[])
+    ax.invert_yaxis()
 
   
   x_vels = [Velocity(x, 0) for x in range(FIG_5_5_MAX_PRINT_VEL + 1)]
@@ -102,7 +103,7 @@ def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
   race_map = alg.env.race_map
   grid = race_map.grid
   mask = copy.copy(1 - grid)
-  fig = plt.figure()
+  fig, ax = plt.subplots()
   # we want finish_line to be red
   for pos in race_map.finish_line:
     grid[pos.x, pos.y] = 0.5
@@ -116,9 +117,11 @@ def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
     if debug:
       sns.heatmap(grid, mask=mask)
       grid[x, y] = 1
+      ax.invert_yaxis()
       plt.show()
   if not debug:
     sns.heatmap(grid, mask=mask)
+    ax.invert_yaxis()
     plt.show()
 
 def random_policy(env):
@@ -272,7 +275,7 @@ def fig_5_5(n_episodes, config_file):
   alg = OffPolicyMCControl(env, pi=random_policy(env),
                            b=random_policy(env),
                            gamma=1)
-  alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
+  #alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
   print_race_policy(alg)
   plt.plot(alg.exp_wei_avg_l)
   plt.show()

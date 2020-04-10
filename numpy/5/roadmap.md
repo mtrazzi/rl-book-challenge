@@ -1,7 +1,7 @@
 for the racetrack env
 ---------------------
 
-- [ ] add right map from the RL book (from figure 5.5) to configs
+- [X] add right map from the RL book (from figure 5.5) to configs
 - [ ] implement noise to the racetrack env
 - [ ] understand why for the configs/2_easy.txt it's sometimes blocked
 - [ ] generate trajectories for left without noise

@@ -1,2 +1,0 @@
-shift,n_rows,n_cols
-0,1,5
