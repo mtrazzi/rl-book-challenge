@@ -35,6 +35,11 @@ class Position:
 
   def updated_pos(self, vel):
     return Position(self.x + vel.x, self.y + vel.y)
+  
+  def is_valid_pos(self, grid):
+    return ((0 <= self.x < grid.shape[0]) and
+            (0 <= self.y < grid.shape[1]) and
+            grid[self.x, self.y])
  
   def __eq__(self, other_pos):
     return self.x == other_pos.x and self.y == other_pos.y
@@ -60,7 +65,7 @@ class RaceState:
     return hash((self.p.x, self.p.y, self.v.x, self.v.y))
 
   def is_valid(self, race_map):
-    return ((self.v.x > 0 or self.v.y > 0
+    return (self.p.is_valid_pos(race_map.grid) and (self.v.x > 0 or self.v.y > 0
              or self in race_map.initial_states))
 
 class RaceMap:
@@ -135,15 +140,35 @@ class RacetrackEnv:
   def r(self):
     return [R_STEP]
 
+  def is_valid_vel(self, vel):
+    return VEL_MIN <= vel.x <= VEL_MAX and VEL_MIN <= vel.y <= VEL_MAX
+
+  def intersections(self, s_s, s_e):
+    # returns all the states intersected between start and end state
+    x, y = s_s.p.x, s_s.p.y
+    delta_x, delta_y = s_e.p.x - x, s_e.p.y - y
+    dx, dy = np.sign(delta_x), np.sign(delta_y) 
+    if (abs(delta_x) == abs(delta_y)) or dx == 0 or dy == 0:
+      return [Position(x + i * dx, y + i * dy) for i in range(max(abs(delta_x), abs(delta_y)) + 1)]
+    else:
+      return [Position(x + i * dx, y + j * dy) for i in range(abs(delta_x) + 1) for j in range(abs(delta_y) + 1)]
+
+  def will_hit_boundary(self, s_s, s_e):
+    # returns True if car will hit boundaries between start and end state
+    return not np.all([p.is_valid_pos(self.race_map.grid) for p in self.intersections(s_s, s_e)])
+
   def step(self, action):
+    # noise to make task more challenging (disabling at test time)
     if self.noise and np.random.random() < NOISE_PROB:
-      action = Velocity(0, 0)
+      action = Velocity(VEL_MIN, VEL_MIN)
+    # tolerance for wrong vel actions
     new_vel = self.state.v + action
-    if new_vel not in self.velocities:
+    if not self.is_valid_vel(new_vel):
       return self.state, R_STEP, False, {}
+    # if wrong end goal or will hit boundary, go to start line
     new_pos = self.state.p.updated_pos(new_vel)
     new_state = RaceState(new_pos, new_vel)
-    if not new_state in self.states:
+    if (not new_state.is_valid(self.race_map)) or self.will_hit_boundary(self.state, new_state):
       return self.reset(), R_STEP, False, {}
     self.state = new_state
     return new_state, R_STEP, new_pos in self.race_map.finish_line, {}
