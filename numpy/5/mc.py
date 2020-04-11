@@ -16,8 +16,10 @@ class MonteCarlo:
   def print_values(self):
     print(self.V)
 
-  def sample_action(self, s, det=True):
-    if not det:
+  def sample_action(self, s, det=True, eps=None):
+    if eps is not None and np.random.random() < eps:
+      return self.env.moves[np.random.randint(len(self.env.moves))]
+    elif not det:
       pi_dist = []
       for a in self.env.moves:
         pi_dist.append(self.pi[(a,s)])
@@ -26,22 +28,20 @@ class MonteCarlo:
     else:
       return self.det_pi[s]
 
-  def generate_trajectory(self, start_state=None, det=True, max_steps=np.inf, term=False):
+  def generate_trajectory(self, start_state=None, det=True, max_steps=np.inf, eps=None): 
     trajs = []
     s = self.env.reset() if start_state is None else start_state
     if start_state is not None:
       self.env.force_state(start_state)
     n_steps = 0
     while True and n_steps < max_steps:
-      a = self.sample_action(s, det)
+      a = self.sample_action(s, det, eps)
       s_p, r, done, _ = self.env.step(a)
       n_steps += 1
       trajs.append((s, a, r))
       s = s_p
       if done:
         break
-    if term:
-      trajs.append((s_p, a, 0))
     return trajs
 
   def update_pi(self, s, a):
@@ -250,15 +250,10 @@ class OffPolicyMCControl(OffPolicyMC):
  
   def optimal_policy(self, n_episodes, start_state=None, step_list=None):
     step_list = [] if step_list is None else step_list
-    self.exp_wei_avg_l = []
-    ep_time_l = []
-    exp_wei_avg = None
-    alpha = 0.99
     for episode in range(1, n_episodes + 1):
       start = time.time() 
       trajs = self.generate_trajectory(start_state=start_state, det=False)
-      ep_time = time.time() - start
-      ep_time_l.append(ep_time)
+      print(f"generating trajectory took: {time.time() - start}s")
       if episode > 0 and episode % 10 == 0:
         print(f"episode #{episode}")
       G = 0
@@ -271,10 +266,34 @@ class OffPolicyMCControl(OffPolicyMC):
         if not np.all(a == self.det_target[s]):
           break
         W *= 1 / self.b[(a, s)]
-      real_G = sum(r for (s,a,r) in trajs)
-      exp_wei_avg = alpha * (exp_wei_avg if exp_wei_avg is not None else real_G)+ (1 - alpha) * real_G
       if episode in step_list:
-        self.exp_wei_avg_l.append(exp_wei_avg)
+        self.estimates.append(self.det_target_estimate(start_state))
+  
+  def truncated_weighted_avg_est(self, n_episodes, start_state=None, step_list=None):
+    step_list = [] if step_list is None else step_list
+    for episode in range(1, n_episodes + 1):
+      start = time.time() 
+      trajs = self.generate_trajectory(start_state=start_state, det=False)
+      print(f"generating trajectory took: {time.time() - start}s")
+      if episode > 0 and episode % 10 == 0:
+        print(f"episode #{episode}")
+      G = 0
+      W = 1
+      gamma_fact = 1
+      for (i, (s, a, r)) in enumerate(trajs[::-1]):
+        G = G + r
+        if i == 1 and self.gamma != 1:
+          gamma_fact *= (1 - self.gamma) / self.gamma
+        else:
+          gamma_fact *= self.gamma
+        actual_w = W * gamma_fact
+        self.C[(s, a)] += actual_w
+        self.Q[(s, a)] += (actual_w  / self.C[(s, a)]) * (G - self.Q[(s, a)])
+        self.update_det_target(s)
+        W *= 1 / self.b[(a, s)]
+        if not np.all(a == self.det_target[s]):
+          break
+      if episode in step_list:
         self.estimates.append(self.det_target_estimate(start_state))
   
   def reset(self):

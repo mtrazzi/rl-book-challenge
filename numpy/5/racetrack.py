@@ -16,6 +16,9 @@ class Velocity:
     self.x = v_x 
     self.y = v_y
 
+  def norm(self):
+    return np.linalg.norm([self.x, self.y])
+
   def __eq__(self, other_vel):
     return self.x == other_vel.x and self.y == other_vel.y
 

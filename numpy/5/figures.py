@@ -25,6 +25,10 @@ FIG_5_4_MAX_EP = 10 ** 8
 FIG_5_5_MAX_EP = 10 ** 2
 FIG_5_5_MAX_PRINT_VEL = 1
 FIG_5_5_BLACK_COLOR = -1
+FIG_5_5_FINISH_COLOR = 0
+FIG_5_5_INIT_COLOR = 0
+FIG_5_5_N_INTERM_TRAJS = 100
+INITIAL_STATE_IDX = 0
 
 def values_to_grid(env, V, usable_ace):
   """Puts values V into a printable grid form depending on usable_ace."""
@@ -98,50 +102,57 @@ def print_race_policy(alg):
     plt.show()
 
 
-def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
+def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf, eps=None, total_ep=None, title_fig='Fig 5.5'):
+  # generating trajectories
   alg.det_pi = alg.det_target
-  traj = alg.generate_trajectory(start_state=start_state, det=True, max_steps=max_steps,term=True)
+  traj = alg.generate_trajectory(start_state=start_state, det=True, max_steps=max_steps, eps=eps)
+  
+  # initial map coloring
   race_map = alg.env.race_map
   color_grid = copy.copy(race_map.grid)
-  mask = copy.copy(1 - race_map.grid)
-  fig, ax = plt.subplots()
-  # we want finish_line to be red
+  mask = copy.copy(1-race_map.grid)
   for pos in race_map.finish_line:
-    color_grid[pos.x, pos.y] = 0.5
+    color_grid[pos.x, pos.y] = FIG_5_5_FINISH_COLOR
   for s_init in race_map.initial_states:
-    color_grid[s_init.p.x, s_init.p.y] = -0.2
+    color_grid[s_init.p.x, s_init.p.y] = FIG_5_5_INIT_COLOR
   backup_grid = copy.copy(color_grid) 
-  ax.invert_yaxis()
 
   def color_traj(s, a, color=None):
     x, y = s.p.x, s.p.y
     delta_x, delta_y = s.v.x + a.x, s.v.y + a.y
     dx, dy = np.sign(delta_x), np.sign(delta_y) 
-    print(s)
-    print(a)
-    print(s.p.x + delta_x, s.p.y + delta_y)
+    color = color if color is not None else backup_grid[x, y]
     while True:
-      print(x, y)
-      color_grid[x, y] = color if color is not None else backup_grid[x, y]
+      color_grid[x, y] = color
       if abs(delta_x) != abs(delta_y):   
-        if (abs(x - s.p.x + 1) / abs(y - s.p.y + 1)) > ((abs(delta_x) + 1) / (abs(delta_y) + 1)):
+        if ((abs(x - s.p.x) + 1) / (abs(y - s.p.y) + 1)) > ((abs(delta_x) + 1) / (abs(delta_y) + 1)):
           y += dy
         else:
           x += dx
       else:
         x, y = x + dx, y + dy
       if (x == (s.p.x + delta_x) and y == (s.p.y + delta_y)) or not (0 <= x < color_grid.shape[0]) or not (0 <= y < color_grid.shape[1]):
+        if (0 <= x < color_grid.shape[0]) and (0 <= y < color_grid.shape[1]):
+          color_grid[x, y] = color
         break
- 
-  for (s, a, _) in traj:
-    color_traj(s, a, FIG_5_5_BLACK_COLOR)    
-    if debug:
-      sns.heatmap(color_grid, mask=mask)
+
+  # plotting 
+  def show_reverse(grid, mask_arr):
+      sns.heatmap(grid[::-1], mask=mask_arr[::-1],cbar_kws={'label': 'velocity norm'})
       plt.show()
-      color_traj(s, a)    
+ 
+  fig, ax = plt.subplots()
+  nb_ep = '' if total_ep is None else f"after {total_ep} episodes: "
+  ax.set_title(f"{title_fig} - speed heatmap - {nb_ep} optimal traj. takes {len(traj)} actions")
+  ax.invert_xaxis()
+  for (s, a, _) in traj:
+    color = (s.v + a).norm()
+    color_traj(s, a, color) 
+    if debug:
+      show_reverse(color_grid, mask)
+      color_traj(s, a) 
   if not debug:
-    sns.heatmap(color_grid, mask=mask)
-    plt.show()
+    show_reverse(color_grid, mask)
 
 def random_policy(env):
   p_uniform = 1 / len(env.moves)
@@ -282,25 +293,32 @@ def fig_5_4(n_episodes):
                 f'import. samp. ({FIG_5_4_N_RUNS} runs)')
   plt.show()
 
-def fig_5_5(n_episodes, config_file): 
+def fig_5_5(n_episodes, config_file, truncated_weighted_avg_est=False, title_fig='Fig 5.5'): 
   n_episodes = FIG_5_5_MAX_EP if n_episodes == None else n_episodes
   config_file = '1.txt' if config_file is None else config_file
   env = RacetrackEnv(config_file)
-  for start_state in env.race_map.initial_states:
+  gamma = 0.9 if truncated_weighted_avg_est else 1
+  for start_state in env.race_map.initial_states[INITIAL_STATE_IDX:]:
     # training runs
     env.seed(0)
+    env.noise = True
     step_list = generate_step_list(n_episodes)
     alg = OffPolicyMCControl(env, pi=random_policy(env),
                              b=random_policy(env),
-                             gamma=1)
-    alg.optimal_policy(n_episodes=n_episodes, start_state=start_state, step_list=step_list)
-    #plt.plot(alg.exp_wei_avg_l)
-    #plt.show()
+                             gamma=gamma)
+ 
+    interm_trajs_length = n_episodes // FIG_5_5_N_INTERM_TRAJS
+    total_ep = 0
+    for i in range(FIG_5_5_N_INTERM_TRAJS):
+      alg.env.noise = True
+      optimisation_alg = alg.optimal_policy if not truncated_weighted_avg_est else alg.truncated_weighted_avg_est
+      optimisation_alg(n_episodes=interm_trajs_length, start_state=start_state, step_list=step_list)
+      total_ep += interm_trajs_length
+      alg.env.noise = False
+      plot_race_traj(alg, start_state, debug=False, max_steps=1000, total_ep=total_ep, eps=None, title_fig=title_fig)
 
-    # generate trajectories without noise 
-    alg.env.noise = False
-    #print_race_policy(alg)
-    plot_race_traj(alg, start_state, debug=True, max_steps=10)
+def ex_5_14(n_episodes, config_file): 
+  fig_5_5(n_episodes, config_file, truncated_weighted_avg_est=True, title_fig='Ex 5.14')
 
 PLOT_FUNCTION = {
   '5.1': fig_5_1,
@@ -308,6 +326,7 @@ PLOT_FUNCTION = {
   '5.3': fig_5_3,
   '5.4': fig_5_4, 
   '5.5': fig_5_5, 
+  'ex5.14': ex_5_14,
 }
 
 
@@ -329,7 +348,7 @@ def main():
     PLOT_FUNCTION[args.figure](args.n_ep, args.on_policy_instead)
   elif args.figure in ['5.3', '5.4']:
     PLOT_FUNCTION[args.figure](args.n_ep)
-  elif args.figure in ['5.5']:
+  elif args.figure in ['5.5', 'ex5.14']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.config)
 
 if __name__ == "__main__":
