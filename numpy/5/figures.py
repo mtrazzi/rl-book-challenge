@@ -124,13 +124,13 @@ def plot_race_traj(alg, start_state, debug=True, max_steps=np.inf):
       print(x, y)
       color_grid[x, y] = color if color is not None else backup_grid[x, y]
       if abs(delta_x) != abs(delta_y):   
-        if (abs(x - s.p.x + 1) / abs(y - s.p.y + 1)) > (abs(delta_x) / abs(delta_y)):
+        if (abs(x - s.p.x + 1) / abs(y - s.p.y + 1)) > ((abs(delta_x) + 1) / (abs(delta_y) + 1)):
           y += dy
         else:
           x += dx
       else:
         x, y = x + dx, y + dy
-      if (x == (s.p.x + delta_x) and y == (s.p.y + delta_y)) or not (0 <= x <= color_grid.shape[0]) or not (0 <= y <= color_grid.shape[1]):
+      if (x == (s.p.x + delta_x) and y == (s.p.y + delta_y)) or not (0 <= x < color_grid.shape[0]) or not (0 <= y < color_grid.shape[1]):
         break
  
   for (s, a, _) in traj:
