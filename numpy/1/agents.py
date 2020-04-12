@@ -18,7 +18,7 @@ class RandomAgent:
 
 
 class RLAgent:
-  """Offline training, assuming the RL Agent has its opponent has attribute."""
+  """Offline training, assuming the RL Agent has its opponent as attribute."""
   def __init__(self, size=3, sym='o', step=0.2, eps=0.1, eps_decay=1):
     self.step = step
     self.V = {}
