@@ -23,7 +23,6 @@ class DrivingEnv:
     return TRAVEL_TIME[self.states.index(state)]
 
   def step(self, action):
-    print(self.state)
     state_idx = self.states.index(self.state) 
     done = state_idx == len(self.states) - 2
     new_state = self.states[(state_idx + 1) % len(self.states)]
