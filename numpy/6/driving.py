@@ -9,7 +9,7 @@ TRAVEL_TIME = [5, 15, 10, 10, 3, 0]
 
 class DrivingEnv:
   def __init__(self):
-    super().__init__()
+    self.reset()
 
   @property
   def moves(self):

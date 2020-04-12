@@ -32,19 +32,21 @@ class OneStepTD(TD):
       if done:
         return traj + [(s_p, 0)]
  
-  def tabular_td_0(self, pi):
-    traj = self.generate_traj(pi)
-    for i in range(len(traj) - 1):
-      (s, r), (s_p, _) = traj[i], traj[i + 1]
-      self.V[s] += self.step_size * (r + self.gamma * self.V[s_p] - self.V[s])
+  def tabular_td_0(self, pi, n_episodes=1):
+    for _ in range(n_episodes):
+      traj = self.generate_traj(pi)
+      for i in range(len(traj) - 1):
+        (s, r), (s_p, _) = traj[i], traj[i + 1]
+        self.V[s] += self.step_size * (r + self.gamma * self.V[s_p] - self.V[s])
 
-  def constant_step_size_mc(self, pi):
-    traj = self.generate_traj(pi)
-    G = 0
-    for (s, r) in traj[::-1]:
-      G += r
-      self.V[s] += self.step_size * (G - self.V[s])
-
+  def constant_step_size_mc(self, pi, n_episodes=1):
+    for _ in range(n_episodes): 
+      traj = self.generate_traj(pi)
+      G = 0
+      for (s, r) in traj[::-1]:
+        G += r
+        self.V[s] += self.step_size * (G - self.V[s])
+  
   def get_value_list(self):
     return [val for key,val in self.V.items()]
 
