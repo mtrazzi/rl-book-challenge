@@ -8,7 +8,15 @@ import matplotlib.pyplot as plt
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
 TRUE_VALUES_EX_6_2 = [1/6, 2/6, 3/6, 4/6, 5/6]
+TD_STEPS_6_2 = [0.05, 0.1, 0.15]
+MC_STEPS_6_2 = [0.01, 0.02, 0.03, 0.04] 
+TD_STEPS_6_4 = [0.025, 0.05, 0.1, 0.15, 0.2]
+MC_STEPS_6_4 = [0.005, 0.01, 0.02, 0.03, 0.04, 0.05] 
+INIT_VAL_6_2 = 1/2
+LEFT_GRAPH_STEP_SIZE = 0.1
 DEFAULT_FONT = {'fontsize': 14}
+SMALL_FONT = {'fontsize': 10}
+UNDISCOUNTED = 1
 
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -55,15 +63,16 @@ def print_random_walk(ax, state_labels, td_vals):
   for key,td_val in td_vals.items():
     plt.plot(x_ticks, td_val[:-1], label=str(key) + ' episodes')
 
-def example_6_2():
-  fig = plt.figure()
-  fig.suptitle('Example 6.2', fontdict=DEFAULT_FONT)
+def init_random_walk(init_value, step_size=None):
   env = RandomWalk()
   pi = {(a, s): 1.0 for s in env.states for a in env.moves} 
-  V_0 = [1/2 for s in env.states[:-1]] + [0]  # V = 0 for absorbing state
+  V_0 = [init_value for s in env.states[:-1]] + [0]  # V = 0 for absorbing state
   V_init = {s: V_0[idx] for (idx, s) in enumerate(env.states)}
-  
-  alg = OneStepTD(env, V_init=V_init, step_size=0.1, gamma=1)
+  alg = OneStepTD(env, V_init=V_init, step_size=step_size, gamma=UNDISCOUNTED)
+  return alg, pi
+
+def left_graph(fig, fig_id, init_value):
+  alg, pi = init_random_walk(init_value, step_size=LEFT_GRAPH_STEP_SIZE)
   tot_ep = 0
   td_vals = {}
   ax = fig.add_subplot('121')
@@ -72,15 +81,14 @@ def example_6_2():
     td_vals[n_episodes] = alg.get_value_list()
   print_random_walk(ax, ["A", "B", "C", "D", "E"], td_vals)
   plt.legend()
-  
-  ax = fig.add_subplot('122')
-  td_step_sizes = [0.05, 0.1, 0.15]
-  td_vals = {alpha: [] for alpha in td_step_sizes}
-  mc_step_sizes = [0.01, 0.02, 0.03, 0.04]
-  mc_vals = {alpha: [] for alpha in mc_step_sizes}
+
+def right_graph(fig, fig_id, init_value, td_step_sizes, mc_step_sizes, font=DEFAULT_FONT, remove_x_label=False): 
+  ax = fig.add_subplot(fig_id)
+  ax.set_title(f'V_init = {init_value}', fontdict=font)
+  alg, pi = init_random_walk(init_value)
   runs_dict = {alpha: np.zeros(N_EP_EX_6_2) for alpha in td_step_sizes + mc_step_sizes} 
-  to_compare_list = [(td_step_sizes, alg.tabular_td_0, td_vals), (mc_step_sizes, alg.constant_step_size_mc, mc_vals)]
-  for (step_size_list, algorithm, store_dict) in to_compare_list:
+  to_compare_list = [(td_step_sizes, alg.tabular_td_0), (mc_step_sizes, alg.constant_step_size_mc)]
+  for (step_size_list, algorithm) in to_compare_list:
     for step_size in step_size_list:
       alg.step_size = step_size
       print(f"running step size {step_size}")
@@ -97,8 +105,9 @@ def example_6_2():
   for key in runs_dict.keys():
     runs_dict[key] /= N_RUNS_EX_6_2
   
-  ax.set_xlabel('walks / episodes', fontdict=DEFAULT_FONT)
-  ax.set_ylabel('empirical rms error averaged over states', fontdict=DEFAULT_FONT) 
+  if not remove_x_label:
+    ax.set_xlabel('walks / episodes', fontdict=font)
+  ax.set_ylabel('empirical rms error averaged over states', fontdict=font) 
   for key,err_run in runs_dict.items():
     (color, alg_name) = ('b','td') if key in td_step_sizes else ('r', 'mc')
     linewidth = int(100 * key) / 10 if key in td_step_sizes else int(200 * key) / 10
@@ -106,13 +115,35 @@ def example_6_2():
     plt.plot(err_run, color=color, label=alg_name + ' (a=' + str(key) + ')', linewidth=linewidth, linestyle=linestyle)
    
   plt.legend()
+
+def example_6_2():
+  fig = plt.figure()
+  fig.suptitle('Example 6.2', fontdict=DEFAULT_FONT)
+  left_graph(fig, fig_id='121', init_value=INIT_VAL_6_2)
+  right_graph(fig, '122', INIT_VAL_6_2, TD_STEPS_6_2, MC_STEPS_6_2)
   plt.savefig('example6.2.png')
   plt.show()
 
+def ex_6_4():
+  fig = plt.figure()
+  fig.suptitle('Exercise 6.4', fontdict=DEFAULT_FONT)
+  right_graph(fig, '111', INIT_VAL_6_2, TD_STEPS_6_4, MC_STEPS_6_4, SMALL_FONT)
+  plt.savefig('ex6.4.png')
+  plt.show()
+
+def ex_6_5():
+  fig = plt.figure()
+  fig.suptitle('Exercise 6.5', fontdict=SMALL_FONT)
+  for (idx, init_val) in enumerate([0, 0.25, 0.75, 1]):
+    right_graph(fig, '22' + str(idx + 1), init_val, TD_STEPS_6_2, MC_STEPS_6_2, SMALL_FONT, idx < 2)
+  plt.savefig('ex6.5.png')
+  plt.show()
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
   'example6.2': example_6_2,
+  'ex6.4': ex_6_4,
+  'ex6.5': ex_6_5,
 }
 
 def main():
@@ -123,7 +154,7 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   args = parser.parse_args()
 
-  if args.figure in ['6.1', 'example6.2']:
+  if args.figure in ['6.1', 'example6.2', 'ex6.4', 'ex6.5']:
     PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":

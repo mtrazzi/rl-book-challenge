@@ -135,6 +135,7 @@ dmypy.json
 
 # temp figs
 numpy/2/figs/
+numpy/6/*.png
 
 # virtualenv
 bin/
