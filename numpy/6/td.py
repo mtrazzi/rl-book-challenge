@@ -2,42 +2,48 @@ import numpy as np
 import copy
 
 class TD:
-  def __init__(self, env, gamma=0.9):
+  def __init__(self, env, V_init=None, step_size=None, gamma=0.9):
     self.env = env
     self.gamma = gamma
+    self.V_init = V_init
+    self.step_size = step_size
 
   def seed(self, seed):
     self.env.seed(seed)
     np.random.seed(seed)
 
-
-class OneStepTD(TD):
-  def __init__(self, env, V_init=None, step_size=0.1, gamma=0.9):
-    super().__init__(env, gamma)
-    self.step_size = step_size
-    self.V_init = V_init
-    self.reset()
-  
   def sample_action(self, pi, s):
     pi_dist = [pi[(a, s)] for a in self.env.moves]
     return self.env.moves[np.random.choice(np.arange(len(self.env.moves)), p=pi_dist)]
- 
-  def generate_traj(self, pi):
+  
+  def generate_traj(self, pi, log_act=False):
     s = self.env.reset()
     traj = []
     while True:
-      s_p, r, done, _ = self.env.step(self.sample_action(pi, s))
-      traj.append((s, r))
+      a = self.sample_action(pi, s)
+      s_p, r, done, _ = self.env.step(a)
+      traj.append((s, r) if not log_act else (s, a, r))
       s = s_p
       if done:
-        return traj + [(s_p, 0)]
+        return traj + [(s_p, 0) if not log_act else (s_p, a, 0)]
 
   def td_update(self, s, r, s_p):
     self.V[s] += self.step_size * self.td_error(s, r, s_p)
 
   def td_error(self, s, r, s_p):
     return r + self.gamma * self.V[s_p] - self.V[s]
+  
+  def mc_error(self, s, G):
+    return G - self.V[s]
 
+  def reset(self):
+    self.V = {s: 0 for s in self.env.moves} if self.V_init is None else copy.deepcopy(self.V_init)
+
+class OneStepTD(TD):
+  def __init__(self, env, V_init=None, step_size=0.1, gamma=0.9):
+    super().__init__(env, V_init, step_size, gamma)
+    self.reset()
+  
   def tabular_td_0(self, pi, n_episodes=1):
     for _ in range(n_episodes):
       traj = self.generate_traj(pi)
@@ -54,9 +60,6 @@ class OneStepTD(TD):
         td_error_sum[s] += self.td_error(s, r, s_p)
     for s in self.env.states[:-1]:
       self.V[s] += self.step_size * td_error_sum[s]
-
-  def mc_error(self, s, G):
-    return G - self.V[s]
 
   def constant_step_size_mc(self, pi, n_episodes=1):
     for _ in range(n_episodes): 
@@ -90,7 +93,7 @@ class OneStepTD(TD):
     return [val for key,val in self.V.items()]
 
   def reset(self): 
+    super().reset()
     self.log = []
-    self.V = {s: 0 for s in self.env.moves} if self.V_init is None else copy.deepcopy(self.V_init)
     self.experience = []
     self.G_trajs = {}

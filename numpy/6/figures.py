@@ -1,5 +1,6 @@
 import argparse
 from td import OneStepTD
+from off_pol_td import OffPolicyTD
 from driving import DrivingEnv, TRAVEL_TIME
 import numpy as np
 from randomwalk import RandomWalk
@@ -148,7 +149,17 @@ def fig_6_2():
   right_graph(fig, '111', INIT_VAL_6_2, [BATCH_ALPHA['td']], [BATCH_ALPHA['mc']], batch=True, font=SMALL_FONT)
   plt.savefig('fig6.2.png')
   plt.show()
-  
+
+def ex_6_7():
+  fig = plt.figure()
+  fig.suptitle('Exercise 6.7', fontdict=SMALL_FONT)   
+  env = RandomWalk()
+  V_0 = [1/2 for s in env.states[:-1]] + [0]
+  V_init = {s: V_0[idx] for (idx, s) in enumerate(env.states)}
+  pi = {(a, s): 1.0 for s in env.states for a in env.moves} 
+  alg = OffPolicyTD(env, V_init, LEFT_GRAPH_STEP_SIZE, pi, pi, UNDISCOUNTED)
+  alg.find_value_function(N_EP_EX_6_2)
+  plt.savefig('ex6.7.png')
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
@@ -156,6 +167,7 @@ PLOT_FUNCTION = {
   'ex6.4': ex_6_4,
   'ex6.5': ex_6_5,
   '6.2': fig_6_2,
+  'ex6.7': ex_6_7,
 }
 
 def main():
@@ -166,7 +178,7 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   args = parser.parse_args()
 
-  if args.figure in ['6.1', '6.2', 'example6.2', 'ex6.4', 'ex6.5']:
+  if args.figure in ['6.1', '6.2', 'example6.2', 'ex6.4', 'ex6.5', 'ex6.7']:
     PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
