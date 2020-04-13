@@ -31,13 +31,32 @@ class OneStepTD(TD):
       s = s_p
       if done:
         return traj + [(s_p, 0)]
- 
+
+  def td_update(self, s, r, s_p):
+    self.V[s] += self.step_size * self.td_error(s, r, s_p)
+
+  def td_error(self, s, r, s_p):
+    return r + self.gamma * self.V[s_p] - self.V[s]
+
   def tabular_td_0(self, pi, n_episodes=1):
     for _ in range(n_episodes):
       traj = self.generate_traj(pi)
       for i in range(len(traj) - 1):
         (s, r), (s_p, _) = traj[i], traj[i + 1]
-        self.V[s] += self.step_size * (r + self.gamma * self.V[s_p] - self.V[s])
+        self.td_update(s, r, s_p)
+
+  def td_0_batch(self, pi, n_episodes=1):
+    self.experience += [self.generate_traj(pi) for _ in range(n_episodes)]
+    td_error_sum = {s: 0 for s in self.V}
+    for traj in self.experience:
+      for i in range(len(traj) - 1):
+        (s, r), (s_p, _) = traj[i], traj[i + 1]
+        td_error_sum[s] += self.td_error(s, r, s_p)
+    for s in self.env.states[:-1]:
+      self.V[s] += self.step_size * td_error_sum[s]
+
+  def mc_error(self, s, G):
+    return G - self.V[s]
 
   def constant_step_size_mc(self, pi, n_episodes=1):
     for _ in range(n_episodes): 
@@ -45,11 +64,33 @@ class OneStepTD(TD):
       G = 0
       for (s, r) in traj[::-1]:
         G += r
-        self.V[s] += self.step_size * (G - self.V[s])
-  
+        self.V[s] += self.step_size * self.mc_error(s, G)
+
+  def constant_step_size_mc_batch(self, pi, n_episodes=1):
+    self.experience += [self.generate_traj(pi) for _ in range(n_episodes)]
+    def generate_G_traj(traj):
+      G = 0
+      G_traj = []
+      for (_, r) in traj[::-1]:
+        G += r
+        G_traj = [G] + G_traj
+      return G_traj
+    n_past_traj = len(self.G_trajs)
+    for i in range(n_episodes):
+      self.G_trajs[n_past_traj + i] = generate_G_traj(self.experience[n_past_traj + i])
+    mc_error_sum = {s: 0 for s in self.V}
+    for (traj_idx, traj) in enumerate(self.experience):
+      for i in range(len(traj) - 1):
+        (s, r), (s_p, _) = traj[i], traj[i + 1]
+        mc_error_sum[s] += self.mc_error(s, self.G_trajs[traj_idx][i])
+    for s in self.env.states:
+      self.V[s] += self.step_size * mc_error_sum[s]
+ 
   def get_value_list(self):
     return [val for key,val in self.V.items()]
 
-
   def reset(self): 
+    self.log = []
     self.V = {s: 0 for s in self.env.moves} if self.V_init is None else copy.deepcopy(self.V_init)
+    self.experience = []
+    self.G_trajs = {}

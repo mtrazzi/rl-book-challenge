@@ -17,6 +17,7 @@ LEFT_GRAPH_STEP_SIZE = 0.1
 DEFAULT_FONT = {'fontsize': 14}
 SMALL_FONT = {'fontsize': 10}
 UNDISCOUNTED = 1
+BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
 
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -82,12 +83,14 @@ def left_graph(fig, fig_id, init_value):
   print_random_walk(ax, ["A", "B", "C", "D", "E"], td_vals)
   plt.legend()
 
-def right_graph(fig, fig_id, init_value, td_step_sizes, mc_step_sizes, font=DEFAULT_FONT, remove_x_label=False): 
+def right_graph(fig, fig_id, init_value, td_step_sizes, mc_step_sizes, font=DEFAULT_FONT, remove_x_label=False, batch=False): 
   ax = fig.add_subplot(fig_id)
   ax.set_title(f'V_init = {init_value}', fontdict=font)
   alg, pi = init_random_walk(init_value)
   runs_dict = {alpha: np.zeros(N_EP_EX_6_2) for alpha in td_step_sizes + mc_step_sizes} 
-  to_compare_list = [(td_step_sizes, alg.tabular_td_0), (mc_step_sizes, alg.constant_step_size_mc)]
+  td_0 = alg.tabular_td_0 if not batch else alg.td_0_batch
+  mc = alg.constant_step_size_mc if not batch else alg.constant_step_size_mc_batch
+  to_compare_list = [(td_step_sizes, td_0), (mc_step_sizes, mc)]
   for (step_size_list, algorithm) in to_compare_list:
     for step_size in step_size_list:
       alg.step_size = step_size
@@ -96,7 +99,7 @@ def right_graph(fig, fig_id, init_value, td_step_sizes, mc_step_sizes, font=DEFA
         alg.reset()
         alg.env.seed(seed)
         err_l = []
-        for _ in range(N_EP_EX_6_2):
+        for nb_ep in range(N_EP_EX_6_2):
           algorithm(pi, 1)
           v_arr = np.array(alg.get_value_list()[:-1])
           err_l.append(np.linalg.norm(v_arr-TRUE_VALUES_EX_6_2))
@@ -110,7 +113,7 @@ def right_graph(fig, fig_id, init_value, td_step_sizes, mc_step_sizes, font=DEFA
   ax.set_ylabel('empirical rms error averaged over states', fontdict=font) 
   for key,err_run in runs_dict.items():
     (color, alg_name) = ('b','td') if key in td_step_sizes else ('r', 'mc')
-    linewidth = int(100 * key) / 10 if key in td_step_sizes else int(200 * key) / 10
+    linewidth = max(int(100 * key) / 10 if key in td_step_sizes else int(200 * key) / 10, 10 / (len(runs_dict) * 10))
     linestyle = 'dashed' if key in [0.02, 0.03] else None
     plt.plot(err_run, color=color, label=alg_name + ' (a=' + str(key) + ')', linewidth=linewidth, linestyle=linestyle)
    
@@ -139,11 +142,20 @@ def ex_6_5():
   plt.savefig('ex6.5.png')
   plt.show()
 
+def fig_6_2():
+  fig = plt.figure()
+  fig.suptitle('Figure 6.2', fontdict=SMALL_FONT)
+  right_graph(fig, '111', INIT_VAL_6_2, [BATCH_ALPHA['td']], [BATCH_ALPHA['mc']], batch=True, font=SMALL_FONT)
+  plt.savefig('fig6.2.png')
+  plt.show()
+  
+
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
   'example6.2': example_6_2,
   'ex6.4': ex_6_4,
   'ex6.5': ex_6_5,
+  '6.2': fig_6_2,
 }
 
 def main():
@@ -154,7 +166,7 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   args = parser.parse_args()
 
-  if args.figure in ['6.1', 'example6.2', 'ex6.4', 'ex6.5']:
+  if args.figure in ['6.1', '6.2', 'example6.2', 'ex6.4', 'ex6.5']:
     PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
