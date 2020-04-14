@@ -2,6 +2,8 @@ import argparse
 from td import OneStepTD
 from off_pol_td import OffPolicyTD
 from driving import DrivingEnv, TRAVEL_TIME
+from sarsa import Sarsa
+from windy_gridworld import WindyGridworld
 import numpy as np
 from randomwalk import RandomWalk, NotSoRandomWalk, LEFT, RIGHT
 import matplotlib.pyplot as plt
@@ -20,6 +22,9 @@ SMALL_FONT = {'fontsize': 10}
 UNDISCOUNTED = 1
 BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
 NOT_SO_RW_ALPHA = 0.001
+EX_6_5_N_EP = 10
+EX_6_5_STEP_SIZE = 0.5
+
 
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -152,8 +157,6 @@ def fig_6_2():
   plt.show()
 
 def ex_6_7():
-  fig = plt.figure()
-  fig.suptitle('Exercise 6.7', fontdict=SMALL_FONT)   
   env = NotSoRandomWalk()
   env.seed(0)
   V_0 = [1/2 for s in env.states[:-1]] + [0]
@@ -164,7 +167,21 @@ def ex_6_7():
   alg.step_size = 0.01
   alg.find_value_function(N_EP_EX_6_2 * 100)
   print(alg.get_value_list())
-  plt.savefig('ex6.7.png')
+
+def plot_sarsa_training(alg, ax, n_episodes):
+  to_plot = alg.on_policy_td_control(n_episodes)
+  ax.set_xlabel('Time steps')
+  ax.set_xticks([k * 1000 for k in range(9)])
+  ax.set_ylabel('Episodes')
+  ax.set_yticks([0, 50, 100, 150, 170])
+  plt.show()
+
+def example_6_5():
+  env = WindyGridworld()  
+  alg = Sarsa(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=0.1)
+  fig, ax = plt.subplots() 
+  fig.suptitle('Example 6.5')
+  plot_sarsa_training(alg, ax, EX_6_5_N_EP)
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
@@ -173,6 +190,7 @@ PLOT_FUNCTION = {
   'ex6.5': ex_6_5,
   '6.2': fig_6_2,
   'ex6.7': ex_6_7,
+  'example6.5': example_6_5,
 }
 
 def main():
@@ -183,8 +201,7 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   args = parser.parse_args()
 
-  if args.figure in ['6.1', '6.2', 'example6.2', 'ex6.4', 'ex6.5', 'ex6.7']:
-    PLOT_FUNCTION[args.figure]()
+  PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
   main()
