@@ -36,6 +36,9 @@ class TD:
   def mc_error(self, s, G):
     return G - self.V[s]
 
+  def get_value_list(self):
+    return [val for key,val in self.V.items()]
+
   def reset(self):
     self.V = {s: 0 for s in self.env.moves} if self.V_init is None else copy.deepcopy(self.V_init)
 
@@ -89,9 +92,6 @@ class OneStepTD(TD):
     for s in self.env.states:
       self.V[s] += self.step_size * mc_error_sum[s]
  
-  def get_value_list(self):
-    return [val for key,val in self.V.items()]
-
   def reset(self): 
     super().reset()
     self.log = []

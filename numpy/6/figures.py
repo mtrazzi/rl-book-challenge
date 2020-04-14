@@ -3,7 +3,7 @@ from td import OneStepTD
 from off_pol_td import OffPolicyTD
 from driving import DrivingEnv, TRAVEL_TIME
 import numpy as np
-from randomwalk import RandomWalk
+from randomwalk import RandomWalk, NotSoRandomWalk, LEFT, RIGHT
 import matplotlib.pyplot as plt
 
 N_EP_EX_6_2 = 100
@@ -19,6 +19,7 @@ DEFAULT_FONT = {'fontsize': 14}
 SMALL_FONT = {'fontsize': 10}
 UNDISCOUNTED = 1
 BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
+NOT_SO_RW_ALPHA = 0.001
 
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -153,12 +154,16 @@ def fig_6_2():
 def ex_6_7():
   fig = plt.figure()
   fig.suptitle('Exercise 6.7', fontdict=SMALL_FONT)   
-  env = RandomWalk()
+  env = NotSoRandomWalk()
+  env.seed(0)
   V_0 = [1/2 for s in env.states[:-1]] + [0]
   V_init = {s: V_0[idx] for (idx, s) in enumerate(env.states)}
-  pi = {(a, s): 1.0 for s in env.states for a in env.moves} 
-  alg = OffPolicyTD(env, V_init, LEFT_GRAPH_STEP_SIZE, pi, pi, UNDISCOUNTED)
-  alg.find_value_function(N_EP_EX_6_2)
+  b = {(a, s): 1/2 for s in env.states for a in env.moves} 
+  pi = {(a, s): float(a == RIGHT) for s in env.states for a in env.moves}
+  alg = OffPolicyTD(env, V_init, NOT_SO_RW_ALPHA, pi, b, UNDISCOUNTED)
+  alg.step_size = 0.01
+  alg.find_value_function(N_EP_EX_6_2 * 100)
+  print(alg.get_value_list())
   plt.savefig('ex6.7.png')
 
 PLOT_FUNCTION = {
