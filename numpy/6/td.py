@@ -7,6 +7,7 @@ class TD:
     self.gamma = gamma
     self.V_init = V_init
     self.step_size = step_size
+    self.reset()
 
   def seed(self, seed):
     self.env.seed(seed)
@@ -69,7 +70,7 @@ class OneStepTD(TD):
       traj = self.generate_traj(pi)
       G = 0
       for (s, r) in traj[::-1]:
-        G += r
+        G = r + self.gamma * G
         self.V[s] += self.step_size * self.mc_error(s, G)
 
   def constant_step_size_mc_batch(self, pi, n_episodes=1):
@@ -78,7 +79,7 @@ class OneStepTD(TD):
       G = 0
       G_traj = []
       for (_, r) in traj[::-1]:
-        G += r
+        G = r + self.gamma * G
         G_traj = [G] + G_traj
       return G_traj
     n_past_traj = len(self.G_trajs)
