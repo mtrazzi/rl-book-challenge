@@ -174,6 +174,7 @@ def plot_sarsa_training(alg, ax, n_episodes):
   ax.set_xticks([k * 1000 for k in range(9)])
   ax.set_ylabel('Episodes')
   ax.set_yticks([0, 50, 100, 150, 170])
+  plt.plot(to_plot)
   plt.show()
 
 def example_6_5():

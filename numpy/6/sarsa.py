@@ -1,5 +1,6 @@
 import numpy as np
 from td import TD
+import time
 
 class Sarsa(TD):
   def __init__(self, env, step_size=0.1, gamma=1, eps=0.1, pol_deriv=None):
@@ -7,6 +8,9 @@ class Sarsa(TD):
     self.eps = eps
     self.pol_deriv = pol_deriv if pol_deriv is not None else self.eps_gre(eps)
     self.reset() 
+    print(f"step size: {self.step_size}")
+    #print(f"epsilon: {self.eps}")
+    #print(f"gamma: {self.gamma}")
 
   def best_action(self, vals):
     return self.env.moves[np.random.choice(np.flatnonzero(vals == vals.max()))]
@@ -17,19 +21,22 @@ class Sarsa(TD):
   def eps_gre(self, eps):
     def eps_gre_pol(s):
       if np.random.random() < self.eps:
-        return self.best_action(np.array([self.Q[(s, a)] for a in self.env.moves]))
-      return self.random_move()
+        return self.random_move()
+      return self.best_action(np.array([self.Q[(s, a)] for a in self.env.moves]))
     return eps_gre_pol 
 
   def sarsa_update(self, s, a, r, s_p, a_p):
-    print(f"{s}, {a}, {r}, {s_p}, {a_p}")
-    print(f"{self.Q[(s, a)]} += {self.step_size} * ({r} + {self.gamma} * {self.Q[(s_p, a_p)]} - {self.Q[(s, a)]}")
-    input()
+    #print(f"{s}, {a}, {r}, {s_p}, {a_p}")
+    #print(f"{self.Q[(s, a)]} += {self.step_size} * ({r} + {self.gamma} * {self.Q[(s_p, a_p)]} - {self.Q[(s, a)]}")
+    #input()
     self.Q[(s, a)] += self.step_size * (r + self.gamma * self.Q[(s_p, a_p)] - self.Q[(s, a)])
 
   def on_policy_td_control(self, n_episodes):
     ep_per_timesteps = []
+    running_avg = None
+    alpha = 0.1
     for ep_nb in range(n_episodes):
+      ep_start = time.time()
       print(ep_nb)
       s = self.env.reset()
       a = self.pol_deriv(s)
@@ -41,6 +48,9 @@ class Sarsa(TD):
         if d:
           break
         s, a = s_p, a_p
+      ep_time = time.time() - ep_start
+      running_avg = ep_time if running_avg is None else (1 - alpha) * running_avg + alpha * ep_time
+      print(f"running_avg: {int(100 * running_avg) / 100}s, so fast!")
     return ep_per_timesteps
 
   def reset(self):
