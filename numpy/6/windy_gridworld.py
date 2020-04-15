@@ -37,11 +37,11 @@ class Position:
   def get_wind(self, stoch):
     return WIND_ARR[self.y] + stoch * np.random.randint(-1, 2)
 
-  def update_pos(self, wind, action):
-    dx, dy = action
-    self.x = self.in_bounds(self.x + dx - wind, 0)
-    self.y = self.in_bounds(self.y + dy, 1)
-  
+  def next_state(self, stoch, action): 
+    wind = self.get_wind(stoch)
+    return Position(self.in_bounds(self.x + action[0] - wind, 0), 
+                    self.in_bounds(self.y + action[1], 1))
+
   def __eq__(self, other_pos):
     return self.x == other_pos.x and self.y == other_pos.y
 
@@ -59,9 +59,13 @@ class WindyGridworld:
     self.diags = diags
     self.stay = stay
     self.stoch = stoch
-    self.get_moves()
     self.get_states()
+    self.get_moves()
+    self.get_moves_dict()
     self.get_keys()
+    print(f"stoch: {self.stoch}")
+    print(f"stay: {self.stay}")
+    print(f"diags: {self.diags}")
 
   def get_moves(self):
     self.moves = [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1] if (abs(x) + abs(y)) == 1]
@@ -69,12 +73,22 @@ class WindyGridworld:
       self.moves += [(x, y) for x in [-1, 1] for y in [-1, 1] if x + y == 0]
     if self.stay:
       self.moves += [(0, 0)]
+    print(self.moves)
 
   def get_states(self):
     self.states = [Position(x, y) for x in range(GRID_SHAPE[0]) for y in range(GRID_SHAPE[1])]
 
+  def get_moves_dict(self):
+    moves_d = {}
+    for s in self.states:
+      moves_d[s] = []
+      for a in self.moves:
+        if s.next_state(self.stoch, a) in self.states:
+          moves_d[s].append(a)
+    self.moves_d = moves_d
+
   def step(self, action):
-    self.state.update_pos(self.state.get_wind(self.stoch), action)
+    self.state = self.state.next_state(self.stoch, action)
     return self.state, R_STEP, self.state == Position(*GOAL_POS), {}
 
   def reset(self):
@@ -95,10 +109,10 @@ class WindyGridworld:
     s += '\n'
     for x in range(GRID_SHAPE[0]):
       for y in range(GRID_SHAPE[1]):
-        if (x, y) in POS_CHAR_DICT.keys():
-          s += POS_CHAR_DICT[(x, y)]
-        elif (x, y) == (x_ag, y_ag):
+        if (x, y) == (x_ag, y_ag):
           s += AGENT_KEY
+        elif (x, y) in POS_CHAR_DICT.keys():
+          s += POS_CHAR_DICT[(x, y)]
         else:
           s += '.'
       s += '\n'

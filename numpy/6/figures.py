@@ -22,7 +22,7 @@ SMALL_FONT = {'fontsize': 10}
 UNDISCOUNTED = 1
 BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
 NOT_SO_RW_ALPHA = 0.001
-EX_6_5_N_EP = 10
+EX_6_5_N_EP = 170
 EX_6_5_STEP_SIZE = 0.5
 
 
@@ -175,7 +175,6 @@ def plot_sarsa_training(alg, ax, n_episodes):
   ax.set_ylabel('Episodes')
   ax.set_yticks([0, 50, 100, 150, 170])
   plt.plot(to_plot)
-  plt.show()
 
 def example_6_5():
   env = WindyGridworld()  
@@ -183,6 +182,8 @@ def example_6_5():
   fig, ax = plt.subplots() 
   fig.suptitle('Example 6.5')
   plot_sarsa_training(alg, ax, EX_6_5_N_EP)
+  plt.savefig('example6.5.png')
+  plt.show()
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
