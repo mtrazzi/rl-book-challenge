@@ -147,3 +147,6 @@ poms.txt
 
 # profiling
 *.lprof
+
+# vim
+*.swp

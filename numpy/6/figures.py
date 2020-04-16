@@ -24,8 +24,12 @@ BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
 NOT_SO_RW_ALPHA = 0.001
 EX_6_5_N_EP = 170
 EX_6_5_STEP_SIZE = 0.5
-
-
+EX_6_5_EPS = 0.1
+EX_6_5_XTICKS = [k * 1000 for k in range(9)]
+EX_6_5_YTICKS = [0, 50, 100, 150, 170]
+EX_6_9_XTICKS = [k * 2000 for k in range(20)]
+EX_6_9_YTICKS = [0, 50, 100, 150, 170, 200, 500]
+ 
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
   ax.set_title(ax_title)
@@ -168,21 +172,35 @@ def ex_6_7():
   alg.find_value_function(N_EP_EX_6_2 * 100)
   print(alg.get_value_list())
 
-def plot_sarsa_training(alg, ax, n_episodes):
-  to_plot = alg.on_policy_td_control(n_episodes)
+def init_windy_gridworld_fig(title, xticks, yticks):
+  fig, ax = plt.subplots() 
+  fig.suptitle(title)
   ax.set_xlabel('Time steps')
-  ax.set_xticks([k * 1000 for k in range(9)])
   ax.set_ylabel('Episodes')
-  ax.set_yticks([0, 50, 100, 150, 170])
-  plt.plot(to_plot)
+  ax.set_xticks(xticks)
+  ax.set_yticks(yticks)
+  return ax
+
+def plot_sarsa(ax, n_ep, label=None, diags=False, stay=False, stoch=False):
+  env = WindyGridworld(diags, stay, stoch)
+  alg = Sarsa(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
+  kwargs = {"label": label} if label else {}
+  plt.plot(alg.on_policy_td_control(n_ep), **kwargs)
 
 def example_6_5():
-  env = WindyGridworld()  
-  alg = Sarsa(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=0.1)
-  fig, ax = plt.subplots() 
-  fig.suptitle('Example 6.5')
-  plot_sarsa_training(alg, ax, EX_6_5_N_EP)
+  ax = init_windy_gridworld_fig('Example 6.5', EX_6_5_XTICKS, EX_6_5_YTICKS)
+  plot_sarsa(ax, max(EX_6_5_YTICKS))
   plt.savefig('example6.5.png')
+  plt.show()
+
+def ex_6_9():
+  ax = init_windy_gridworld_fig('Exercise 6.9', EX_6_9_XTICKS, EX_6_9_YTICKS)
+  n_ep = max(EX_6_9_YTICKS)
+  plot_sarsa(ax, n_ep, label='up right down left')
+  plot_sarsa(ax, n_ep, label='with diags', diags=True)
+  plot_sarsa(ax, n_ep, label='with diags and stay', diags=True, stay=True)
+  plt.legend()
+  plt.savefig('ex6.9.png')
   plt.show()
 
 PLOT_FUNCTION = {
@@ -193,6 +211,7 @@ PLOT_FUNCTION = {
   '6.2': fig_6_2,
   'ex6.7': ex_6_7,
   'example6.5': example_6_5,
+  'ex6.9': ex_6_9,
 }
 
 def main():

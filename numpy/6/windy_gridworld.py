@@ -1,13 +1,9 @@
 import numpy as np
 
 INIT_POS = (3, 0)
-#INIT_POS = (3, 0)
 GOAL_POS = (3, 7)
-#GOAL_POS = (3, 4)
 WIND_ARR = [0, 0, 0, 1, 1, 1, 2, 2, 1, 0]
-#WIND_ARR = [0, 1, 2, 1, 0]
 GRID_SHAPE = (7, 10)
-#GRID_SHAPE = (5, 5)
 R_STEP = -1
 KEY_ACTION_DICT = {
   'a': (-1, 0),
@@ -70,7 +66,7 @@ class WindyGridworld:
   def get_moves(self):
     self.moves = [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1] if (abs(x) + abs(y)) == 1]
     if self.diags:
-      self.moves += [(x, y) for x in [-1, 1] for y in [-1, 1] if x + y == 0]
+      self.moves += [(x, y) for x in [-1, 1] for y in [-1, 1]]
     if self.stay:
       self.moves += [(0, 0)]
     print(self.moves)
