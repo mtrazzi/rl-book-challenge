@@ -30,12 +30,14 @@ class Sarsa(TD):
 
   def on_policy_td_control(self, n_episodes):
     ep_per_timesteps = []
-    alpha = 0.1
     for ep_nb in range(n_episodes):
       ep_start = time.time()
       s = self.env.reset()
       a = self.pol_deriv(s)
       while True:
+        #if ep_nb == n_episodes - 1:
+        #  print(self.env)
+        #  input()
         ep_per_timesteps.append(ep_nb)
         s_p, r, d, _ = self.env.step(a) 
         a_p = self.pol_deriv(s_p)

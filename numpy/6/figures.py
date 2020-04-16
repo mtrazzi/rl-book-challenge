@@ -22,13 +22,13 @@ SMALL_FONT = {'fontsize': 10}
 UNDISCOUNTED = 1
 BATCH_ALPHA = {'td': 0.002, 'mc': 0.001}
 NOT_SO_RW_ALPHA = 0.001
-EX_6_5_N_EP = 170
 EX_6_5_STEP_SIZE = 0.5
 EX_6_5_EPS = 0.1
 EX_6_5_XTICKS = [k * 1000 for k in range(9)]
 EX_6_5_YTICKS = [0, 50, 100, 150, 170]
 EX_6_9_XTICKS = [k * 2000 for k in range(20)]
-EX_6_9_YTICKS = [0, 50, 100, 150, 170, 200, 500]
+EX_6_9_YTICKS = [0, 50, 100, 150, 170, 200, 500, 1000]
+EX_6_10_N_SEEDS = 10
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -172,18 +172,21 @@ def ex_6_7():
   alg.find_value_function(N_EP_EX_6_2 * 100)
   print(alg.get_value_list())
 
-def init_windy_gridworld_fig(title, xticks, yticks):
+def init_windy_gridworld_fig(title, xticks=None, yticks=None):
   fig, ax = plt.subplots() 
   fig.suptitle(title)
   ax.set_xlabel('Time steps')
   ax.set_ylabel('Episodes')
-  ax.set_xticks(xticks)
-  ax.set_yticks(yticks)
+  if xticks is not None:
+    ax.set_xticks(xticks)
+  if yticks is not None:
+    ax.set_yticks(yticks)
   return ax
 
-def plot_sarsa(ax, n_ep, label=None, diags=False, stay=False, stoch=False):
+def plot_sarsa(ax, n_ep, label=None, diags=False, stay=False, stoch=False, seed=0):
   env = WindyGridworld(diags, stay, stoch)
   alg = Sarsa(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
+  alg.seed(seed)
   kwargs = {"label": label} if label else {}
   plt.plot(alg.on_policy_td_control(n_ep), **kwargs)
 
@@ -195,12 +198,20 @@ def example_6_5():
 
 def ex_6_9():
   ax = init_windy_gridworld_fig('Exercise 6.9', EX_6_9_XTICKS, EX_6_9_YTICKS)
-  n_ep = max(EX_6_9_YTICKS)
-  plot_sarsa(ax, n_ep, label='up right down left')
+  n_ep_urld, n_ep = EX_6_9_YTICKS[-2:]
+  plot_sarsa(ax, n_ep_urld, label='up right down left')
   plot_sarsa(ax, n_ep, label='with diags', diags=True)
   plot_sarsa(ax, n_ep, label='with diags and stay', diags=True, stay=True)
   plt.legend()
   plt.savefig('ex6.9.png')
+  plt.show()
+
+def ex_6_10():
+  ax = init_windy_gridworld_fig(f'Exercise 6.10 ({EX_6_10_N_SEEDS} seeds)')
+  n_ep = max(EX_6_9_YTICKS)
+  for seed in range(EX_6_10_N_SEEDS):
+    plot_sarsa(ax, n_ep, diags=True, stay=True, stoch=True, seed=seed)
+  plt.savefig('ex6.10.png')
   plt.show()
 
 PLOT_FUNCTION = {
@@ -212,6 +223,7 @@ PLOT_FUNCTION = {
   'ex6.7': ex_6_7,
   'example6.5': example_6_5,
   'ex6.9': ex_6_9,
+  'ex6.10': ex_6_10, 
 }
 
 def main():

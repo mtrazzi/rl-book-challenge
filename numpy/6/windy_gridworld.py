@@ -63,6 +63,9 @@ class WindyGridworld:
     print(f"stay: {self.stay}")
     print(f"diags: {self.diags}")
 
+  def seed(self, seed):
+    np.random.seed(seed)
+
   def get_moves(self):
     self.moves = [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1] if (abs(x) + abs(y)) == 1]
     if self.diags:
