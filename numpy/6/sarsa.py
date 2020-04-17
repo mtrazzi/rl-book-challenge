@@ -35,9 +35,6 @@ class Sarsa(TD):
       s = self.env.reset()
       a = self.pol_deriv(s)
       while True:
-        #if ep_nb == n_episodes - 1:
-        #  print(self.env)
-        #  input()
         ep_per_timesteps.append(ep_nb)
         s_p, r, d, _ = self.env.step(a) 
         a_p = self.pol_deriv(s_p)

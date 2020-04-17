@@ -72,7 +72,6 @@ class WindyGridworld:
       self.moves += [(x, y) for x in [-1, 1] for y in [-1, 1]]
     if self.stay:
       self.moves += [(0, 0)]
-    print(self.moves)
 
   def get_states(self):
     self.states = [Position(x, y) for x in range(GRID_SHAPE[0]) for y in range(GRID_SHAPE[1])]

@@ -1,9 +1,11 @@
 import argparse
 import os
 from windy_gridworld import WindyGridworld
+from cliff import TheCliff
 
 ENV_DICT = {
   'windy_gridworld': WindyGridworld(),
+  'cliff': TheCliff(),
 }
 
 def play(env):

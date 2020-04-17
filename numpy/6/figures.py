@@ -6,7 +6,9 @@ from sarsa import Sarsa
 from windy_gridworld import WindyGridworld
 import numpy as np
 from randomwalk import RandomWalk, NotSoRandomWalk, LEFT, RIGHT
+from cliff import TheCliff
 import matplotlib.pyplot as plt
+from qlearning import QLearning
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -29,6 +31,8 @@ EX_6_5_YTICKS = [0, 50, 100, 150, 170]
 EX_6_9_XTICKS = [k * 2000 for k in range(20)]
 EX_6_9_YTICKS = [0, 50, 100, 150, 170, 200, 500, 1000]
 EX_6_10_N_SEEDS = 10
+EX_6_6_N_EPS = 500
+EX_6_6_YTICKS = [-100, -75, -50, -25]
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -214,6 +218,21 @@ def ex_6_10():
   plt.savefig('ex6.10.png')
   plt.show()
 
+def example_6_6():
+  fig, ax = plt.subplots() 
+  fig.suptitle('Example 6.6')
+  ax.set_xlabel('Episodes')
+  ax.set_ylabel('Sum of rewards during episodes')
+  ax.set_yticks(EX_6_6_YTICKS)
+  ax.set_ylim(bottom=min(EX_6_6_YTICKS))
+  n_ep = EX_6_6_N_EPS
+  env = TheCliff()
+  alg = QLearning(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
+  alg.seed(0)
+  plt.plot(alg.q_learning(n_ep), color='r', label='Q learning')
+  plt.savefig('example6.6.png')
+  plt.show()
+
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
   'example6.2': example_6_2,
@@ -224,6 +243,7 @@ PLOT_FUNCTION = {
   'example6.5': example_6_5,
   'ex6.9': ex_6_9,
   'ex6.10': ex_6_10, 
+  'example6.6': example_6_6,
 }
 
 def main():
