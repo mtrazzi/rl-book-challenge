@@ -49,6 +49,25 @@ class ExpectedSarsa(Sarsa):
         s = s_p
     return r_sum_l
 
+  def expected_sarsa_log_actions(self, n_episodes, to_log_s, to_log_a): 
+    per_l = []
+    for ep_nb in range(n_episodes):
+      s = self.env.reset()
+      nb_a, nb_s = 0, 0
+      while True:
+        a = self.sample_action_d(s)
+        s_p, r, d, _ = self.env.step(a) 
+        nb_s += (s == to_log_s)
+        nb_a += (a == to_log_a) * (s == to_log_s)
+        a_p = self.sample_action_d(s)
+        self.expected_sarsa_update(s, a, r, s_p)
+        self.update_pi(self.pi, self.Q, s)
+        if d:
+          per_l.append(100 * (nb_a / nb_s))
+          break
+        s = s_p
+    return per_l
+
   def reset(self):
     super().reset()
     self.pi = self.uniform_pol(self.env)

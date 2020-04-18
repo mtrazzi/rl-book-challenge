@@ -37,26 +37,3 @@ class MDP(ABC):
                     for s_p in self.states])
                     for s in self.states for a in self.moves}
         print(f"finished after {time.time()-start}s")
-
-    @abstractmethod
-    def _p(self, s_p, r, s, a):
-        """Specific transition probabilities for environment."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def states(self):
-        """List of possible states."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def r(self):
-        """List of possible rewards."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def moves(self):
-        """List of all available actions."""
-        raise NotImplementedError

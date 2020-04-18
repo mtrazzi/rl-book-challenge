@@ -11,7 +11,7 @@ ABSORBING_STATE = (-1, -1)
 PARKING_COST = 4
 
 
-class CarRentalEnv(MDP):
+class CarRentalAfterstateEnv:
   def __init__(self, size, ex_4_7=False):
     self.max_car_cap = size
     self.max_car_moves = self.max_car_cap // 5 + 1
@@ -91,6 +91,16 @@ class CarRentalEnv(MDP):
     of exercise 4.7.
     """
     return RENT_BEN * car_sold - (self.park_cost(n1, n2, m) + self.move_cost(m))
+
+  def step(self, a):
+    (n1, n2) = self.state
+
+  def reset(self):
+    self.state = self.states[np.random.randint(len(self.states))]
+
+  def seed(self, seed):
+    random.seed(seed)
+    np.random.seed(seed)
 
   def _p(self, s_p, r, s, a):
     """Transition function defined in private because p dictionary in mdp.py."""

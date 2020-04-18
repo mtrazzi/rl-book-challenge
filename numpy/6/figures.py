@@ -12,6 +12,7 @@ from qlearning import QLearning
 from double_qlearning import DoubleQLearning
 from expected_sarsa import ExpectedSarsa
 from max_bias_mdp import MaxBiasMDP, S_A, LEFT
+from double_expected_sarsa import DoubleExpectedSarsa
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -45,6 +46,8 @@ FIG_6_3_N_ASY_EPS = 1000
 FIG_6_5_ALPHA = 0.1
 FIG_6_5_N_RUNS = 100
 FIG_6_5_N_EPS = 300
+EX_6_13_N_EPS = 300
+EX_6_13_N_RUNS = 10000
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -295,31 +298,44 @@ def fig_6_3():
   plt.savefig('fig6.3.png')
   plt.show()
 
-def fig_6_5():
+
+def plot_max_bias(title, filename, todo_list, n_runs, n_eps):
   fig, ax = plt.subplots() 
-  fig.suptitle(f'Figure 6.5')
+  fig.suptitle(title)
   ax.set_xlabel(f'Episodes')
   xticks = [1, 100, 200, 300]
   ax.set_xlim([min(xticks), max(xticks)])
   ax.set_yticks([0, 5, 25, 50, 75, 100])
   ax.set_ylim([0, 100])
   ax.set_ylabel('% left actions from A')
+  for (alg, opt, color, label) in todo_list:
+    perc_left = np.zeros(n_eps)
+    for seed in range(n_runs):
+      print(seed)
+      alg.seed(seed)
+      alg.reset()
+      perc_left += opt(n_eps)
+    plt.plot(perc_left / n_runs, label=label, color=color)
+  plt.plot(np.zeros(n_eps) + 5, color='k', linestyle='--', label='optimal')
+  plt.legend()
+  plt.savefig(filename)
+  plt.show()
+
+def fig_6_5():
   env = MaxBiasMDP()
   qlear_alg, dqlear_alg = [name_alg(env, step_size=FIG_6_5_ALPHA, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [QLearning, DoubleQLearning]]
   qlear_opt = lambda n_ep: qlear_alg.q_learning_log_actions(n_ep, S_A, LEFT)
   dqlear_opt = lambda n_ep: dqlear_alg.double_q_learning_log_actions(n_ep, S_A, LEFT)
-  for (alg, opt, color, label) in [(qlear_alg, qlear_opt, 'r', 'Q-learning'), (dqlear_alg, dqlear_opt, 'g', 'Double Q-learning')]:
-    perc_left = np.zeros(FIG_6_5_N_EPS)
-    for seed in range(FIG_6_5_N_RUNS):
-      print(seed)
-      alg.seed(seed)
-      alg.reset()
-      perc_left += opt(FIG_6_5_N_EPS)
-    plt.plot(perc_left / FIG_6_5_N_RUNS, label=label, color=color)
-  plt.plot(np.zeros(FIG_6_5_N_EPS) + 5, color='k', linestyle='--', label='optimal')
-  plt.legend()
-  plt.savefig('fig6.5.png')
-  plt.show()
+  todo = [(qlear_alg, qlear_opt, 'r', 'Q-learning'), (dqlear_alg, dqlear_opt, 'g', 'Double Q-learning')]
+  plot_max_bias('Figure 6.5', 'fig6.5.png', todo, FIG_6_5_N_RUNS, FIG_6_5_N_EPS)
+
+def ex_6_13():
+  env = MaxBiasMDP()
+  esarsa_alg, desarsa_alg = [name_alg(env, step_size=FIG_6_5_ALPHA, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [ExpectedSarsa, DoubleExpectedSarsa]]
+  esarsa_opt = lambda n_ep: esarsa_alg.expected_sarsa_log_actions(n_ep, S_A, LEFT)
+  desarsa_opt = lambda n_ep: desarsa_alg.double_expected_sarsa_log_actions(n_ep, S_A, LEFT)
+  todo = [(desarsa_alg, desarsa_opt, 'g', 'Double Expected Sarsa'), (esarsa_alg, esarsa_opt, 'r', 'Expected Sarsa')]
+  plot_max_bias(f'Exercise 6.13 ({EX_6_13_N_RUNS} runs)', 'ex6.13.png', todo, EX_6_13_N_RUNS, EX_6_13_N_EPS)
 
 
 PLOT_FUNCTION = {
@@ -335,6 +351,7 @@ PLOT_FUNCTION = {
   'example6.6': example_6_6,
   '6.3': fig_6_3,
   '6.5': fig_6_5,
+  'ex6.13': ex_6_13,
 }
 
 def main():
