@@ -43,7 +43,7 @@ FIG_6_3_N_INT_EPS = 100
 FIG_6_3_N_ASY_RUNS = 5
 FIG_6_3_N_ASY_EPS = 1000
 FIG_6_5_ALPHA = 0.1
-FIG_6_5_N_RUNS = 10000
+FIG_6_5_N_RUNS = 100
 FIG_6_5_N_EPS = 300
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
