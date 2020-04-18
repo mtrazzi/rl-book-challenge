@@ -9,6 +9,7 @@ from randomwalk import RandomWalk, NotSoRandomWalk, LEFT, RIGHT
 from cliff import TheCliff
 import matplotlib.pyplot as plt
 from qlearning import QLearning
+from double_qlearning import DoubleQLearning
 from expected_sarsa import ExpectedSarsa
 from max_bias_mdp import MaxBiasMDP, S_A, LEFT
 
@@ -42,7 +43,7 @@ FIG_6_3_N_INT_EPS = 100
 FIG_6_3_N_ASY_RUNS = 5
 FIG_6_3_N_ASY_EPS = 1000
 FIG_6_5_ALPHA = 0.1
-FIG_6_5_N_RUNS = 1000
+FIG_6_5_N_RUNS = 10000
 FIG_6_5_N_EPS = 300
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
@@ -304,9 +305,10 @@ def fig_6_5():
   ax.set_ylim([0, 100])
   ax.set_ylabel('% left actions from A')
   env = MaxBiasMDP()
-  qlear_alg = [name_alg(env, step_size=FIG_6_5_ALPHA, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [QLearning]][0]
+  qlear_alg, dqlear_alg = [name_alg(env, step_size=FIG_6_5_ALPHA, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [QLearning, DoubleQLearning]]
   qlear_opt = lambda n_ep: qlear_alg.q_learning_log_actions(n_ep, S_A, LEFT)
-  for (alg, opt, color, label) in [(qlear_alg, qlear_opt, 'r', 'Q-learning')]:
+  dqlear_opt = lambda n_ep: dqlear_alg.double_q_learning_log_actions(n_ep, S_A, LEFT)
+  for (alg, opt, color, label) in [(qlear_alg, qlear_opt, 'r', 'Q-learning'), (dqlear_alg, dqlear_opt, 'g', 'Double Q-learning')]:
     perc_left = np.zeros(FIG_6_5_N_EPS)
     for seed in range(FIG_6_5_N_RUNS):
       print(seed)
