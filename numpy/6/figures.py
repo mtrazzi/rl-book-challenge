@@ -10,6 +10,7 @@ from cliff import TheCliff
 import matplotlib.pyplot as plt
 from qlearning import QLearning
 from expected_sarsa import ExpectedSarsa
+from max_bias_mdp import MaxBiasMDP, S_A, LEFT
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -36,10 +37,13 @@ EX_6_6_N_EPS = 500
 EX_6_6_YTICKS = [-100, -75, -50, -25]
 EX_6_6_N_SEEDS = 10
 EX_6_6_N_AVG = 50
-FIG_6_3_N_INT_RUNS = 50
+FIG_6_3_N_INT_RUNS = 250
 FIG_6_3_N_INT_EPS = 100
-FIG_6_3_N_ASY_RUNS = 1
-FIG_6_3_N_ASY_EPS = 10000
+FIG_6_3_N_ASY_RUNS = 5
+FIG_6_3_N_ASY_EPS = 1000
+FIG_6_5_ALPHA = 0.1
+FIG_6_5_N_RUNS = 1000
+FIG_6_5_N_EPS = 300
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -260,9 +264,11 @@ def example_6_6():
 def fig_6_3(): 
   fig, ax = plt.subplots() 
   fig.suptitle(f'Figure 6.3')
-  step_sizes = np.linspace(0.1, 1, 10)
+  step_sizes = np.linspace(0.1, 1, 19)
   ax.set_xlabel(f'Step Sizes')
   ax.set_xticks(step_sizes)
+  ax.set_yticks([0, -40, -80, -120])
+  ax.set_ylim(bottom=-160, top=0)
   ax.set_ylabel('Sum of rewards per episodes')
   env = TheCliff() 
   exp_sar_alg, sar_alg, qlear_alg = [name_alg(env, step_size=None, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [ExpectedSarsa, Sarsa, QLearning]]
@@ -288,6 +294,32 @@ def fig_6_3():
   plt.savefig('fig6.3.png')
   plt.show()
 
+def fig_6_5():
+  fig, ax = plt.subplots() 
+  fig.suptitle(f'Figure 6.5')
+  ax.set_xlabel(f'Episodes')
+  xticks = [1, 100, 200, 300]
+  ax.set_xlim([min(xticks), max(xticks)])
+  ax.set_yticks([0, 5, 25, 50, 75, 100])
+  ax.set_ylim([0, 100])
+  ax.set_ylabel('% left actions from A')
+  env = MaxBiasMDP()
+  qlear_alg = [name_alg(env, step_size=FIG_6_5_ALPHA, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [QLearning]][0]
+  qlear_opt = lambda n_ep: qlear_alg.q_learning_log_actions(n_ep, S_A, LEFT)
+  for (alg, opt, color, label) in [(qlear_alg, qlear_opt, 'r', 'Q-learning')]:
+    perc_left = np.zeros(FIG_6_5_N_EPS)
+    for seed in range(FIG_6_5_N_RUNS):
+      print(seed)
+      alg.seed(seed)
+      alg.reset()
+      perc_left += opt(FIG_6_5_N_EPS)
+    plt.plot(perc_left / FIG_6_5_N_RUNS, label=label, color=color)
+  plt.plot(np.zeros(FIG_6_5_N_EPS) + 5, color='k', linestyle='--', label='optimal')
+  plt.legend()
+  plt.savefig('fig6.5.png')
+  plt.show()
+
+
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
   'example6.2': example_6_2,
@@ -300,6 +332,7 @@ PLOT_FUNCTION = {
   'ex6.10': ex_6_10, 
   'example6.6': example_6_6,
   '6.3': fig_6_3,
+  '6.5': fig_6_5,
 }
 
 def main():
