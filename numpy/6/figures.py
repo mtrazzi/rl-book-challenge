@@ -9,6 +9,7 @@ from randomwalk import RandomWalk, NotSoRandomWalk, LEFT, RIGHT
 from cliff import TheCliff
 import matplotlib.pyplot as plt
 from qlearning import QLearning
+from expected_sarsa import ExpectedSarsa
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -35,6 +36,10 @@ EX_6_6_N_EPS = 500
 EX_6_6_YTICKS = [-100, -75, -50, -25]
 EX_6_6_N_SEEDS = 10
 EX_6_6_N_AVG = 50
+FIG_6_3_N_INT_RUNS = 50
+FIG_6_3_N_INT_EPS = 100
+FIG_6_3_N_ASY_RUNS = 1
+FIG_6_3_N_ASY_EPS = 10000
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -252,6 +257,37 @@ def example_6_6():
   plt.savefig('example6.6.png')
   plt.show()
 
+def fig_6_3(): 
+  fig, ax = plt.subplots() 
+  fig.suptitle(f'Figure 6.3')
+  step_sizes = np.linspace(0.1, 1, 10)
+  ax.set_xlabel(f'Step Sizes')
+  ax.set_xticks(step_sizes)
+  ax.set_ylabel('Sum of rewards per episodes')
+  env = TheCliff() 
+  exp_sar_alg, sar_alg, qlear_alg = [name_alg(env, step_size=None, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) for name_alg in [ExpectedSarsa, Sarsa, QLearning]]
+  exp_sar_opt, sar_opt, qlear_opt = exp_sar_alg.expected_sarsa, lambda n_ep: sar_alg.on_policy_td_control(n_ep, rews=True), qlear_alg.q_learning
+  for (alg, opt, alg_name, color, marker) in [(exp_sar_alg, exp_sar_opt, 'Expected Sarsa', 'r', 'x'), (sar_alg, sar_opt, 'Sarsa', 'b', 'v'), (qlear_alg, qlear_opt, 'Q-learning', 'k', 's')]:
+    print(f"\n\n\n@@@@@@@@ {alg_name} @@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@\n\n\n")
+    for (n_ep, n_runs, run_type_name) in [(FIG_6_3_N_INT_EPS, FIG_6_3_N_INT_RUNS, 'Interim'), (FIG_6_3_N_ASY_EPS, FIG_6_3_N_ASY_RUNS, 'Asymptotic')]:
+      print(f"\n######## {run_type_name} ########\n")
+      rew_l = []
+      for step_size in step_sizes: 
+        print(f"alpha={step_size}")
+        alg.step_size = step_size
+        rew_sum = 0
+        for seed in range(n_runs):
+          print(f"run #{seed}")
+          alg.seed(seed)
+          alg.reset()
+          rew_sum += np.mean(opt(n_ep))
+        rew_l.append(rew_sum / n_runs)
+      label = f"{alg_name} ({run_type_name})"
+      plt.plot(step_sizes, rew_l, label=label, color=color, marker=marker, linestyle='-' if run_type_name == 'Asymptotic' else '--')
+  plt.legend()
+  plt.savefig('fig6.3.png')
+  plt.show()
+
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
   'example6.2': example_6_2,
@@ -263,6 +299,7 @@ PLOT_FUNCTION = {
   'ex6.9': ex_6_9,
   'ex6.10': ex_6_10, 
   'example6.6': example_6_6,
+  '6.3': fig_6_3,
 }
 
 def main():

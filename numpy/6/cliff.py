@@ -34,6 +34,8 @@ class Position:
     return (Position(*INIT_POS), R_CLIFF) if s_p.in_cliff() else (s_p, R_STEP)
 
   def __eq__(self, other_pos):
+    if isinstance(other_pos, tuple):
+      return self.x == other_pos[0] and self.y == other_pos[1]
     return self.x == other_pos.x and self.y == other_pos.y
 
   def __hash__(self):
