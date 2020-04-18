@@ -33,6 +33,8 @@ EX_6_9_YTICKS = [0, 50, 100, 150, 170, 200, 500, 1000]
 EX_6_10_N_SEEDS = 10
 EX_6_6_N_EPS = 500
 EX_6_6_YTICKS = [-100, -75, -50, -25]
+EX_6_6_N_SEEDS = 10
+EX_6_6_N_AVG = 50
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -218,18 +220,35 @@ def ex_6_10():
   plt.savefig('ex6.10.png')
   plt.show()
 
+def smooth_rewards(arr, to_avg=5):
+  nb_rew = len(arr)
+  new_arr = np.zeros(nb_rew - to_avg + 1) 
+  for i in range(nb_rew - to_avg + 1):
+    new_arr[i] = np.mean([arr[i + j] for j in range(to_avg)])
+  return new_arr
+
 def example_6_6():
   fig, ax = plt.subplots() 
-  fig.suptitle('Example 6.6')
+  fig.suptitle(f'Example 6.6 (Averaged over {EX_6_6_N_SEEDS} seeds)')
   ax.set_xlabel('Episodes')
-  ax.set_ylabel('Sum of rewards during episodes')
+  ax.set_ylabel(f'(Average of last {EX_6_6_N_AVG}) sum of rewards during episodes')
   ax.set_yticks(EX_6_6_YTICKS)
   ax.set_ylim(bottom=min(EX_6_6_YTICKS))
   n_ep = EX_6_6_N_EPS
   env = TheCliff()
-  alg = QLearning(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
-  alg.seed(0)
-  plt.plot(alg.q_learning(n_ep), color='r', label='Q learning')
+  qlearning_alg = QLearning(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
+  sarsa_alg = Sarsa(env, step_size=EX_6_5_STEP_SIZE, gamma=UNDISCOUNTED, eps=EX_6_5_EPS) 
+  qlearning_rew = np.zeros(n_ep)
+  sarsa_rew = np.zeros(n_ep)
+  for seed in range(EX_6_6_N_SEEDS):
+    print(f"seed={seed}")
+    qlearning_alg.seed(seed)
+    qlearning_rew += qlearning_alg.q_learning(n_ep)
+    sarsa_alg.seed(seed)
+    sarsa_rew += sarsa_alg.on_policy_td_control(n_ep, rews=True)
+  plt.plot(smooth_rewards(qlearning_rew / EX_6_6_N_SEEDS, EX_6_6_N_AVG), color='r', label='Q learning')
+  plt.plot(smooth_rewards(sarsa_rew / EX_6_6_N_SEEDS, EX_6_6_N_AVG), color='b', label='Sarsa')
+  plt.legend()
   plt.savefig('example6.6.png')
   plt.show()
 
