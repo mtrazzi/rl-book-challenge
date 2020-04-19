@@ -13,6 +13,8 @@ from double_qlearning import DoubleQLearning
 from expected_sarsa import ExpectedSarsa
 from max_bias_mdp import MaxBiasMDP, S_A, LEFT
 from double_expected_sarsa import DoubleExpectedSarsa
+from car_rental_afterstate import CarRentalAfterstateEnv
+from td_afterstate import TDAfterstate
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -48,6 +50,10 @@ FIG_6_5_N_RUNS = 100
 FIG_6_5_N_EPS = 300
 EX_6_13_N_EPS = 300
 EX_6_13_N_RUNS = 10000
+EX_6_14_SIZE = 4
+EX_6_14_ALPHA = 0.01
+EX_6_14_N_EPS = 1000
+EX_6_14_GAMMA = 0.9
  
 def print_driving_home(states, V_old, V_new, fig, fig_id, ax_title):
   ax = fig.add_subplot(fig_id)
@@ -337,6 +343,52 @@ def ex_6_13():
   todo = [(desarsa_alg, desarsa_opt, 'g', 'Double Expected Sarsa'), (esarsa_alg, esarsa_opt, 'r', 'Expected Sarsa')]
   plot_max_bias(f'Exercise 6.13 ({EX_6_13_N_RUNS} runs)', 'ex6.13.png', todo, EX_6_13_N_RUNS, EX_6_13_N_EPS)
 
+def print_car_rental_value_function(size, V): 
+  to_print = np.zeros((size, size))
+  idxs = list(range(size))
+  for x in idxs:
+    for y in idxs:
+      to_print[x][y] = V[(x, y)]
+  to_print_term = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
+  print(to_print_term)
+  fig = plt.figure()
+  ax = fig.add_subplot(111, projection='3d')
+  plt.title('Exercise 6.14 (value function)')
+  (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
+  ax.set_xlabel('# of cars at second location', fontsize=10)
+  ax.set_ylabel('# of cars at first location', fontsize=10)
+  ax.set_xticks([idxs[0], idxs[-1]])
+  ax.set_yticks([idxs[0], idxs[-1]])
+  ax.set_zticks([np.min(Z), np.max(Z)])
+  ax.plot_surface(X, Y, Z)
+  plt.savefig('ex6.14_val.png')
+  plt.show()
+
+def print_policy_car_rental(size, pi):
+  fig, ax = plt.subplots()
+  X = Y = list(range(size))
+  Z = [[pi[(x, y)] for y in Y] for x in X]
+  transposed_Z = [[Z[size - x - 1][y] for y in Y] for x in X]
+  print(*transposed_Z, sep='\n')
+  pol_range = list(range(np.min(transposed_Z), np.max(transposed_Z) + 1))
+  CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
+  ax.clabel(CS, inline=1, fontsize=10)
+  ax.set_title('Exercise 6.14 (policy)')
+  plt.savefig('ex6.14_pol.png')
+  plt.show()
+
+def ex_6_14(size=None):
+  size = EX_6_14_SIZE if size is None else size
+  env = CarRentalAfterstateEnv(size - 1)
+  env.seed(0)
+  alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA)
+  #pi = {(a, s): (a == 0) for s in env.states for a in env.moves_d[s]}
+  pi = {s: 0 for s in env.states}
+  #alg.td0_afterstate(pi, EX_6_14_N_EPS)
+  #alg.afterstate_control(EX_6_14_N_EPS)
+  alg.td0_afterstate(pi, EX_6_14_N_EPS) 
+  print_car_rental_value_function(size, alg.get_V())
+  print_policy_car_rental(size, alg.pi)
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
@@ -352,6 +404,7 @@ PLOT_FUNCTION = {
   '6.3': fig_6_3,
   '6.5': fig_6_5,
   'ex6.13': ex_6_13,
+  'ex6.14': ex_6_14,
 }
 
 def main():
@@ -360,9 +413,14 @@ def main():
   parser.add_argument('figure', type=str, default=None,
                       help='Figure to reproduce.',
                       choices=PLOT_FUNCTION.keys())
+  parser.add_argument('-s', '--size', type=int, default=None,
+                      help='Size of the environment (size * size states).')
   args = parser.parse_args()
 
-  PLOT_FUNCTION[args.figure]()
+  if args.figure == 'ex6.14':
+    PLOT_FUNCTION[args.figure](args.size)
+  else:
+    PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
   main()

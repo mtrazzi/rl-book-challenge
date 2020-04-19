@@ -41,7 +41,7 @@ class TD:
     return [val for key,val in self.V.items()]
 
   def reset(self):
-    self.V = {s: 0 for s in self.env.moves} if self.V_init is None else copy.deepcopy(self.V_init)
+    self.V = {s: 0 for s in self.env.states} if self.V_init is None else copy.deepcopy(self.V_init)
 
 class OneStepTD(TD):
   def __init__(self, env, V_init=None, step_size=0.1, gamma=0.9):
