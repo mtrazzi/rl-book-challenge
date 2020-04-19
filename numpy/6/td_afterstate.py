@@ -18,8 +18,8 @@ class TDAfterstate(TD):
     s = self.env.reset()
     traj = []
     while True:
-      #a = self.pi[s]
-      a = self.sample_action(self.b, s)
+      a = self.sample_action(self.b, s) if np.random.random() < self.eps else self.pi[s]
+      #a = self.sample_action(self.b, s)
       s_p, r, done, _ = self.env.step(a)
       traj.append((s, a, r))
       s = s_p
@@ -47,8 +47,9 @@ class TDAfterstate(TD):
         for i in range(len(traj) - 1):
           (s, a, r), (s_p, a_p, _) = traj[i], traj[i + 1]
           s_as, s_p_as = self.env.after_state(s, a), self.env.after_state(s_p, a_p)
-          is_ratio = (a == self.pi[s]) / self.b[(a, s)]
+          is_ratio = (1 - self.eps) * ((a == self.pi[s]) / self.b[(a, s)]) + self.eps * (1 - (a == self.pi[s])) / self.b[(a, s)] 
           td_error_sum[s_as] += self.step_size * is_ratio * (r + self.gamma * self.V_as[s_p_as] - self.V_as[s_as])
+          #td_error_sum[s_as] += self.step_size * (r + self.gamma * self.V_as[s_p_as] - self.V_as[s_as])
       for s in self.V_as:
         self.V_as[s] += td_error_sum[s]
   
@@ -62,19 +63,19 @@ class TDAfterstate(TD):
       policy_stable = policy_stable and (a_old == a_new)
     return policy_stable
 
-  def policy_iteration(self, ep_per_eval=10, batch=True):
+  def policy_iteration(self, ep_per_eval=10, batch=True, max_ep=np.inf):
     pi_log = [str(self.pi)]
-    count = 0
     pol_eval = self.td0_afterstate_batch if batch else self.td0_afterstate
-    while True:
+    while True: 
+      print(len(pi_log))
       pol_eval(ep_per_eval)
       pol_stable = self.policy_improvement()
       pi_str = str(self.pi)
-      if pol_stable or pi_str in pi_log:
-        return self.V_as, self.pi
+      if pol_stable or pi_str in pi_log or len(pi_log) >= max_ep:
+        if pol_stable:
+          print("stable")
+        return self.V_as, self.pi, pol_stable
       pi_log.append(pi_str)
-      count += 1
-      print(count)
 
   def reset(self):
     super().reset()

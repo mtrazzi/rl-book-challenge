@@ -16,6 +16,7 @@ from double_expected_sarsa import DoubleExpectedSarsa
 from car_rental_afterstate import CarRentalAfterstateEnv
 from td_afterstate import TDAfterstate
 from policy_iteration_afterstate import DynamicProgrammingAfterstate
+import seaborn as sns
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -351,44 +352,60 @@ def print_car_rental_value_function(size, V):
     for y in idxs:
       to_print[x][y] = V[(x, y)]
   to_print_term = [[to_print[size - x - 1][y] for y in idxs] for x in idxs]
-  print(to_print_term)
-  fig = plt.figure()
-  ax = fig.add_subplot(111, projection='3d')
-  plt.title('Exercise 6.14 (value function)')
-  (X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
-  ax.set_xlabel('# of cars at second location', fontsize=10)
-  ax.set_ylabel('# of cars at first location', fontsize=10)
-  ax.set_xticks([idxs[0], idxs[-1]])
-  ax.set_yticks([idxs[0], idxs[-1]])
-  ax.set_zticks([np.min(Z), np.max(Z)])
-  ax.plot_surface(X, Y, Z)
-  plt.savefig('ex6.14_val.png')
-  plt.show()
+  print(f"#####\n\nV mean = {np.mean(to_print_term)}\n\n######")
+  #fig = plt.figure()
+  #ax = fig.add_subplot(111, projection='3d')
+  #plt.title('Exercise 6.14 (value function)')
+  #(X, Y), Z = np.meshgrid(idxs, idxs), np.array(to_print).T
+  #ax.set_xlabel('# of cars at second location', fontsize=10)
+  #ax.set_ylabel('# of cars at first location', fontsize=10)
+  #ax.set_xticks([idxs[0], idxs[-1]])
+  #ax.set_yticks([idxs[0], idxs[-1]])
+  #ax.set_zticks([np.min(Z), np.max(Z)])
+  #ax.plot_surface(X, Y, Z)
+  #plt.show()
+  return np.mean(to_print_term)
 
 def print_policy_car_rental(size, pi):
   fig, ax = plt.subplots()
   X = Y = list(range(size))
   Z = [[pi[(x, y)] for y in Y] for x in X]
   transposed_Z = [[Z[size - x - 1][y] for y in Y] for x in X]
+  sns.heatmap(transposed_Z)
   print(*transposed_Z, sep='\n')
   pol_range = list(range(np.min(transposed_Z), np.max(transposed_Z) + 1))
-  CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
-  ax.clabel(CS, inline=1, fontsize=10)
+  #CS = ax.contour(X, Y, Z, colors='k', levels=pol_range)
+  #ax.clabel(CS, inline=1, fontsize=10)
   ax.set_title('Exercise 6.14 (policy)')
-  plt.savefig('ex6.14_pol.png')
-  plt.show()
+  #plt.show()
 
-def ex_6_14(size=None, ep_per_eval=None):
+def ex_6_14(size=None, ep_per_eval=None, alpha=None, max_ep=None):
   size = EX_6_14_SIZE if size is None else size
   env = CarRentalAfterstateEnv(size - 1)
   env.seed(0)
   #pi = {(a, s): (a == 0) for s in env.states for a in env.moves_d[s]}
   pi = {s: 0 for s in env.states}
-  alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA, pi_init=pi)
-  V, pi = alg.policy_iteration(ep_per_eval=ep_per_eval)
-  print_car_rental_value_function(size, V)
-  #det_pi = {s: alg.deterministic_pi(pi, s) for s in env.states}
-  print_policy_car_rental(size, pi)
+  step_size_l = [0.003, 0.004, 0.005]
+  log_V_mean = {step_size: [] for step_size in step_size_l}
+  for step_size in step_size_l:
+    tot_ep = 0
+    alg = TDAfterstate(env, None, step_size=step_size, gamma=EX_6_14_GAMMA, pi_init=pi)
+    stable = False
+    while len(log_V_mean[step_size]) < 10:
+      print(f"tot_ep = {tot_ep}")
+      V, pi, stable = alg.policy_iteration(ep_per_eval=ep_per_eval, batch=True, max_ep=max_ep)
+      tot_ep += ((ep_per_eval) * (ep_per_eval + 1)) // 2
+      mean = print_car_rental_value_function(size, V)
+      log_V_mean[step_size].append(mean)
+      plt.savefig(f'ex6.14_val_{str(ep_per_eval)}_{str(alpha)[2:]}_{str(tot_ep)}ep.png')
+      plt.close()
+  for step_size in step_size_l:
+    plt.plot(log_V_mean[step_size], label=f'alpha={step_size}')
+  plt.legend()
+  plt.savefig('learning_rates.png')
+  plt.show()
+  #print_policy_car_rental(size, pi)
+  #plt.savefig('ex6.14_pol.png')
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,
@@ -416,10 +433,12 @@ def main():
   parser.add_argument('-s', '--size', type=int, default=None,
                       help='Size of the environment (size * size states).')
   parser.add_argument('-e', '--ep', type=int, default=None)
+  parser.add_argument('-a', '--alpha', type=float, default=None)
+  parser.add_argument('-m', '--max_ep', type=int, default=None)
   args = parser.parse_args()
 
   if args.figure == 'ex6.14':
-    PLOT_FUNCTION[args.figure](args.size, args.ep)
+    PLOT_FUNCTION[args.figure](args.size, args.ep, args.alpha, args.max_ep)
   else:
     PLOT_FUNCTION[args.figure]()
 
