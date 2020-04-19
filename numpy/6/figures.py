@@ -378,20 +378,16 @@ def print_policy_car_rental(size, pi):
   plt.savefig('ex6.14_pol.png')
   plt.show()
 
-def ex_6_14(size=None):
+def ex_6_14(size=None, ep_per_eval=None):
   size = EX_6_14_SIZE if size is None else size
   env = CarRentalAfterstateEnv(size - 1)
   env.seed(0)
-  #alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA)
   #pi = {(a, s): (a == 0) for s in env.states for a in env.moves_d[s]}
   pi = {s: 0 for s in env.states}
-  alg = DynamicProgrammingAfterstate(env, None, det_pi=pi)
-  #alg.td0_afterstate(pi, EX_6_14_N_EPS)
-  #alg.afterstate_control(EX_6_14_N_EPS)
-  #alg.td0_afterstate(pi, EX_6_14_N_EPS) 
-  alg.policy_iteration()
-  print_car_rental_value_function(size, alg.V)
-  pi = {s: alg.deterministic_pi(s) for s in env.states}
+  alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA, pi_init=pi)
+  V, pi = alg.policy_iteration(ep_per_eval=ep_per_eval)
+  print_car_rental_value_function(size, V)
+  #det_pi = {s: alg.deterministic_pi(pi, s) for s in env.states}
   print_policy_car_rental(size, pi)
 
 PLOT_FUNCTION = {
@@ -419,10 +415,11 @@ def main():
                       choices=PLOT_FUNCTION.keys())
   parser.add_argument('-s', '--size', type=int, default=None,
                       help='Size of the environment (size * size states).')
+  parser.add_argument('-e', '--ep', type=int, default=None)
   args = parser.parse_args()
 
   if args.figure == 'ex6.14':
-    PLOT_FUNCTION[args.figure](args.size)
+    PLOT_FUNCTION[args.figure](args.size, args.ep)
   else:
     PLOT_FUNCTION[args.figure]()
 

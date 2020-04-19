@@ -3,56 +3,78 @@ from td import TD
 import copy
 
 class TDAfterstate(TD):
-  def __init__(self, env, V_init=None, step_size=None, gamma=0.9, eps=0.1):
+  def __init__(self, env, V_init=None, step_size=None, gamma=0.9, eps=0.1, pi_init=None):
     super().__init__(env, V_init, step_size, gamma)
     self.eps = eps
+    self.pi = pi_init
+    self.b = {(a, s): 1 / len(env.moves_d[s]) for s in env.states for a in env.moves_d[s]}
     self.reset()
 
-  def generate_traj(self, pi, log_act=False):
+  def sample_action(self, pi, s):
+    pi_dist = [pi[(a, s)] for a in self.env.moves_d[s]]
+    return self.env.moves_d[s][np.random.choice(np.arange(len(self.env.moves_d[s])), p=pi_dist)]
+
+  def generate_traj(self):
     s = self.env.reset()
     traj = []
     while True:
-      a = self.pi[s]
+      #a = self.pi[s]
+      a = self.sample_action(self.b, s)
       s_p, r, done, _ = self.env.step(a)
-      traj.append((s, r) if not log_act else (s, a, r))
+      traj.append((s, a, r))
       s = s_p
       if done:
-        return traj + [(s_p, 0) if not log_act else (s_p, 0, 0)]
+        return traj + [(s_p, 0, 0)]
 
-  def update_pi(self, s):
-    self.pi[s] = self.eps_greedy(s)
+  def update_pi(self, s, a_0):
+    for a in self.env.moves_d[s]:
+      self.pi[(a, s)] = (a == a_0)
 
-  def eps_greedy(self, s, eps=None):
-    eps = self.eps if eps is None else eps
-    moves = self.env.moves_d[s]
-    if np.random.random() < self.eps:
-      return moves[np.random.randint(len(moves))]
-    vals = [self.V_as[self.env.after_state(s, a)] for a in moves]
-    diff = np.max(vals) - np.min(vals)
-    dist = (vals - np.min(vals)) / diff if diff != 0 else [1 / len(vals) for _ in range(len(vals))]
-    dist /= np.sum(dist)
-    return moves[np.random.choice(np.arange(len(moves)), p=dist)]
-
-  def td0_afterstate(self, pi, n_episodes):
-    self.pi = pi
-    self.eps *= 0.99
+  def td0_afterstate(self, n_episodes):
     for ep_nb in range(n_episodes):
-      if ep_nb > 0 and ep_nb % 100 == 0:
-        print(ep_nb)
-      traj = self.generate_traj(pi, log_act=True)
+      traj = self.generate_traj()
       for i in range(len(traj) - 1):
         (s, a, r), (s_p, a_p, _) = traj[i], traj[i + 1]
         s_as, s_p_as = self.env.after_state(s, a), self.env.after_state(s_p, a_p)
-        self.V_as[s_as] += self.step_size * (self.V_as[s_p_as] - self.V_as[s_as])
-        self.update_pi(s)
+        self.V_as[s_as] += self.step_size * (r + self.gamma * self.V_as[s_p_as] - self.V_as[s_as])
 
-  def afterstate_control(self, n_episodes):
-    for _ in range(n_episodes):
-      self.update_pi()
-      self.td0_afterstate(self.pi, 10)
+  def td0_afterstate_batch(self, n_episodes):
+    self.experience = []
+    for ep_nb in range(n_episodes):
+      td_error_sum = {s: 0 for s in self.V_as}
+      self.experience.append(self.generate_traj())
+      for traj in self.experience:
+        for i in range(len(traj) - 1):
+          (s, a, r), (s_p, a_p, _) = traj[i], traj[i + 1]
+          s_as, s_p_as = self.env.after_state(s, a), self.env.after_state(s_p, a_p)
+          is_ratio = (a == self.pi[s]) / self.b[(a, s)]
+          td_error_sum[s_as] += self.step_size * is_ratio * (r + self.gamma * self.V_as[s_p_as] - self.V_as[s_as])
+      for s in self.V_as:
+        self.V_as[s] += td_error_sum[s]
+  
+  def policy_improvement(self):
+    policy_stable = True
+    for s in self.env.states:
+      a_old = self.pi[s]
+      V_vect = np.array([self.V_as[self.env.after_state(s, a)] for a in self.env.moves_d[s]])
+      a_new = self.env.moves_d[s][np.random.choice(np.flatnonzero(V_vect == V_vect.max()))]
+      self.pi[s] =  a_new
+      policy_stable = policy_stable and (a_old == a_new)
+    return policy_stable
 
-  def get_V(self):
-    return {s: self.V_as[self.env.after_state(s, self.eps_greedy(s, eps=0))] for s in self.env.states}
+  def policy_iteration(self, ep_per_eval=10, batch=True):
+    pi_log = [str(self.pi)]
+    count = 0
+    pol_eval = self.td0_afterstate_batch if batch else self.td0_afterstate
+    while True:
+      pol_eval(ep_per_eval)
+      pol_stable = self.policy_improvement()
+      pi_str = str(self.pi)
+      if pol_stable or pi_str in pi_log:
+        return self.V_as, self.pi
+      pi_log.append(pi_str)
+      count += 1
+      print(count)
 
   def reset(self):
     super().reset()

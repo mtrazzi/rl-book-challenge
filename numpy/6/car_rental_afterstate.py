@@ -19,7 +19,7 @@ class CarRentalAfterstateEnv:
     self.get_moves()
     self.get_moves_d()
     self.get_r()
-    self.compute_p()
+    #self.compute_p()
 
   def get_moves(self):
     self.moves = list(range(-self.max_car_moves, self.max_car_moves + 1))
