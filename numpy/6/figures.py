@@ -15,6 +15,7 @@ from max_bias_mdp import MaxBiasMDP, S_A, LEFT
 from double_expected_sarsa import DoubleExpectedSarsa
 from car_rental_afterstate import CarRentalAfterstateEnv
 from td_afterstate import TDAfterstate
+from policy_iteration_afterstate import DynamicProgrammingAfterstate
 
 N_EP_EX_6_2 = 100
 N_RUNS_EX_6_2 = 100
@@ -381,14 +382,17 @@ def ex_6_14(size=None):
   size = EX_6_14_SIZE if size is None else size
   env = CarRentalAfterstateEnv(size - 1)
   env.seed(0)
-  alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA)
+  #alg = TDAfterstate(env, None, step_size=EX_6_14_ALPHA, gamma=EX_6_14_GAMMA)
   #pi = {(a, s): (a == 0) for s in env.states for a in env.moves_d[s]}
   pi = {s: 0 for s in env.states}
+  alg = DynamicProgrammingAfterstate(env, None, det_pi=pi)
   #alg.td0_afterstate(pi, EX_6_14_N_EPS)
   #alg.afterstate_control(EX_6_14_N_EPS)
-  alg.td0_afterstate(pi, EX_6_14_N_EPS) 
-  print_car_rental_value_function(size, alg.get_V())
-  print_policy_car_rental(size, alg.pi)
+  #alg.td0_afterstate(pi, EX_6_14_N_EPS) 
+  alg.policy_iteration()
+  print_car_rental_value_function(size, alg.V)
+  pi = {s: alg.deterministic_pi(s) for s in env.states}
+  print_policy_car_rental(size, pi)
 
 PLOT_FUNCTION = {
   '6.1': fig_6_1,

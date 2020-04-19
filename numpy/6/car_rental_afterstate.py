@@ -19,7 +19,7 @@ class CarRentalAfterstateEnv:
     self.get_moves()
     self.get_moves_d()
     self.get_r()
-    super().__init__()
+    self.compute_p()
 
   def get_moves(self):
     self.moves = list(range(-self.max_car_moves, self.max_car_moves + 1))
@@ -112,8 +112,36 @@ class CarRentalAfterstateEnv:
   def seed(self, seed):
     np.random.seed(seed)
 
-  def _p(self, s_p, r, s, a):
-    pass
+  def compute_p(self, n_iter=100):
+    self.counts = {(s_p, r, s, a): 0
+                  for s in self.states for a in self.moves_d[s]
+                  for s_p in self.states for r in self.r}
+    count = 0
+    to_do = sum(len(self.moves_d[s]) for s in self.states)
+    for s in self.states:
+      for a in self.moves_d[s]:
+        print(f"{int(100 * (count / to_do))}%")
+        count += 1
+        for _ in range(n_iter):
+          self.state = s
+          s_p, r, _, _ = self.step(a)
+          self.counts[(s_p, r, s, a)] += 1
+
+    def p_sum(d, s_p_list, r_list, s_list, a_list):
+      return np.sum([d[(s_p, r, s, a)] for s_p in s_p_list
+                     for r in r_list for s in s_list for a in a_list])
+
+    self.psa = {(s, a): p_sum(self.counts, self.states, self.r, [s], [a]) for s in self.states for a in self.moves_d[s]}
+    self.p = {(s_p, r, s, a): (self.counts[(s_p, r, s, a)] / self.psa[(s, a)] if self.psa[(s, a)] != 0 else 0)
+               for s in self.states for a in self.moves_d[s]
+               for s_p in self.states for r in self.r}
+
+    self.pr = {(s, a): np.array([p_sum(self.p, self.states, [r], [s], [a])
+               for r in self.r]) for s in self.states for a in self.moves_d[s]}
+    self.psp = {(s, a): np.array([p_sum(self.p, [s_p], self.r, [s], [a])
+                    for s_p in self.states])
+                    for s in self.states for a in self.moves_d[s]}
+
 
   def is_terminal(self, s):
     return s == S_ABS
