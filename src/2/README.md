@@ -1,4 +1,4 @@
-(plots are in [/plots](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/plots))
+(plots are in [/plots](https://github.com/mtrazzi/understanding-rl/tree/master/fig))
 
 ## Run the code
 
