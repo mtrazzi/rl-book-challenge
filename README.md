@@ -2,36 +2,18 @@
 
 >Reading the [RL book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way.
 
-Deep RL is [tough](http://amid.fish/reproducing-deep-rl). Before you start implementing any state of the art RL algorithm using deep neural networks, you should understand the basics. And by understand, I don't mean being able to launch jupyter notebooks and understand intuitively why it works. If you can't re-implement the basic RL algorithms it using only numpy and explain the math step by step, debugging larger models will quickly get overwhelming.
+Deep RL is [tough](http://amid.fish/reproducing-deep-rl). Before you start implementing any state of the art RL algorithm using deep neural networks, you should understand the basics. And by understand, I don't mean being able to launch jupyter notebooks and understand intuitively why it works. If you can't re-implement the basic RL algorithms and explain the math step by step, debugging larger models will quickly get overwhelming.
 
 So here is my challenge: go through the entire [RL book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) in **hardcore** mode:
 
-### 1. The pseudo-code you should Numpify (cf. [numpy/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/numpy))
+### 1. implement all the pseudo-code (cf. [src/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/src))
 
-Provide an implementation of all the pseudo-code in the book, using only numpy arrays.
-
-### 2. Math should be Ankified (cf. [anki/](https://github.com/mtrazzi/understanding-the-RL-book/blob/master/anki))
-
-Write down questions & answers for [Anki](http://augmentingcognition.com/ltm.html) flashcards, and study them everyday.
-
-### 3. Plots should be replicated (cf. [plots/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/plots))
-
-If there is a plot, replicate the results as closely as possible.
+### 2. replicated all the [plots/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/plots)
 
 <p align="center">
   <img src="/plots/fig2.6.png" alt="fig2.6">
 </p>
 
-### 4. Exercises should be solved, even the programming ones (cf. [exercises/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/exercises))
+### 3. do all the [exercises](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/exercises.txt)
 
-### 5. Your own confusion you will notice and write down (cf. [questions/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/questions))
-
-### 6. Through all the mathematical derivations you will go (cf. [math/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/math))
-
-### Exceptions
-
-- It's OK to admit certain results if the author of the book doesn't mention them in depth (e.g. the result from stochastic approximation for equation (2.7))
-
-# License
-
-MIT (cf. [License](https://github.com/mtrazzi/understanding-the-RL-book/blob/master/LICENSE))
+### 4. (optional) insert in long-term memory using flashcards ([my deck](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4))
