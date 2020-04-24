@@ -5,7 +5,7 @@
 ### 1. write the [code](https://github.com/mtrazzi/understanding-rl/tree/master/src) to replicate all the [figures](https://github.com/mtrazzi/understanding-rl/tree/master/fig)
 
 <p align="center">
-  <img src="/fig/fig2.6.png" alt="fig2.6">
+  <img src="/fig/2/fig2.6.png" alt="fig2.6">
 </p>
 
 ### 2. solve all the [exercises](https://github.com/mtrazzi/understanding-rl/tree/master/exercises.txt)
