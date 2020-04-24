@@ -24,7 +24,7 @@ python figures 5.3
 python figures 5.4
 ```
 
-### Figure 5.4:
+### Figure 5.5:
 
 ![fig5.5.png](fig5.5_left.png)
 
@@ -42,4 +42,4 @@ also need to change `INITIAL_STATE_IDX` in `figures.py`.
 
 ### Exercise 5.14
 
-same results/process as in figure 5.4
+same results/process as for figure 5.5
