@@ -53,6 +53,14 @@ python figures ex4.7
 
 ### Exercise 4.9
 
+![ex4.9_ph_025.png](ex4.9_ph_025.png)
+
+![ex4.9_ph_025_policy.png](ex4.9_ph_025_policy.png)
+
+![ex4.9_ph_055.png](ex4.9_ph_055.png)
+
+![ex4.9_ph_055_policy.png](ex4.9_ph_055_policy.png)
+
 ```bash
 python figures ex4.9
 ```
