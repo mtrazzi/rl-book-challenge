@@ -6,14 +6,12 @@ Deep RL is [tough](http://amid.fish/reproducing-deep-rl). Before you start imple
 
 So here is my challenge: go through the entire [RL book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) in **hardcore** mode:
 
-### 1. implement all the pseudo-code (cf. [src/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/src))
-
-### 2. replicated all the [plots/](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/plots)
+### 1. write the [code](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/src) to replicate all the [figures](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/fig)
 
 <p align="center">
-  <img src="/plots/fig2.6.png" alt="fig2.6">
+  <img src="/fig/fig2.6.png" alt="fig2.6">
 </p>
 
-### 3. do all the [exercises](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/exercises.txt)
+### 2. solve all the [exercises](https://github.com/mtrazzi/understanding-the-RL-book/tree/master/exercises.txt)
 
-### 4. (optional) insert in long-term memory using flashcards ([my deck](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4))
+### 3. everything you understand you should put into your long-term memory using [flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4)
