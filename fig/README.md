@@ -1,10 +1,6 @@
 ## figures
 
-[Chapter 1](/fig/1)
-
 [Chapter 2](/fig/2)
-
-[Chapter 3](/fig/3)
 
 [Chapter 4](/fig/4)
 
