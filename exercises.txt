@@ -67,7 +67,7 @@ It does sum to 1 (miraculously) for n=1 and n=2.
 
 And for the exponentially weighted, the \beta^{n-i} makes it exponentially smaller for earlier rewards (i=1) than for the latest reward (n=i).
 
-EDIT: after having coded the function (cf. numpy/2/weights.py) it occurs that it doesn't really sum to 1... BUT the sum does converge to some mysterious number. So it's still exponentially weighted with the total weight being fixed at some point.
+EDIT: after having coded the function (cf. src/2/weights.py) it occurs that it doesn't really sum to 1... BUT the sum does converge to some mysterious number. So it's still exponentially weighted with the total weight being fixed at some point.
 
 ### 2.8:  UCB spikes
 
@@ -282,11 +282,11 @@ v_{\pi}(15) = -19 then -20
 
 ### 4.4:
 
-my solution: keep a list of past policies and stop when looping on past policy (see numpy/4/figures)
+my solution: keep a list of past policies and stop when looping on past policy (see src/4/figures)
 
 ### 4.5:
 
-cf. code in numpy/4/figures
+cf. code in src/4/figures
 
 ### 4.6:
 
@@ -297,7 +297,7 @@ intuitive needed changes:
 
 ### 4.7
 
-cf. code in numpy/4/figures
+cf. code in src/4/figures
 
 ### 4.8
 
@@ -336,7 +336,7 @@ root is the state-action pair, ending in a terminal state (which is not a state-
 
 Q_{n+1}(s, a) = Q_{n}(s, a) + (1/n) (R_n - Q_{n}(s, a)
 
-cf. implementatino in MonteCarlo ES of numpy/5/mc.py
+cf. implementatino in MonteCarlo ES of src/5/mc.py
 
 ### 5.5
 
@@ -356,7 +356,7 @@ intuitively, if we divided by the number of visits (as in every-visit), then we 
 
 ### 5.9
 
-code in numpy/5/mc.py class MonteCarloFirstVisit
+code in src/5/mc.py class MonteCarloFirstVisit
 
 ### 5.10
 
@@ -396,7 +396,7 @@ then it's the same formula with \sum (W_k * G_k) / \sum W_k, we just need to cha
 
 actually, now the weights depend both on t and h so it's sum of W(s,h) G(s,h) divided by a sum of W(s,h).
 
-for the details, see numpy/5/mc.py OffPolicyMCControl then truncated_weighted_avg_est.
+for the details, see src/5/mc.py OffPolicyMCControl then truncated_weighted_avg_est.
 ### 6.1:
 
 G_t - V_t[S_t] = sum_{t}^{T-1} \gamma^{k-t} (\delta_k + \gamma.(V_{k+1}[S_{k+1}] - V_k[S_{k+1}])
@@ -437,7 +437,7 @@ i think the system of equations was used because, given how slow MC/TD methods a
 
 ### 6.7:
 
-cf. implementation in numpy/6/old_pol_td.py 
+cf. implementation in src/6/old_pol_td.py 
 
 ### 6.8
 
@@ -447,7 +447,7 @@ it's exactly the same with u_t = Q(S_t, A_t), instead of V_t. at the end we get 
 
 diagonal moves help. not moving doesn't help and only slows down learning. indeed, the optimal solution (with diagonal moves) is the same number of moves as if you only had to go right without wind. EDIT: after printing the final trajectories, because the policy is epsilon greedy, it doesn't follow an optimal trajectory with diags/king moves.
 
-for an empirical comparison, see plot/6/ex6.9 (code from numpy/6/figures.py -> ex6_9). with diags learn a bit faster the optimal trajectory than diags + stay put, and both of them then have the same growth, which is much faster than just left, right, up and down moves.
+for an empirical comparison, see plot/6/ex6.9 (code from src/6/figures.py -> ex6_9). with diags learn a bit faster the optimal trajectory than diags + stay put, and both of them then have the same growth, which is much faster than just left, right, up and down moves.
 
 ### 6.10
 
@@ -463,8 +463,30 @@ the formula for the weight updates is the same if they're both using the greedy 
 
 ### 6.13
 
-cf. the formula implemented in numpy/6/double_experted_sarsa.py. essentially, the "a_max according to Q_1" becomes "we use \pi_1 derived from Q_1 to weight the values of Q_2 accordingly in our update of Q_1(s, a)". cf. plot in plots/ex6.13.png to see the difference between double expected sarsa and expected sarsa for the environment with S_B and S_A. we see that double expected sarsa has less bias at the beginning, but then seems to take longer to converge (for the 300 first episodes).
+cf. the formula implemented in src/6/double_experted_sarsa.py. essentially, the "a_max according to Q_1" becomes "we use \pi_1 derived from Q_1 to weight the values of Q_2 accordingly in our update of Q_1(s, a)". cf. plot in plots/ex6.13.png to see the difference between double expected sarsa and expected sarsa for the environment with S_B and S_A. we see that double expected sarsa has less bias at the beginning, but then seems to take longer to converge (for the 300 first episodes).
 
 ### 6.14
 
 in the car rental problem, we're in a state (n_1, n_2), and the afterstate is known and is n1-m, n2-m (which could come from many different places, same as in tic tac toe). so instead of going through all the different transitions (state-action pair) we focus on the the n^2 different states, which would speed up convergence.
+
+### 7.1
+
+G_{t:t+n} - V(S_t) = G_{t:t+n-1} + \gamma^{n-1} \delta_{t+n-1} - V(S_t)
+                   = ...
+                   = sum_{k=0}{n-1} \gamma^k.\delta_{t+k} 
+
+### 7.2
+
+cf src/7/figures.py for the experiment
+
+### 7.3
+
+### 7.4
+
+### 7.5
+
+### 7.6
+
+### 7.7
+
+### 7.8
