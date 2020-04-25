@@ -1,6 +1,6 @@
 import numpy as np
 
-N_STATES = 5
+N_STATES = 19
 EMPTY_MOVE = 0
 STATES = P_LEFT = 0.5
 R_STEP = 0
@@ -16,6 +16,7 @@ class RandomWalk:
     self.get_moves()
     self.get_moves_d()
     self.reset()
+    print(self.n_states)
 
   def get_moves(self):
     self.moves = [EMPTY_MOVE]

@@ -60,6 +60,16 @@ class nStepTD(TD):
           break
         t += 1
 
+  def simple_td(self, pi, n_ep):
+    for _ in range(n_ep):
+      s = self.env.reset()
+      while True:
+        s_p, r, d, _ = self.env.step(self.sample_action(pi, s))
+        self.V[s] += self.step_size * (r + self.V[s_p] - self.V[s])
+        s = s_p
+        if d:
+          break
+
   def reset(self):
     self.S = [None for _ in range(self.n)]
     self.R = [None for _ in range(self.n)]
