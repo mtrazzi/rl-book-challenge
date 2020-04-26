@@ -21,4 +21,4 @@
 
 ### 2. solve all the [exercises](https://github.com/mtrazzi/understanding-rl/tree/master/exercises.txt)
 
-### 3. everything you understand you should put into your long-term memory using [flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4)
+### 3. insert knowledge into  [long-term memory](http://augmentingcognition.com/ltm.html) using [anki](https://apps.ankiweb.net/) [flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4)
