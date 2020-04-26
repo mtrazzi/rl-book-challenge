@@ -19,7 +19,7 @@ def fig_7_2():
   fig, ax = plt.subplots()
   ax.set_title('Figure 7.2')
   n_l = [1]
-  alpha_l = np.linspace(0, 1, 11)
+  alpha_l = np.linspace(0, 1, 11)[1:]
   env = RandomWalk(n_states=FIG_7_2_N_STATES)
   pi = {(a, s): 1.0 for s in env.states for a in env.moves_d[s]}
   true_vals = true_values(env.n_states)
@@ -33,8 +33,8 @@ def fig_7_2():
       for seed in range(FIG_7_2_N_RUNS):
         alg.reset()
         alg.seed(seed)
-        #alg.pol_eval(pi, n_ep=FIG_7_2_N_EP)
-        alg.simple_td(pi, n_ep=FIG_7_2_N_EP)
+        alg.pol_eval(pi, n_ep=FIG_7_2_N_EP)
+        #alg.simple_td(pi, n_ep=FIG_7_2_N_EP)
         v_arr = np.array(alg.get_value_list()[:-1])
         err_sum += np.linalg.norm(v_arr-true_vals)
       err_l.append(err_sum / FIG_7_2_N_RUNS)

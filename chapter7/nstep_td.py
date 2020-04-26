@@ -55,7 +55,11 @@ class nStepTD(TD):
           G = np.dot(gamma_l[:idx-tau], self.get_r_values(R, tau, idx))
           if tau + n < T:
             G = G + self.gamma_l[n] * V[S[(tau + n) % n]]
+          print(f"updating V[{S[tau %n]}] using {self.step_size} * ({G} - {V[S[tau % n]]})")
           V[S[tau % n]] += self.step_size * (G - V[S[tau % n]])
+        print(f"t={t}, S={S}, R={R}, T={T}, tau={tau}, G={G}")
+        print(self.V)
+        input()
         if tau == (T - 1):
           break
         t += 1

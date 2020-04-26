@@ -2,7 +2,7 @@ import numpy as np
 
 N_STATES = 19
 EMPTY_MOVE = 0
-STATES = P_LEFT = 0.5
+P_LEFT = 0.5
 R_STEP = 0
 ABSORBING_STATE = N_STATES
 LEFT = 0
@@ -31,9 +31,12 @@ class RandomWalk:
     return np.sign(np.random.random() - P_LEFT)
 
   def step(self, action):
-    new_state = self.state + self.sample_shift() 
+    shift = self.sample_shift()
+    #print(f"shift={shift}")
+    new_state = self.state + shift
     if not (0 <= new_state < self.n_states):
-      return ABSORBING_STATE, -1 + 2 * (new_state == self.n_states), True, {}
+      r = -1 + 2 * (new_state == self.n_states)
+      return ABSORBING_STATE, r, True, {}
     self.state = new_state
     return self.state, R_STEP, False, {}
 
