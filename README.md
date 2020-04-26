@@ -2,18 +2,14 @@
 
 >reading the [rl book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way
 
-### 1. to replicate all the figures
+### 1. replicate all the figures
 
 <p align="center">
   <img src="/chapter2/plots/fig2.6.png" alt="fig2.6">
 </p>
 
 <p align="center">
-  <img src="/chapter6/plots/example6.2.png" alt="example6.2">
-</p>
-
-<p align="center">
-  <img src="/chapter6/plots/fig6.3.png" alt="fig6.3">
+  <img src="/chapter6/plots/fig6.3_comparison.png" alt="fig6.3_comparison">
 </p>
 
 ### 2. solve all the [exercises](https://github.com/mtrazzi/understanding-rl/tree/master/exercises.txt)
