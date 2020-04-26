@@ -4,7 +4,7 @@
 
 ![fig5.1.png](plots/fig5.1.png)
 
-``bash
+```bash
 python figures 5.1
 ```
 
