@@ -2,15 +2,31 @@ import argparse
 import matplotlib.pyplot as plt
 from nstep_td import nStepTD
 import numpy as np
-from randomwalk import RandomWalk
+from randomwalk import RandomWalk, EMPTY_MOVE
 
 UND = 1
 FIG_7_2_N_EP = 10
 FIG_7_2_N_STATES = 19
-FIG_7_2_N_RUNS = 10
+FIG_7_2_N_RUNS = 100
 
 def true_values(n_states):
   return np.linspace(-1, 1, n_states + 2)[1:-1]
+
+def comp_true_vals(n_states, n_ep_per_s=10000):
+  env = RandomWalk(n_states)
+  vals = []
+  for state in range(n_states + 1):
+    print(state)
+    tot = 0
+    for _ in range(n_ep_per_s):
+      r_ep, d = 0, False
+      env.force_state(state)
+      while not d:
+        _, r, d, _ = env.step(EMPTY_MOVE)
+        r_ep += r
+      tot += r_ep
+    vals.append(tot / n_ep_per_s)
+  return np.array(vals[:-1])
 
 def ex_7_1():
   pass
@@ -18,18 +34,20 @@ def ex_7_1():
 def fig_7_2():
   fig, ax = plt.subplots()
   ax.set_title('Figure 7.2')
-  n_l = [1]
+  n_l = [1, 2, 3]
   alpha_l = np.linspace(0, 1, 11)[1:]
   env = RandomWalk(n_states=FIG_7_2_N_STATES)
   pi = {(a, s): 1.0 for s in env.states for a in env.moves_d[s]}
   true_vals = true_values(env.n_states)
+  alg = nStepTD(env, V_init=None, step_size=None, gamma=UND, n=None)
   for n in n_l:
+    alg.n = n
     print(f">> n={n}")
     err_l = []
     for alpha in alpha_l:
+      alg.step_size = alpha
       print(f"alpha={alpha}")
       err_sum = 0
-      alg = nStepTD(env, V_init=None, step_size=alpha, gamma=UND, n=n)
       for seed in range(FIG_7_2_N_RUNS):
         alg.reset()
         alg.seed(seed)

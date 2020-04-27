@@ -31,14 +31,18 @@ class RandomWalk:
     return np.sign(np.random.random() - P_LEFT)
 
   def step(self, action):
+    if self.state == ABSORBING_STATE:
+      return self.state, R_STEP, True, {}
     shift = self.sample_shift()
-    #print(f"shift={shift}")
     new_state = self.state + shift
     if not (0 <= new_state < self.n_states):
       r = -1 + 2 * (new_state == self.n_states)
       return ABSORBING_STATE, r, True, {}
     self.state = new_state
     return self.state, R_STEP, False, {}
+
+  def force_state(self, state):
+    self.state = state
 
   def reset(self):
     self.state = self.n_states // 2

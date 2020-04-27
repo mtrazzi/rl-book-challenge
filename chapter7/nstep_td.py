@@ -26,16 +26,16 @@ class TD:
 class nStepTD(TD):
   def __init__(self, env, V_init=None, step_size=None, gamma=0.9, n=1):
     super().__init__(env, V_init, step_size, gamma)
-    self.gamma_l = [self.gamma ** k for k in range(n + 1)]
     self.reset()
 
   def get_r_values(self, R, i, j):
     orig_mod = mod_idx = i % self.n 
+    goal = j % self.n
     R_vals = []
     while True:
       R_vals.append(R[mod_idx])
       mod_idx = (mod_idx + 1) % self.n
-      if mod_idx == orig_mod:
+      if mod_idx == goal:
         return R_vals
 
   def pol_eval(self, pi, n_ep):
@@ -46,20 +46,16 @@ class nStepTD(TD):
       t = 0
       while True:
         if t < T:
-          S[(t + 1) % n], R[(t + 1) % n], d, _ = self.env.step(self.sample_action(pi, S[t % n]))
+          S[(t + 1) % (n + 1)], R[(t + 1) % n], d, _ = self.env.step(self.sample_action(pi, S[t % (n + 1)]))
           if d:
             T = t + 1
         tau = t - n + 1
         if tau >= 0:
-          idx = min(tau + n, T)
-          G = np.dot(gamma_l[:idx-tau], self.get_r_values(R, tau, idx))
+          max_idx = min(tau + n, T)
+          G = np.dot(gamma_l[:max_idx-tau], self.get_r_values(R, tau, max_idx))
           if tau + n < T:
-            G = G + self.gamma_l[n] * V[S[(tau + n) % n]]
-          print(f"updating V[{S[tau %n]}] using {self.step_size} * ({G} - {V[S[tau % n]]})")
-          V[S[tau % n]] += self.step_size * (G - V[S[tau % n]])
-        print(f"t={t}, S={S}, R={R}, T={T}, tau={tau}, G={G}")
-        print(self.V)
-        input()
+            G = G + self.gamma_l[n] * V[S[(tau + n) % (n + 1)]]
+          V[S[tau % (n + 1)]] += self.step_size * (G - V[S[tau % (n + 1)]])
         if tau == (T - 1):
           break
         t += 1
@@ -75,6 +71,7 @@ class nStepTD(TD):
           break
 
   def reset(self):
-    self.S = [None for _ in range(self.n)]
+    self.gamma_l = [self.gamma ** k for k in range(self.n + 1)]
+    self.S = [None for _ in range(self.n + 1)]
     self.R = [None for _ in range(self.n)]
     super().reset() 
