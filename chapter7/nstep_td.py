@@ -38,11 +38,6 @@ class nStepTD(TD):
       if mod_idx == goal:
         return R_vals
 
-  def p(self, pause=False):
-    print(self.get_value_list()[:-1])
-    if pause:
-      input()
-
   def pol_eval(self, pi, n_ep):
     n, R, S, gamma_l, V = self.n, self.R, self.S, self.gamma_l, self.V
     for ep in range(n_ep):
@@ -56,23 +51,13 @@ class nStepTD(TD):
             T = t + 1
         tau = t - n + 1
         if tau >= 0:
-          #print(f"\ntau={tau}")
           max_idx = min(tau + n, T)
           r_vals = self.get_r_values(R, tau + 1, max_idx + 1)
-          #print(f"R={R}")
-          #print(f"r_vals={r_vals}")
           G = np.dot(gamma_l[:max_idx-tau], r_vals)
           if tau + n < T:
             G = G + self.gamma_l[n] * V[S[(tau + n) % (n + 1)]]
-          #print(f"G={G}")
           s = S[tau % (n + 1)]
-          #if G != 0:
-            #self.p()
-            #print(f"updating S[{tau} % ({n} + 1)] = {s}")
-            #print(f"T={T}")
           V[s] += self.step_size * (G - V[s])
-          #if G != 0:
-          #  self.p(pause=True)
         if tau == (T - 1):
           break
         t += 1
