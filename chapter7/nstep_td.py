@@ -62,6 +62,12 @@ class nStepTD(TD):
           break
         t += 1
 
+  def td_error(self, R, t):
+    n = self.n
+    s, s_p = S[t % (n + 1)], S[(t + 1) % (n + 1)]
+    r = R[t % n]
+    return r + self.gamma * self.V[s_p] - self.V[s]
+
   def reset(self):
     self.gamma_l = [self.gamma ** k for k in range(self.n + 1)]
     self.S = [None for _ in range(self.n + 1)]

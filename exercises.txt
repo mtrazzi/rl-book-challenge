@@ -471,8 +471,12 @@ in the car rental problem, we're in a state (n_1, n_2), and the afterstate is kn
 
 ### 7.1
 
+we use that G_{t:t+k} = G_{t:t+k-1} + \gamma^{k-1}.\delta_{t+k-1} if k >= 2 and R_{t+1} + \gamma.V(S_{t+1}) if k == 1
+
 G_{t:t+n} - V(S_t) = G_{t:t+n-1} + \gamma^{n-1} \delta_{t+n-1} - V(S_t)
                    = ...
+                   = G_{t:t+1} + \sum_{k=1}{n-1} \gamma^k.\delta_{t+k} - V(S_t}
+                   = R_{t+1] + \gamma.V(S_{t+1}) + ... - V(S_t)
                    = sum_{k=0}{n-1} \gamma^k.\delta_{t+k} 
 
 ### 7.2
