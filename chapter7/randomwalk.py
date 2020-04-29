@@ -7,15 +7,18 @@ R_STEP = 0
 ABSORBING_STATE = N_STATES
 LEFT = 0
 RIGHT = 1
+R_RIGHT = 1
 
 class RandomWalk:
-  def __init__(self, n_states=None):
+  def __init__(self, n_states=None, r_l=-1):
     self.n_states = N_STATES if n_states is None else n_states
     self.absorbing_state = self.n_states
     self.get_states()
     self.get_moves()
     self.get_moves_d()
     self.reset()
+    self.r_l = r_l
+    self.r_r = R_RIGHT
     print(self.n_states)
 
   def get_moves(self):
@@ -36,7 +39,7 @@ class RandomWalk:
     shift = self.sample_shift()
     new_state = self.state + shift
     if not (0 <= new_state < self.n_states):
-      r = -1 + 2 * (new_state == self.n_states)
+      r = self.r_r if (new_state == self.n_states) else self.r_l
       return ABSORBING_STATE, r, True, {}
     self.state = new_state
     return self.state, R_STEP, False, {}
