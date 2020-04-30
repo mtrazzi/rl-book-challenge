@@ -3,15 +3,20 @@ import matplotlib.pyplot as plt
 from nstep_td import nStepTD
 import numpy as np
 from randomwalk import RandomWalk, EMPTY_MOVE
+from windy_gridworld import WindyGridworld
+from nstep_sarsa import nStepSarsa
 
 UND = 1
 FIG_7_2_N_EP = 10
 FIG_7_2_N_STATES = 19
-FIG_7_2_N_RUNS = 100
+FIG_7_2_N_RUNS = 1
 FIG_7_2_MAX_N = 512
 EX_7_2_N_RUNS = 1
 EX_7_3_N_RUNS = 1
 EX_7_3_N_STATES = 5
+FIG_7_4_STEPSIZE = 0.5
+FIG_7_4_N_EP = 170
+FIG_7_4_MAX_N = 16
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -86,10 +91,27 @@ def ex_7_3():
   plt.savefig('plots/ex7.3.png')
   plt.show()
 
+def fig_7_4():
+  fig, ax = plt.subplots()
+  ax.set_title('Figure 7.4 - n-step sarsa on windy gridworld')
+  env = WindyGridworld()
+  n_l = [2 ** k for k in range(int(np.log(FIG_7_4_MAX_N) / np.log(2)) + 1)]
+  alg = nStepSarsa(env, step_size=FIG_7_4_STEPSIZE, gamma=UND, n=None)
+  for n in n_l:
+    alg.n = n
+    alg.reset()
+    plt.plot(alg.pol_eval(n_ep=FIG_7_4_N_EP), label=f'n={n}')
+  ax.set_xlabel('Timesteps')
+  ax.set_ylabel('Episodes')
+  plt.legend()
+  plt.savefig('plots/fig7.4.png')
+  plt.show()
+
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,
   '7.2': fig_7_2,
   'ex7.3': ex_7_3,
+  '7.4': fig_7_4,
 }
 
 def main():

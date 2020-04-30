@@ -31,12 +31,13 @@ class nStepTD(TD):
     self.reset()
 
   def get_r_values(self, R, i, j):
-    orig_mod = mod_idx = i % self.n 
-    goal = j % self.n
+    n = self.n
+    orig_mod = mod_idx = i % (n + 1)
+    goal = j % (n + 1)
     R_vals = []
     while True:
       R_vals.append(R[mod_idx])
-      mod_idx = (mod_idx + 1) % self.n
+      mod_idx = (mod_idx + 1) % (n + 1)
       if mod_idx == goal:
         return R_vals
 
@@ -48,7 +49,7 @@ class nStepTD(TD):
       t = 0
       while True:
         if t < T:
-          S[(t + 1) % (n + 1)], R[(t + 1) % n], d, _ = self.env.step(self.sample_action(pi, S[t % (n + 1)]))
+          S[(t + 1) % (n + 1)], R[(t + 1) % (n + 1)], d, _ = self.env.step(self.sample_action(pi, S[t % (n + 1)]))
           if d:
             T = t + 1
         tau = t - n + 1
@@ -72,7 +73,7 @@ class nStepTD(TD):
   def td_error(self, t):
     n = self.n
     s, s_p = self.S[t % (n + 1)], self.S[(t + 1) % (n + 1)]
-    r = self.R[(t + 1) % n]
+    r = self.R[(t + 1) % (n + 1)]
     return r + self.gamma * self.V[s_p] - self.V[s]
 
   def td_err_sum(self, tau, T):
@@ -82,5 +83,5 @@ class nStepTD(TD):
   def reset(self):
     self.gamma_l = [self.gamma ** k for k in range(self.n + 1)]
     self.S = [None for _ in range(self.n + 1)]
-    self.R = [None for _ in range(self.n)]
+    self.R = [None for _ in range(self.n + 1)]
     super().reset() 
