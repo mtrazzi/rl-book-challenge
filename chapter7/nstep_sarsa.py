@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 class nStepSarsa(nStepTD):
-  def __init__(self, env, step_size, gamma=0.9, n=1, eps=0.1): 
+  def __init__(self, env, step_size=0.1, gamma=0.9, n=1, eps=0.1): 
     super().__init__(env, None, step_size, gamma, n)
     self.update_pi = self.update_policy(eps)
     self.reset()
@@ -13,7 +13,11 @@ class nStepSarsa(nStepTD):
       if np.random.random() < eps:
         return self.random_move(s)
       q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
-      return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+      try:
+        move = self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+      except:
+        import ipdb; ipdb.set_trace()
+      return move 
     return eps_gre_pol
  
   def update_policy(self, eps):

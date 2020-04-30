@@ -499,6 +499,12 @@ Experiments:
 
 ### 7.4
 
+let m = min(\tau + n, T)
+the right term becomes: sum_{j=0}{m-1-t} \gamma^j R_{t+j+1} + \gamma^{m-t} Q_{m-1}(S_m, A_m)
+
+if tau + n < T: m - t == n so we get G_{t:t+n}
+if tau + n >= T, then Q_{m-1}(S_m, A_m) = Q_T(S_T, A_T) = 0 if we add the hypothesis that Q needs always to be 0 on terminal states.
+
 ### 7.5
 
 ### 7.6
