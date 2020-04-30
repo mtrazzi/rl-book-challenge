@@ -27,13 +27,17 @@ class OffPolnStepSarsa(nStepSarsa):
     self.pi = self.initialize_pi() if pi_learned else pi
     ep_per_t = [] 
     for ep in range(n_ep_train):
-      len_test_ep = len(super().pol_eval(1, None))
-      moving_avg = len_test_ep if moving_avg is None else 0.1 * len_test_ep + 0.9 * moving_avg
+      len_sum = 0
+      for _ in range(10):
+        len_sum += len(super().pol_eval(1, None))
+      moving_avg = (len_sum / 10) if moving_avg is None else 0.2 * (len_sum / 10) + 0.8 * moving_avg
+      print("end")
       print(f"nb_timesteps after {ep} train episodes ~= {moving_avg} timesteps")
       S[0] = self.env.reset()
       A[0] = self.sample_action(self.pi, S[0])
       T = np.inf
       t = 0
+      print("start")
       while True:
         ep_per_t.append(ep)
         tm, tp1m = t % (n + 1), (t + 1) % (n + 1)
@@ -43,20 +47,18 @@ class OffPolnStepSarsa(nStepSarsa):
             T = t + 1
           else:
             A[tp1m] = self.sample_action(self.b, S[tp1m])
-            ro[(t + 1) % (n - 1)] = self.pi[(A[tp1m], S[tp1m])] / self.b[(A[tp1m], S[tp1m])]
         tau = t - n + 1
         if tau >= 0:
           taum = tau % (n-1)
-          if tau + n > T:
-            #ro[(tau + n - 1) % (n - 1)] = 1 
-            ro[taum] = 1 
-          is_ratio = ro[:taum].prod() * ro[taum:].prod()
+          max_idx = min(tau + n - 1, T - 1) % (n - 1)
+          is_ratio = ro[(tau + 1) % (n-1):].prod() + ro[:max_idx + 1]
           G = self.n_step_return_q(tau, T)
           taum = tau % (n + 1)
           s, a = S[taum], A[taum]
           Q[(s, a)] += self.step_size * is_ratio * (G - Q[(s, a)])
           if pi_learned:
             self.update_pi(s)
+        ro[(t + 1) % (n - 1)] = self.pi[(A[tp1m], S[tp1m])] / self.b[(A[tp1m], S[tp1m])]
         if tau == (T - 1):
           break
         t += 1
