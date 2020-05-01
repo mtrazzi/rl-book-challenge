@@ -1,13 +1,10 @@
-from nstep_sarsa import nStepSarsa
-import numpy as np
+from  nstep_td import nStepTD
 
-class OffPolnStepSarsa(nStepSarsa):
-  def __init__(self, env, b=None, step_size=0.1, gamma=0.9, n=1, eps=0.1):
-    super().__init__(env, step_size, gamma, n, eps)
+class OffPolnStepTD(nStepTD):
+  def __init__(self, env, b, V_init=None, step_size=None, gamma=0.9, n=1):
+    super().__init__(env, V_init, step_size, gamma)
     self.b = self.uniform_pol() if b is None else b
     assert(self.is_soft(self.b))
-    assert(0 < self.step_size <= 1)
-    assert(n is None or n >= 2)
 
   def is_soft(self, pol):
     for s in self.env.states:
@@ -19,10 +16,12 @@ class OffPolnStepSarsa(nStepSarsa):
   def uniform_pol(self):
     return {(a, s): 1 / len(self.env.moves_d[s]) for s in self.env.states for a in self.env.moves_d[s]}
 
+  def nstep_return_is(self, ro, tau, T):
+
   def pol_eval(self, n_ep_train=100, pi=None):
     pi_learned = pi is None
-    n, R, S, Q, A = self.n, self.R, self.S, self.Q, self.A
-    ro = np.ones(n - 1)
+    n, R, S, V = self.n, self.R, self.S, self.V
+    ro = np.ones(n)
     moving_avg = None
     self.pi = self.initialize_pi() if pi_learned else pi
     avg_length_l = []
@@ -35,29 +34,27 @@ class OffPolnStepSarsa(nStepSarsa):
       avg_length_l.append(moving_avg)
       print(f"nb_timesteps after {ep} train episodes ~= {moving_avg} timesteps")
       S[0] = self.env.reset()
-      A[0] = self.sample_action(self.pi, S[0])
       T = np.inf
       t = 0
       while True:
         tm, tp1m = t % (n + 1), (t + 1) % (n + 1)
         if t < T:
+          a = self.sample_action(self.b, S[tm])
+          ro[t % n] = self.pi[(a, S[tm])] / self.b[(a, S[tm])]
           S[tp1m], R[tp1m], d, _ = self.env.step(A[tm])
           if d:
             T = t + 1
-          else:
-            A[tp1m] = self.sample_action(self.b, S[tp1m])
         tau = t - n + 1
         if tau >= 0:
-          max_idx = min(tau + n - 1, T - 1) % (n - 1)
-          is_ratio = ro[(tau + 1) % (n-1):].prod() + ro[:max_idx + 1].prod()
-          G = self.n_step_return_q(tau, T)
           taum = tau % (n + 1)
-          s, a = S[taum], A[taum]
-          Q[(s, a)] += self.step_size * is_ratio * (G - Q[(s, a)])
+          G = self.nstep_return_is(ro, tau, T)
+          V[S[taum]] += self.step_size * (G - V[S[taum]])
           if pi_learned:
             self.update_pi(s)
-        ro[(t + 1) % (n - 1)] = self.pi[(A[tp1m], S[tp1m])] / self.b[(A[tp1m], S[tp1m])]
         if tau == (T - 1):
           break
         t += 1
     return avg_length_l
+  
+  def reset():
+    super().reset()

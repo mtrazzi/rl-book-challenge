@@ -13,11 +13,7 @@ class nStepSarsa(nStepTD):
       if np.random.random() < eps:
         return self.random_move(s)
       q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
-      try:
-        move = self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
-      except:
-        import ipdb; ipdb.set_trace()
-      return move 
+      return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
     return eps_gre_pol
  
   def update_policy(self, eps):
