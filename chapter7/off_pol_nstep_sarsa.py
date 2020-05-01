@@ -19,21 +19,33 @@ class OffPolnStepSarsa(nStepSarsa):
   def uniform_pol(self):
     return {(a, s): 1 / len(self.env.moves_d[s]) for s in self.env.states for a in self.env.moves_d[s]}
 
+  def get_nb_timesteps(self, pi, n_ep=1, max_steps=10000):
+    count = 0
+    for ep in range(n_ep): 
+      s = self.env.reset()
+      while True and count <= max_steps:
+        s, _, d, _ = self.env.step(self.sample_action(pi, s))
+        count += 1
+        if d:
+          break
+    return count / n_ep
+  
   def pol_eval(self, n_ep_train=100, pi=None):
     pi_learned = pi is None
     n, R, S, Q, A = self.n, self.R, self.S, self.Q, self.A
     ro = np.ones(n - 1)
-    moving_avg = None
+    avg = None
     self.pi = self.initialize_pi() if pi_learned else pi
     avg_length_l = []
     for ep in range(n_ep_train):
-      len_sum = 0
-      for _ in range(10):
-        len_sum += len(super().pol_eval(1, None))
-      avg_test_length = len_sum / 10
-      moving_avg = avg_test_length if moving_avg is None else 0.2 * avg_test_length + 0.8 * moving_avg
-      avg_length_l.append(moving_avg)
-      print(f"nb_timesteps after {ep} train episodes ~= {moving_avg} timesteps")
+      #len_sum = 0
+      #for _ in range(10):
+      #  len_sum += len(super().pol_eval(1, None))
+      #avg_test_length = len_sum / 10
+      ep_len = self.get_nb_timesteps(self.pi, 10)
+      avg = ep_len if avg is None else 0.2 * ep_len + 0.8 * avg
+      avg_length_l.append(avg)
+      print(f"nb_timesteps after {ep} train episodes ~= {avg} timesteps")
       S[0] = self.env.reset()
       A[0] = self.sample_action(self.pi, S[0])
       T = np.inf

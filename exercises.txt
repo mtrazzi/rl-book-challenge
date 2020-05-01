@@ -515,6 +515,16 @@ see chapter7/off_pol_nstep_td.py for the implementation.
 
 ### 7.6
 
+the expected value of the \ro is 1, independent of the estimate and the Qs, so you can replace them by one. then the expected value for the Q_{h-1} estimate is exactly the V_{h-1} with a bar on top, so it simplifies and we get the the same ev of return.
+
 ### 7.7
 
+todo
+
 ### 7.8
+
+### 7.9
+
+### 7.10
+
+doing it with windy gridworld env i guess. cf. ex7.10 in chapter7/figures.py and chapter7/off_pol_nstep{_sarsa,_td}.py
