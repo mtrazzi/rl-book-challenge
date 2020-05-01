@@ -19,8 +19,8 @@ FIG_7_4_STEPSIZE = 0.5
 FIG_7_4_N_EP = 170
 FIG_7_4_MAX_N = 16
 SECTION_7_3_STEPSIZE = 0.01
-SECTION_7_3_N_EP_TRAIN = 100
-SECTION_7_3_MAX_N = 2
+SECTION_7_3_N_EP_TRAIN = 50
+SECTION_7_3_MAX_N = 8
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -95,18 +95,17 @@ def ex_7_3():
   plt.savefig('plots/ex7.3.png')
   plt.show()
 
-def run_alg(alg, title, filename, n_ep, k_min, n_max):
+def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_label='Episodes'):
   fig, ax = plt.subplots()
   ax.set_title(title)
   n_l = [2 ** k for k in range(k_min, int(np.log(n_max) / np.log(2)) + 1)]
-  print(n_l)
   alg.seed(0)
   for n in n_l:
     alg.n = n
     alg.reset()
     plt.plot(alg.pol_eval(n_ep), label=f'n={n}')
-  ax.set_xlabel('Timesteps')
-  ax.set_ylabel('Episodes')
+  ax.set_xlabel(x_label)
+  ax.set_ylabel(y_label)
   plt.legend()
   plt.savefig(filename)
   plt.show()
@@ -119,7 +118,7 @@ def fig_7_4():
 def section_7_3():
   env = WindyGridworld()
   alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=None)
-  run_alg(alg, 'off-policy n-step sarsa on windy gridworld', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N)
+  run_alg(alg, 'off-policy n-step sarsa on windy gridworld', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,

@@ -52,7 +52,6 @@ class nStepSarsa(nStepTD):
     self.pi = self.initialize_pi() if pi_learned else pi
     ep_per_t = [] 
     for ep in range(n_ep):
-      print(f"ep #{ep}")
       S[0] = self.env.reset()
       A[0] = self.sample_action(self.pi, S[0])
       T = np.inf

@@ -59,9 +59,6 @@ class WindyGridworld:
     self.get_moves()
     self.get_moves_dict()
     self.get_keys()
-    print(f"stoch: {self.stoch}")
-    print(f"stay: {self.stay}")
-    print(f"diags: {self.diags}")
 
   def seed(self, seed):
     np.random.seed(seed)
