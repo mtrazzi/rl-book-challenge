@@ -507,6 +507,12 @@ if tau + n >= T, then Q_{m-1}(S_m, A_m) = Q_T(S_T, A_T) = 0 if we add the hypoth
 
 ### 7.5
 
+essentially, we compute the result of the recurrent relationship, and replace horizon h with \tau + n (to get sth like for (7.2)), and we get:
+
+G_{\tau:\tau+n} = (sum of \gamma^{i-\tau-1} R_i \ro_{\tau}...\ro_{i-1}) + \ro_{\tau}...\ro_{max_idx}.\gamma^{n-1}.V_{\tau+n-1}(S_{\tau+n}) + (1-\rau_{\tau}).V_{\tau+n-1}(S_{\tau})
+
+see chapter7/off_pol_nstep_td.py for the implementation.
+
 ### 7.6
 
 ### 7.7

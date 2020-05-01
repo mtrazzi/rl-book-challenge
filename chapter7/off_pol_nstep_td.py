@@ -17,6 +17,15 @@ class OffPolnStepTD(nStepTD):
     return {(a, s): 1 / len(self.env.moves_d[s]) for s in self.env.states for a in self.env.moves_d[s]}
 
   def nstep_return_is(self, ro, tau, T):
+    n, S, V, g = self.n, self.S, self.V, self.gamma
+    h = min(tau + n, T)
+    G = V[S[h]] if tau + n < T else 0
+    t = h - 1
+    while t >= tau:
+      is_r = ro[t % n]
+      tp1 = (t + 1) % (n + 1)
+      G += is_r * (R[tp1] + g * G) + (1 - is_r) * self.V[S[tp1]]
+      t -= 1
 
   def pol_eval(self, n_ep_train=100, pi=None):
     pi_learned = pi is None
