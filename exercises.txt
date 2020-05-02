@@ -543,4 +543,31 @@ we get that G_{t:h} is:
 
 ### 7.10
 
-doing it with windy gridworld. cf. ex7.10 in chapter7/figures.py and chapter7/off_pol_nstep{_sarsa,_td}.py
+doing it with not so random walk. cf. ex7.10 in chapter7/figures.py and chapter7/off_pol_nstep_td.py, and chapter7/plots/ex7.10.png
+
+we get about the same results for the two methods... not really conclusive. on my plot it's slightly better to use that more complex method but with a different number of states it can be the other way around. maybe there's some environments where results are more conclusive or there's some error in my code.
+
+### 7.11
+
+G_{t:t+n} - Q(S_t, A_t)
+= \delta_t - \gamma.expV(S_{t+1}) + \gamma.expV(S_{t+1}) - \gamma.\pi(A_{t+1}|S_{t+1})Q(S_{t+1}, A_{t+1}) + \gamma.\pi(A_{t+1}|S_{t+1}).G_{t+1:t+n}
+= \delta_t + \gamma.\pi(A_{t+1}|S_{t+1}).(G_{t+1:t+n} - Q(S_{t+1}, A_{t+1}))
+
+then, for the final proof, we need to distinguish how it ends, using mathematical induction:
+
+case 1: n == 1
+-> if t == T-1: then \delta_t = R_T + \gamma x 0 - Q(S_{T-1}, A_{T-1}) by def. of the expected V on terminal states, which is R_T, so G_{T-1:t+n} (by def).
+-> if t < T-1: we get Q(S_t, A_t) + \delta_t = R_{t+1} + \gamma.expV(S_{t+1}) which is by def. G_{t:t+n) (defined in 7.15).
+
+case 2: n >= 2, assuming n-1
+G_{t:t+n}
+= Q(S_t, A_t) + \delta_t + \gamma.\pi(Q_{t+1}, A_{t+1}).(G_{t+1:t+n} - Q(S_{t+1}, A_{t+1})) (by using recurrence from the main intuition)
+
+then, we replace the G-Q right part by the formula, by applying it to G_{(t+1):(t+1)+(n-1)} (we assumed n-1)
+
+the right part of the summation becomes: \gamma.\pi(Q_{t+1}, A_{t+1}).\sum_{k=t+1}{min(t+1+n-1, T-1)} \delta_k \product_{i=t+2}{k} \gamma.\pi(A_i|S_i)
+
+then:
+-the min is the same as what we want,
+-after multiplying by gamma.\pi(A_{t+1}|S_{t+1}) the product starts at i=t+1
+-the delta_t becomes the first term of the sum.
