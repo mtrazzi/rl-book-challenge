@@ -26,7 +26,7 @@ class TD:
 
 class nStepTD(TD):
   def __init__(self, env, V_init=None, step_size=None, gamma=0.9, n=1, ex_7_2=False):
-    super().__init__(env, V_init, step_size, gamma)
+    super().__init__(env, V_init, step_size, gamma, n)
     self.return_f = self.n_step_return if not ex_7_2 else self.td_err_sum
     self.reset()
 

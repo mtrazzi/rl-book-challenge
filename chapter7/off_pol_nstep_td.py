@@ -4,16 +4,17 @@ import numpy as np
 class OffPolnStepTD(OffPolnStepSarsa):
   def __init__(self, env, b=None, step_size=None, gamma=0.9, n=1, eps=0.1):
     super().__init__(env, b, step_size, gamma, n, eps)
+    self.reset()
 
   def nstep_return_is(self, ro, tau, T):
     n, S, V, R, g = self.n, self.S, self.V, self.R, self.gamma
     h = min(tau + n, T)
-    G = V[S[h % (n + 1)]] if tau + n < T else R[T % (n + 1)]
+    G = V[S[h % (n + 1)]] if tau + n < T else 0
     t = h - 1
     while t >= tau:
-      is_r = ro[t % n]
-      tp1 = (t + 1) % (n + 1)
-      G += is_r * (R[tp1] + g * G) + (1 - is_r) * self.V[S[tp1]]
+      tm, tp1 = t % n, (t + 1) % (n + 1)
+      is_r = ro[tm]
+      G += is_r * (R[tp1] + g * G) + (1 - is_r) * self.V[S[tm]]
       t -= 1
     return G
 
@@ -23,13 +24,7 @@ class OffPolnStepTD(OffPolnStepSarsa):
     ro = np.ones(n)
     avg = None
     self.pi = self.initialize_pi() if pi_learned else pi
-    avg_length_l = []
     for ep in range(n_ep_train):
-      print(ep)
-      ep_len = self.get_nb_timesteps(self.pi, 10)
-      avg = ep_len if avg is None else 0.2 * ep_len + 0.8 * avg
-      avg_length_l.append(avg)
-      print(f"nb_timesteps after {ep} train episodes ~= {avg} timesteps")
       S[0] = self.env.reset()
       T = np.inf
       t = 0
@@ -51,4 +46,7 @@ class OffPolnStepTD(OffPolnStepSarsa):
         if tau == (T - 1):
           break
         t += 1
-    return avg_length_l
+    return self.get_value_list()
+
+  def reset(self):
+    super().reset()

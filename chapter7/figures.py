@@ -2,7 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 from nstep_td import nStepTD
 import numpy as np
-from randomwalk import RandomWalk, EMPTY_MOVE
+from randomwalk import RandomWalk, NotSoRandomWalk, EMPTY_MOVE
 from windy_gridworld import WindyGridworld
 from nstep_sarsa import nStepSarsa
 from off_pol_nstep_exp_sarsa import OffPolnStepExpSarsa
@@ -26,8 +26,8 @@ SECTION_7_3_MAX_N = 8
 EX_7_7_N_EP_TRAIN = 100
 EX_7_7_STEPSIZE = 0.02
 EX_7_7_MAX_N = 2
-EX_7_10_N_EP_TRAIN = 100
-EX_7_10_STEPSIZE = 0.005
+EX_7_10_N_EP_TRAIN = 1000
+EX_7_10_STEPSIZE = 0.0005
 EX_7_10_MAX_N = 2
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
@@ -103,16 +103,16 @@ def ex_7_3():
   plt.savefig('plots/ex7.3.png')
   plt.show()
 
-def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_label='Episodes', show=True, extra_label='', ax=None):
+def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_label='Episodes', show=True, extra_label='', ax=None, reset=True):
   if ax is None:
     fig, ax = plt.subplots()
     ax.set_title(title)
   n_l = [2 ** k for k in range(k_min, int(np.log(n_max) / np.log(2)) + 1)]
   alg.seed(0)
   for n in n_l:
-    print(f"n={n}")
     alg.n = n
-    alg.reset()
+    if reset:
+      alg.reset()
     plt.plot(alg.pol_eval(n_ep), label=f'{extra_label}n={n}')
   ax.set_xlabel(x_label)
   ax.set_ylabel(y_label)
@@ -138,12 +138,14 @@ def ex_7_7():
   run_alg(alg, 'Exercise 7.7', '', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
 
 def ex_7_10():
-  # i'm doing this wrong; should be testing those algs on something where i'm evaluating V, like a random walk with left and right actions smh
-  # i can't evaluate nstep td methods with "how well they do when the policy is derived from Q" and not update the policy on the Q values.
   fig, ax = plt.subplots()
-  env = WindyGridworld()
-  alg = OffPolnStepTD(env, b=None, step_size=EX_7_10_STEPSIZE, gamma=UND, n=None)
-  run_alg(alg, 'Exercise 7.10', '', EX_7_10_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
+  env = NotSoRandomWalk(n_states=5, r_l=0)
+  alg = OffPolnStepTD(env, b=None, step_size=EX_7_10_STEPSIZE, gamma=UND, n=2)
+  alg.reset()
+  for batch in range(10):
+    run_alg(alg, 'Exercise 7.10', 'plots/ex7.10.png', EX_7_10_N_EP_TRAIN, 1, EX_7_10_MAX_N, 'States', 'Value', show=False, ax=ax, extra_label=f'{(batch + 1) * EX_7_10_N_EP_TRAIN} episodes ', reset=False)
+  plt.legend()
+  plt.show()
 
 
 PLOT_FUNCTION = {
