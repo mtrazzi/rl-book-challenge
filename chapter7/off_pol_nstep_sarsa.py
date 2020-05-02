@@ -19,11 +19,15 @@ class OffPolnStepSarsa(nStepSarsa):
   def uniform_pol(self):
     return {(a, s): 1 / len(self.env.moves_d[s]) for s in self.env.states for a in self.env.moves_d[s]}
 
-  def get_nb_timesteps(self, pi, n_ep=1, max_steps=10000):
+  def get_nb_timesteps(self, pi, n_ep=1, max_steps=1000, debug=False):
     count = 0
     for ep in range(n_ep): 
       s = self.env.reset()
       while True and count <= max_steps:
+        if debug:
+          import time
+          print(self.env)
+          time.sleep(0.01)
         s, _, d, _ = self.env.step(self.sample_action(pi, s))
         count += 1
         if d:

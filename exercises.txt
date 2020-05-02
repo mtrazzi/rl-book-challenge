@@ -523,8 +523,24 @@ implemented in chapter7/off_pol_nstep_expected_sarsa.py
 
 ### 7.8
 
+we use that u_t = G_{t:h} - V(S_t) = \ro_t (\delta_t + \gamma.u_{t+1}) by adding & substracting \ro_t.\gamma.V(S_{t+1})
+
+then because G_{h:h} = V(S_h), the last term is 0 so we get:
+
+G_{t:h} - V(S_t) = \sum_{k=t}{h-1} (\pi_{j=t}{k} \ro_j) \gamma^{k-t} \delta_k
+
 ### 7.9
+
+we use that u_t = G_{t:h} - Q(S_t, A_t) = \delta_t + \gamma.\ro_{t+1}.u_{t+1}
+
+then, from using that:
+- G_{h:h} - Q(S_h, A_h) = 0 if h < T
+- G_{T-1:h} - Q(S_{T-1}, A_{T-1}) = R_T + expV(S_T) - Q(S_{T-1}, A_{T-1}) = \delta_{T-1} (bc expV = 0 on terminal vals).
+
+we get that G_{t:h} is:
+- (\sum_{k=t}{h-1} (\pi_{j=t+1}{k} \ro_j) \gamma^{k-t} \delta_k) if h < T
+- (same but replace h by T) if h >= T
 
 ### 7.10
 
-doing it with windy gridworld env i guess. cf. ex7.10 in chapter7/figures.py and chapter7/off_pol_nstep{_sarsa,_td}.py
+doing it with windy gridworld. cf. ex7.10 in chapter7/figures.py and chapter7/off_pol_nstep{_sarsa,_td}.py
