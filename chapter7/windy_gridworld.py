@@ -2,7 +2,8 @@ import numpy as np
 
 INIT_POS = (3, 0)
 GOAL_POS = (3, 7)
-WIND_ARR = [0, 0, 0, 1, 1, 1, 2, 2, 1, 0]
+#WIND_ARR = [0, 0, 0, 1, 1, 1, 2, 2, 1, 0]
+WIND_ARR = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 GRID_SHAPE = (7, 10)
 R_STEP = -1
 KEY_ACTION_DICT = {

@@ -2,9 +2,28 @@ from off_pol_nstep_sarsa import OffPolnStepSarsa
 import numpy as np
 
 class OffPolnStepTD(OffPolnStepSarsa):
-  def __init__(self, env, b=None, step_size=None, gamma=0.9, n=1, eps=0.1):
+  def __init__(self, env, b=None, step_size=None, gamma=0.9, n=1, eps=0.1, simple=False):
     super().__init__(env, b, step_size, gamma, n, eps)
+    self.update_fn = self.simple_update if simple else self.off_pol_update
     self.reset()
+
+  def off_pol_update(self, s, ro, tau, T):
+    G = self.nstep_return_is(ro, tau, T)
+    self.V[s] += self.step_size * (G - self.V[s])
+
+  def simple_ro(self, ro, t, h, T):
+    prod, A, S = 1, self.A, self.S
+    idx = min(h, T - 1)
+    while idx >= t:
+      idxm = idx % (self.n)
+      prod *= ro[idxm]
+      idx -= 1
+    return prod
+
+  def simple_update(self, s, ro, tau, T):
+    G = self.n_step_return(tau, T)
+    is_r = self.simple_ro(ro, tau, tau + self.n - 1, T)
+    self.V[s] += self.step_size * (G - self.V[s])
 
   def nstep_return_is(self, ro, tau, T):
     n, S, V, R, g = self.n, self.S, self.V, self.R, self.gamma
@@ -14,17 +33,17 @@ class OffPolnStepTD(OffPolnStepSarsa):
     while t >= tau:
       tm, tp1 = t % n, (t + 1) % (n + 1)
       is_r = ro[tm]
-      G += is_r * (R[tp1] + g * G) + (1 - is_r) * self.V[S[tm]]
+      G = is_r * (R[tp1] + g * G) + (1 - is_r) * self.V[S[tm]]
       t -= 1
     return G
 
   def pol_eval(self, n_ep_train=100, pi=None):
     pi_learned = pi is None
     n, R, S, V = self.n, self.R, self.S, self.V
-    ro = np.ones(n)
     avg = None
     self.pi = self.initialize_pi() if pi_learned else pi
     for ep in range(n_ep_train):
+      ro = np.ones(n)
       S[0] = self.env.reset()
       T = np.inf
       t = 0
@@ -38,11 +57,10 @@ class OffPolnStepTD(OffPolnStepSarsa):
             T = t + 1
         tau = t - n + 1
         if tau >= 0:
-          taum = tau % (n + 1)
-          G = self.nstep_return_is(ro, tau, T)
-          V[S[taum]] += self.step_size * (G - V[S[taum]])
+          s = S[tau % (n + 1)]
+          self.update_fn(s, ro, tau, T)
           if pi_learned:
-            self.update_pi(S[taum])
+            self.update_pi(s)
         if tau == (T - 1):
           break
         t += 1

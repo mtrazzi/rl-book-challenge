@@ -37,11 +37,11 @@ class OffPolnStepSarsa(nStepSarsa):
   def pol_eval(self, n_ep_train=100, pi=None):
     pi_learned = pi is None
     n, R, S, Q, A = self.n, self.R, self.S, self.Q, self.A
-    ro = np.ones(n - 1)
     avg = None
     self.pi = self.initialize_pi() if pi_learned else pi
     avg_length_l = []
     for ep in range(n_ep_train):
+      ro = np.ones(n - 1)
       #len_sum = 0
       #for _ in range(10):
       #  len_sum += len(super().pol_eval(1, None))

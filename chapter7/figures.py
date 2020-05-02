@@ -26,9 +26,11 @@ SECTION_7_3_MAX_N = 8
 EX_7_7_N_EP_TRAIN = 100
 EX_7_7_STEPSIZE = 0.02
 EX_7_7_MAX_N = 2
-EX_7_10_N_EP_TRAIN = 1000
-EX_7_10_STEPSIZE = 0.0005
+EX_7_10_N_EP_TRAIN = 500
+EX_7_10_STEPSIZE = 0.001
 EX_7_10_MAX_N = 2
+EX_7_10_N_BATCHES = 4
+EX_7_10_N_STATES = 15
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -103,7 +105,7 @@ def ex_7_3():
   plt.savefig('plots/ex7.3.png')
   plt.show()
 
-def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_label='Episodes', show=True, extra_label='', ax=None, reset=True):
+def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_label='Episodes', show=True, extra_label='', ax=None, reset=True, dashed=False):
   if ax is None:
     fig, ax = plt.subplots()
     ax.set_title(title)
@@ -113,7 +115,7 @@ def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_lab
     alg.n = n
     if reset:
       alg.reset()
-    plt.plot(alg.pol_eval(n_ep), label=f'{extra_label}n={n}')
+    plt.plot(alg.pol_eval(n_ep), label=f'{extra_label}n={n}', linestyle='dashed' if dashed else None)
   ax.set_xlabel(x_label)
   ax.set_ylabel(y_label)
   if show:
@@ -134,17 +136,20 @@ def section_7_3():
 def ex_7_7():
   fig, ax = plt.subplots()
   env = WindyGridworld()
-  alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=None)
+  alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=2)
   run_alg(alg, 'Exercise 7.7', '', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
 
 def ex_7_10():
   fig, ax = plt.subplots()
-  env = NotSoRandomWalk(n_states=5, r_l=0)
-  alg = OffPolnStepTD(env, b=None, step_size=EX_7_10_STEPSIZE, gamma=UND, n=2)
-  alg.reset()
-  for batch in range(10):
-    run_alg(alg, 'Exercise 7.10', 'plots/ex7.10.png', EX_7_10_N_EP_TRAIN, 1, EX_7_10_MAX_N, 'States', 'Value', show=False, ax=ax, extra_label=f'{(batch + 1) * EX_7_10_N_EP_TRAIN} episodes ', reset=False)
+  env = NotSoRandomWalk(n_states=EX_7_10_N_STATES, r_l=0)
+  alg_simple, alg_off_pol = [OffPolnStepTD(env, b=None, step_size=EX_7_10_STEPSIZE, gamma=UND, n=2, simple=is_simple) for is_simple in [True, False]]
+  for batch in range(EX_7_10_N_BATCHES):
+    for (alg, dashed, extra_lab) in [(alg_simple, True, '(7.1) & (7.9)'), (alg_off_pol, False, '(7.2) & (7.13)')]:
+      print((batch + 1) * EX_7_10_N_EP_TRAIN)
+      run_alg(alg, '', '', EX_7_10_N_EP_TRAIN, 1, EX_7_10_MAX_N, 'States', 'Value', show=False, ax=ax, extra_label=f'{extra_lab} {(batch + 1) * EX_7_10_N_EP_TRAIN} ep. ', reset=False, dashed=dashed)
+  ax.set_title(f'Exercise 7.10 - not so random walk ({env.n_states} states)')
   plt.legend()
+  plt.savefig('plots/ex7.10.png')
   plt.show()
 
 
