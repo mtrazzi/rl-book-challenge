@@ -11,7 +11,7 @@ python figures 7.2
 
 ### Figure 7.4:
 
-(this figure is not in the book--I wanted to launch the off policy nstep sarsa algorithm on the windy gridworld with n greater than 2, as was suggested by the fig7.4 from the book). 
+this figure is not in the book--I wanted to launch the off policy nstep sarsa algorithm on the windy gridworld with n greater than 2, as was suggested by the fig7.4 from the book
 
 ![fig7.4.png](plots/fig7.4.png)
 
@@ -46,7 +46,7 @@ python figures ex7.10
 
 ### Section 7.3
 
-(implementation of the algorithm, tested with different values of n on the windy gridworld env described on section 7.3, not an actual exercise or figure)
+implementation of the algorithm described in section 7.3, tested with different values of n on a modification of the random walk, not an actual exercise or figure from the book (but uses pseudo-code from section).
 
 ![section7.3.png](plots/section7.3.png)
 

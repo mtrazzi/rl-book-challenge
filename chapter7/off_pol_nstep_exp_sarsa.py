@@ -4,16 +4,19 @@ import numpy as np
 class OffPolnStepExpSarsa(OffPolnStepSarsa):
   def __init__(self, env, b=None, step_size=None, gamma=0.9, n=1, eps=0.1):
     super().__init__(env, b, step_size, gamma, n, eps)
-
-  def exp_val(self, s):
-    return sum(self.pi[(a, s)] * self.Q[(s, a)] for a in self.env.moves_d[s])
+    self.exp_sar = True
 
   def nstep_return_is(self, ro, tau, T):
+    return self.n_step_return_q(tau, T)
+    print("not here")
     n, S, A, Q, R, g = self.n, self.S, self.A, self.Q, self.R, self.gamma
     h = min(tau + n, T)
     hm = h % (n + 1)
     G = Q[(S[hm], A[hm])]
     t = h - 1
+    if h >= T:
+      G = R[T % (n + 1)]
+      t -= 1
     while t >= tau:
       is_r = ro[(t + 1) % n]
       tp1 = (t + 1) % (n + 1)
@@ -29,8 +32,8 @@ class OffPolnStepExpSarsa(OffPolnStepSarsa):
     avg_length_l = []
     for ep in range(n_ep_train):
       ro = np.ones(n)
-      ep_len = self.get_nb_timesteps(self.pi, 1, debug=False)
-      avg = ep_len if avg is None else 0.1 * ep_len + 0.9 * avg
+      ep_len = self.get_nb_timesteps(self.pi, 1)
+      avg = ep_len if avg is None else 0.01 * ep_len + 0.99 * avg
       avg_length_l.append(avg)
       print(f"nb_timesteps after {ep} train episodes ~= {avg} timesteps")
       S[0] = self.env.reset()
@@ -40,9 +43,8 @@ class OffPolnStepExpSarsa(OffPolnStepSarsa):
       while True:
         tm, tp1m = t % (n + 1), (t + 1) % (n + 1)
         if t < T:
-          a = self.sample_action(self.b, S[tm])
-          ro[t % n] = self.pi[(a, S[tm])] / self.b[(a, S[tm])]
-          S[tp1m], R[tp1m], d, _ = self.env.step(a)
+          ro[t % n] = self.pi[(A[tm], S[tm])] / self.b[(A[tm], S[tm])]
+          S[tp1m], R[tp1m], d, _ = self.env.step(A[tm])
           if d:
             T = t + 1
           else:

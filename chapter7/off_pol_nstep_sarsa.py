@@ -2,8 +2,8 @@ from nstep_sarsa import nStepSarsa
 import numpy as np
 
 class OffPolnStepSarsa(nStepSarsa):
-  def __init__(self, env, b=None, step_size=0.1, gamma=0.9, n=1, eps=0.1):
-    super().__init__(env, step_size, gamma, n, eps)
+  def __init__(self, env, b=None, step_size=0.1, gamma=0.9, n=1, eps=0.1, exp_sar=False):
+    super().__init__(env, step_size, gamma, n, eps, exp_sar)
     self.b = self.uniform_pol() if b is None else b
     assert(self.is_soft(self.b))
     assert(0 < self.step_size <= 1)
@@ -42,10 +42,6 @@ class OffPolnStepSarsa(nStepSarsa):
     avg_length_l = []
     for ep in range(n_ep_train):
       ro = np.ones(n - 1)
-      #len_sum = 0
-      #for _ in range(10):
-      #  len_sum += len(super().pol_eval(1, None))
-      #avg_test_length = len_sum / 10
       ep_len = self.get_nb_timesteps(self.pi, 10)
       avg = ep_len if avg is None else 0.2 * ep_len + 0.8 * avg
       avg_length_l.append(avg)

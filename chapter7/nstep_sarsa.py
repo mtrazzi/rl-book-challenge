@@ -3,9 +3,10 @@ import numpy as np
 import time
 
 class nStepSarsa(nStepTD):
-  def __init__(self, env, step_size=0.1, gamma=0.9, n=1, eps=0.1): 
+  def __init__(self, env, step_size=0.1, gamma=0.9, n=1, eps=0.1, exp_sar=False): 
     super().__init__(env, None, step_size, gamma, n)
     self.update_pi = self.update_policy(eps)
+    self.exp_sar = exp_sar
     self.reset()
 
   def eps_gre(self, eps):
@@ -30,6 +31,9 @@ class nStepSarsa(nStepTD):
     for s in self.env.states:
       self.update_pi(s)
     return self.pi
+ 
+  def exp_val(self, s):
+    return sum(self.pi[(a, s)] * self.Q[(s, a)] for a in self.env.moves_d[s])
 
   def n_step_return_q(self, tau, T):
     n = self.n
@@ -39,7 +43,8 @@ class nStepSarsa(nStepTD):
     if tau + n < T:
       tau_p_n = (tau + n) % (n + 1)
       s, a = self.S[tau_p_n], self.A[tau_p_n]
-      G = G + self.gamma_l[n] * self.Q[(s, a)]
+      last_term = self.Q[(s, a)] if not self.exp_sar else self.exp_val(s)
+      G = G + self.gamma_l[n] * last_term
     return G
 
   def pol_eval(self, n_ep=100, pi=None):

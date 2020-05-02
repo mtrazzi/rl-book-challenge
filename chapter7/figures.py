@@ -12,7 +12,7 @@ from off_pol_nstep_td import OffPolnStepTD
 UND = 1
 FIG_7_2_N_EP = 10
 FIG_7_2_N_STATES = 19
-FIG_7_2_N_RUNS = 1
+FIG_7_2_N_RUNS = 100
 FIG_7_2_MAX_N = 512
 EX_7_2_N_RUNS = 1
 EX_7_3_N_RUNS = 1
@@ -23,13 +23,13 @@ FIG_7_4_MAX_N = 16
 SECTION_7_3_STEPSIZE = 0.01
 SECTION_7_3_N_EP_TRAIN = 50
 SECTION_7_3_MAX_N = 8
-EX_7_7_N_EP_TRAIN = 100
-EX_7_7_STEPSIZE = 0.02
-EX_7_7_MAX_N = 2
-EX_7_10_N_EP_TRAIN = 500
-EX_7_10_STEPSIZE = 0.001
+EX_7_7_N_EP_TRAIN = 1000
+EX_7_7_STEPSIZE = 0.001
+EX_7_7_MAX_N = 8
+EX_7_10_N_EP_TRAIN = 1000
+EX_7_10_STEPSIZE = 0.0001
 EX_7_10_MAX_N = 2
-EX_7_10_N_BATCHES = 4
+EX_7_10_N_BATCHES = 10
 EX_7_10_N_STATES = 15
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
@@ -37,7 +37,7 @@ def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, 
   env = RandomWalk(n_states=n_states, r_l=left_rew)
   pi = {(a, s): 1.0 for s in env.states for a in env.moves_d[s]}
   true_vals = np.linspace(-1, 1, env.n_states + 2)[1:-1] if true_vals is None else true_vals 
-  alg = nStepTD(env, V_init=V_init, step_size=None, gamma=UND, n=None, ex_7_2=ex_7_2)
+  alg = nStepTD(env, V_init=V_init, step_size=None, gamma=UND, n=n_l[0], ex_7_2=ex_7_2)
   for n in n_l:
     alg.n = n
     print(f">> n={n}")
@@ -125,19 +125,18 @@ def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_lab
 
 def fig_7_4():
   env = WindyGridworld()
-  alg = nStepSarsa(env, step_size=FIG_7_4_STEPSIZE, gamma=UND, n=None)
+  alg = nStepSarsa(env, step_size=FIG_7_4_STEPSIZE, gamma=UND, n=2)
   run_alg(alg, 'Figure 7.4 - n-step sarsa on windy gridworld', 'plots/fig7.4.png', FIG_7_4_N_EP, 0, FIG_7_4_MAX_N)
 
 def section_7_3():
-  env = WindyGridworld()
-  alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=None)
-  run_alg(alg, 'off-policy n-step sarsa on windy gridworld', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+  env = NotSoRandomWalk()
+  alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=2)
+  run_alg(alg, 'off-policy n-step sarsa on a (not so random walk) of 19 states', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 2, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
 def ex_7_7():
-  fig, ax = plt.subplots()
-  env = WindyGridworld()
+  env = NotSoRandomWalk()
   alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, 'Exercise 7.7', '', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
+  run_alg(alg, 'Exercise 7.7 - off policy n-step expected sarsa\non a (not so random) walk of 19 states', 'plots/ex7.7.png', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)')
 
 def ex_7_10():
   fig, ax = plt.subplots()
@@ -148,8 +147,9 @@ def ex_7_10():
       print((batch + 1) * EX_7_10_N_EP_TRAIN)
       run_alg(alg, '', '', EX_7_10_N_EP_TRAIN, 1, EX_7_10_MAX_N, 'States', 'Value', show=False, ax=ax, extra_label=f'{extra_lab} {(batch + 1) * EX_7_10_N_EP_TRAIN} ep. ', reset=False, dashed=dashed)
   ax.set_title(f'Exercise 7.10 - not so random walk ({env.n_states} states)')
+  fig.set_size_inches(8, 6)
   plt.legend()
-  plt.savefig('plots/ex7.10.png')
+  plt.savefig('plots/ex7.10.png', dpi=100)
   plt.show()
 
 
