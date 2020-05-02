@@ -26,11 +26,11 @@ SECTION_7_3_MAX_N = 8
 EX_7_7_N_EP_TRAIN = 1000
 EX_7_7_STEPSIZE = 0.001
 EX_7_7_MAX_N = 8
-EX_7_10_N_EP_TRAIN = 1000
+EX_7_10_N_EP_TRAIN = 10000
 EX_7_10_STEPSIZE = 0.0001
 EX_7_10_MAX_N = 2
-EX_7_10_N_BATCHES = 10
-EX_7_10_N_STATES = 15
+EX_7_10_N_BATCHES = 5
+EX_7_10_N_STATES = 5
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]

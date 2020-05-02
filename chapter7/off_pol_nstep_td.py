@@ -23,7 +23,7 @@ class OffPolnStepTD(OffPolnStepSarsa):
   def simple_update(self, s, ro, tau, T):
     G = self.n_step_return(tau, T)
     is_r = self.simple_ro(ro, tau, tau + self.n - 1, T)
-    self.V[s] += self.step_size * (G - self.V[s])
+    self.V[s] += self.step_size * is_r * (G - self.V[s])
 
   def nstep_return_is(self, ro, tau, T):
     n, S, V, R, g = self.n, self.S, self.V, self.R, self.gamma
