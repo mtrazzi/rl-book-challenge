@@ -5,6 +5,9 @@ class OffPolnStepExpSarsa(OffPolnStepSarsa):
   def __init__(self, env, b=None, step_size=None, gamma=0.9, n=1, eps=0.1):
     super().__init__(env, b, step_size, gamma, n, eps)
 
+  def exp_val(self, s):
+    return sum(self.pi[(a, s)] * self.Q[(s, a)] for a in self.env.moves_d[s])
+
   def nstep_return_is(self, ro, tau, T):
     n, S, A, Q, R, g = self.n, self.S, self.A, self.Q, self.R, self.gamma
     h = min(tau + n, T)
@@ -14,7 +17,7 @@ class OffPolnStepExpSarsa(OffPolnStepSarsa):
     while t >= tau:
       is_r = ro[t % n]
       tp1 = (t + 1) % (n + 1)
-      G += R[tp1] + g * (G - Q[(S[tp1], A[tp1])]) + g * self.V[S[tp1]]
+      G += R[tp1] + g * (G - Q[(S[tp1], A[tp1])]) + g * self.exp_val(S[tp1])
       t -= 1
     return G
 

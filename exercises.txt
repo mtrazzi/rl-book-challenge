@@ -519,7 +519,7 @@ the expected value of the \ro is 1, independent of the estimate and the Qs, so y
 
 ### 7.7
 
-todo
+implemented in chapter7/off_pol_nstep_expected_sarsa.py
 
 ### 7.8
 
