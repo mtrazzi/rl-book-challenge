@@ -5,6 +5,7 @@ import numpy as np
 from randomwalk import RandomWalk, EMPTY_MOVE
 from windy_gridworld import WindyGridworld
 from nstep_sarsa import nStepSarsa
+from off_pol_nstep_exp_sarsa import OffPolnStepExpSarsa
 from off_pol_nstep_sarsa import OffPolnStepSarsa
 from off_pol_nstep_td import OffPolnStepTD
 
@@ -22,8 +23,11 @@ FIG_7_4_MAX_N = 16
 SECTION_7_3_STEPSIZE = 0.01
 SECTION_7_3_N_EP_TRAIN = 50
 SECTION_7_3_MAX_N = 8
-EX_7_10_N_EP_TRAIN = 10
-EX_7_10_STEPSIZE = 0.01
+EX_7_7_N_EP_TRAIN = 100
+EX_7_7_STEPSIZE = 0.01
+EX_7_7_MAX_N = 2
+EX_7_10_N_EP_TRAIN = 100
+EX_7_10_STEPSIZE = 0.005
 EX_7_10_MAX_N = 2
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
@@ -127,11 +131,20 @@ def section_7_3():
   alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=None)
   run_alg(alg, 'off-policy n-step sarsa on windy gridworld', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
+def ex_7_7():
+  fig, ax = plt.subplots()
+  env = WindyGridworld()
+  alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=None)
+  run_alg(alg, 'Exercise 7.7', '', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
+
 def ex_7_10():
+  # i'm doing this wrong; should be testing those algs on something where i'm evaluating V, like a random walk with left and right actions smh
+  # i can't evaluate nstep td methods with "how well they do when the policy is derived from Q" and not update the policy on the Q values.
   fig, ax = plt.subplots()
   env = WindyGridworld()
   alg = OffPolnStepTD(env, b=None, step_size=EX_7_10_STEPSIZE, gamma=UND, n=None)
   run_alg(alg, 'Exercise 7.10', '', EX_7_10_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)', show=True, ax=ax)
+
 
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,
@@ -139,6 +152,7 @@ PLOT_FUNCTION = {
   'ex7.3': ex_7_3,
   '7.4': fig_7_4,
   'section7.3': section_7_3,
+  'ex7.7': ex_7_7,
   'ex7.10': ex_7_10,
 }
 

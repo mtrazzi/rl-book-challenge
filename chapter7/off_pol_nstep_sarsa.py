@@ -47,7 +47,7 @@ class OffPolnStepSarsa(nStepSarsa):
       avg_length_l.append(avg)
       print(f"nb_timesteps after {ep} train episodes ~= {avg} timesteps")
       S[0] = self.env.reset()
-      A[0] = self.sample_action(self.pi, S[0])
+      A[0] = self.sample_action(self.b, S[0])
       T = np.inf
       t = 0
       while True:
