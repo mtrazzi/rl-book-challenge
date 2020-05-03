@@ -1,4 +1,4 @@
-# understanding rl
+# rl book challenge
 
 >reading the [rl book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way
 
