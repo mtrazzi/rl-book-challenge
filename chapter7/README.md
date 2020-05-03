@@ -44,9 +44,10 @@ python figures ex7.10
 
 ## Sections
 
+implementation of algorithms from section 3, 5 and 7, tested with different values of n on a modification of the random walk, not actual exercises or figures from the book (but uses pseudo-code from corresponding sections).
+
 ### Section 7.3
 
-implementation of the algorithm described in section 7.3, tested with different values of n on a modification of the random walk, not an actual exercise or figure from the book (but uses pseudo-code from section).
 
 ![section7.3.png](plots/section7.3.png)
 
@@ -54,3 +55,14 @@ implementation of the algorithm described in section 7.3, tested with different 
 python figures section7.3
 ```
 
+![section7.5.png](plots/section7.5.png)
+
+```bash
+python figures section7.5
+```
+
+![section7.6.png](plots/section7.6.png)
+
+```bash
+python figures section7.6
+```

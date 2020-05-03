@@ -6,6 +6,7 @@ from randomwalk import RandomWalk, NotSoRandomWalk, EMPTY_MOVE
 from windy_gridworld import WindyGridworld
 from nstep_sarsa import nStepSarsa
 from off_pol_nstep_exp_sarsa import OffPolnStepExpSarsa
+from off_pol_nstep_qsigma import OffPolnStepQSigma
 from off_pol_nstep_sarsa import OffPolnStepSarsa
 from off_pol_nstep_td import OffPolnStepTD
 from nstep_tree_backup import nStepTreeBackup
@@ -35,6 +36,9 @@ EX_7_10_N_STATES = 5
 SECTION_7_5_STEPSIZE = 0.01
 SECTION_7_5_N_EP_TRAIN = 200
 SECTION_7_5_MAX_N = 8
+SECTION_7_6_STEPSIZE = 0.01
+SECTION_7_6_N_EP_TRAIN = 200
+SECTION_7_6_MAX_N = 8
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -135,12 +139,12 @@ def fig_7_4():
 def section_7_3():
   env = NotSoRandomWalk()
   alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, f'Section 7.3 - off-policy n-step sarsa on (not so) random walk ({env.n_states} states, alpha={alg.step_size}', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+  run_alg(alg, f'Section 7.3 - off-policy n-step sarsa on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
 def ex_7_7():
   env = NotSoRandomWalk()
   alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, f'Exercise 7.7 - off policy n-step expected sarsa on (not so) random walk\n({env.n_states} states, alpha={alg.step_size}', 'plots/ex7.7.png', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)')
+  run_alg(alg, f'Exercise 7.7 - off policy n-step expected sarsa on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/ex7.7.png', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)')
 
 def ex_7_10():
   fig, ax = plt.subplots()
@@ -159,8 +163,13 @@ def ex_7_10():
 def section_7_5():
   env = NotSoRandomWalk(n_states=19)
   alg = nStepTreeBackup(env, step_size=SECTION_7_5_STEPSIZE, gamma=UND, n=1)
-  run_alg(alg, f'Section 7.5 - n-step tree backup on (not so) random walk ({env.n_states} states, alpha={alg.step_size}', 'plots/section7.5.png', SECTION_7_5_N_EP_TRAIN, 1, SECTION_7_5_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
-  
+  run_alg(alg, f'Section 7.5 - n-step tree backup on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/section7.5.png', SECTION_7_5_N_EP_TRAIN, 1, SECTION_7_5_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+
+def section_7_6():
+  env = NotSoRandomWalk(n_states=19)
+  alg = OffPolnStepQsigma(env, sigma_f=0.0, step_size=SECTION_7_6_STEPSIZE, gamma=UND, n=1)
+  run_alg(alg, f'Section 7.6 - off policy n-step Q(sigma) on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/section7.6.png', SECTION_7_6_N_EP_TRAIN, 1, SECTION_7_6_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+   
 
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,
@@ -171,6 +180,7 @@ PLOT_FUNCTION = {
   'ex7.7': ex_7_7,
   'ex7.10': ex_7_10,
   'section7.5': section_7_5,
+  'section7.6': section_7_6,
 }
 
 def main():
@@ -182,8 +192,9 @@ def main():
   args = parser.parse_args()
 
   if args.figure == 'all':
-    for f in PLOT_FUNCTION.values():
-      f()
+    for key, f in PLOT_FUNCTION.items():
+      if key not in ['ex7.2', '7.2']:
+        f()
   else:
     PLOT_FUNCTION[args.figure]()
 
