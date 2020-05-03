@@ -37,8 +37,9 @@ SECTION_7_5_STEPSIZE = 0.01
 SECTION_7_5_N_EP_TRAIN = 200
 SECTION_7_5_MAX_N = 8
 SECTION_7_6_STEPSIZE = 0.01
-SECTION_7_6_N_EP_TRAIN = 200
-SECTION_7_6_MAX_N = 8
+SECTION_7_6_N_EP_TRAIN = 100
+SECTION_7_6_N = 2
+SECTION_7_6_SIGMA_L = [0, 0.25, 0.5, 0.75, 1]
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -166,10 +167,17 @@ def section_7_5():
   run_alg(alg, f'Section 7.5 - n-step tree backup on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/section7.5.png', SECTION_7_5_N_EP_TRAIN, 1, SECTION_7_5_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
 def section_7_6():
-  env = NotSoRandomWalk(n_states=19)
-  alg = OffPolnStepQsigma(env, sigma_f=0.0, step_size=SECTION_7_6_STEPSIZE, gamma=UND, n=1)
-  run_alg(alg, f'Section 7.6 - off policy n-step Q(sigma) on (not so) random walk\n({env.n_states} states, alpha={alg.step_size})', 'plots/section7.6.png', SECTION_7_6_N_EP_TRAIN, 1, SECTION_7_6_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
-   
+  env = NotSoRandomWalk()
+  fig, ax = plt.subplots()
+  for sigma in SECTION_7_6_SIGMA_L:
+    alg = OffPolnStepQSigma(env, sigma_f=sigma, step_size=SECTION_7_6_STEPSIZE, gamma=UND, n=SECTION_7_6_N)
+    plt.plot(alg.pol_eval(SECTION_7_6_N_EP_TRAIN), label=f'sigma={sigma}')
+  ax.set_title(f'Section 7.6 - Off Pol. n-step Q(sigma) on \n(not so) random walk ({env.n_states} states, alpha={alg.step_size}, n={SECTION_7_6_N})')
+  ax.set_xlabel('Train episodes')
+  ax.set_ylabel('avg episode length for 10 test episodes\n (+ moving average)')
+  plt.legend()
+  plt.savefig('plots/section7.6.png', dpi=100)
+  plt.show()
 
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,
