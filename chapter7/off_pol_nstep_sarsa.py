@@ -7,7 +7,6 @@ class OffPolnStepSarsa(nStepSarsa):
     self.b = self.uniform_pol() if b is None else b
     assert(self.is_soft(self.b))
     assert(0 < self.step_size <= 1)
-    assert(n is None or n >= 2)
 
   def is_soft(self, pol):
     for s in self.env.states:

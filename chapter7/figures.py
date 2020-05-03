@@ -8,6 +8,7 @@ from nstep_sarsa import nStepSarsa
 from off_pol_nstep_exp_sarsa import OffPolnStepExpSarsa
 from off_pol_nstep_sarsa import OffPolnStepSarsa
 from off_pol_nstep_td import OffPolnStepTD
+from nstep_tree_backup import nStepTreeBackup
 
 UND = 1
 FIG_7_2_N_EP = 10
@@ -21,7 +22,7 @@ FIG_7_4_STEPSIZE = 0.5
 FIG_7_4_N_EP = 170
 FIG_7_4_MAX_N = 16
 SECTION_7_3_STEPSIZE = 0.01
-SECTION_7_3_N_EP_TRAIN = 50
+SECTION_7_3_N_EP_TRAIN = 200
 SECTION_7_3_MAX_N = 8
 EX_7_7_N_EP_TRAIN = 1000
 EX_7_7_STEPSIZE = 0.001
@@ -31,6 +32,9 @@ EX_7_10_STEPSIZE = 0.0001
 EX_7_10_MAX_N = 2
 EX_7_10_N_BATCHES = 5
 EX_7_10_N_STATES = 5
+SECTION_7_5_STEPSIZE = 0.01
+SECTION_7_5_N_EP_TRAIN = 200
+SECTION_7_5_MAX_N = 8
 
 def run_random_walks(ax, ex_7_2=False, show=True, extra_label='', dashed=False, n_runs=FIG_7_2_N_RUNS, n_states=FIG_7_2_N_STATES, left_rew=-1, true_vals=None, V_init=None):
   n_l = [2 ** k for k in range(int(np.log(FIG_7_2_MAX_N) / np.log(2)) + 1)]
@@ -126,17 +130,17 @@ def run_alg(alg, title, filename, n_ep, k_min, n_max, x_label='Timesteps', y_lab
 def fig_7_4():
   env = WindyGridworld()
   alg = nStepSarsa(env, step_size=FIG_7_4_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, 'Figure 7.4 - n-step sarsa on windy gridworld', 'plots/fig7.4.png', FIG_7_4_N_EP, 0, FIG_7_4_MAX_N)
+  run_alg(alg, f'Figure 7.4 - n-step sarsa on windy gridworld (alpha={alg.step_size})', 'plots/fig7.4.png', FIG_7_4_N_EP, 0, FIG_7_4_MAX_N)
 
 def section_7_3():
   env = NotSoRandomWalk()
   alg = OffPolnStepSarsa(env, b=None, step_size=SECTION_7_3_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, 'off-policy n-step sarsa on a (not so random walk) of 19 states', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 2, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+  run_alg(alg, f'Section 7.3 - off-policy n-step sarsa on (not so) random walk ({env.n_states} states, alpha={alg.step_size}', 'plots/section7.3.png', SECTION_7_3_N_EP_TRAIN, 1, SECTION_7_3_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
 
 def ex_7_7():
   env = NotSoRandomWalk()
   alg = OffPolnStepExpSarsa(env, b=None, step_size=EX_7_7_STEPSIZE, gamma=UND, n=2)
-  run_alg(alg, 'Exercise 7.7 - off policy n-step expected sarsa\non a (not so random) walk of 19 states', 'plots/ex7.7.png', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)')
+  run_alg(alg, f'Exercise 7.7 - off policy n-step expected sarsa on (not so) random walk\n({env.n_states} states, alpha={alg.step_size}', 'plots/ex7.7.png', EX_7_7_N_EP_TRAIN, 1, EX_7_7_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n(+ moving average)')
 
 def ex_7_10():
   fig, ax = plt.subplots()
@@ -146,12 +150,17 @@ def ex_7_10():
     for (alg, dashed, extra_lab) in [(alg_simple, True, '(7.1) & (7.9)'), (alg_off_pol, False, '(7.2) & (7.13)')]:
       print((batch + 1) * EX_7_10_N_EP_TRAIN)
       run_alg(alg, '', '', EX_7_10_N_EP_TRAIN, 1, EX_7_10_MAX_N, 'States', 'Value', show=False, ax=ax, extra_label=f'{extra_lab} {(batch + 1) * EX_7_10_N_EP_TRAIN} ep. ', reset=False, dashed=dashed)
-  ax.set_title(f'Exercise 7.10 - not so random walk ({env.n_states} states)')
+  ax.set_title(f'Exercise 7.10 - Off Pol. n-step TD on \n(not so) random walk ({env.n_states} states, alpha={alg.step_size})')
   fig.set_size_inches(8, 6)
   plt.legend()
   plt.savefig('plots/ex7.10.png', dpi=100)
   plt.show()
 
+def section_7_5():
+  env = NotSoRandomWalk(n_states=19)
+  alg = nStepTreeBackup(env, step_size=SECTION_7_5_STEPSIZE, gamma=UND, n=1)
+  run_alg(alg, f'Section 7.5 - n-step tree backup on (not so) random walk ({env.n_states} states, alpha={alg.step_size}', 'plots/section7.5.png', SECTION_7_5_N_EP_TRAIN, 1, SECTION_7_5_MAX_N, 'Train episodes', 'avg episode length for 10 test episodes\n (+ moving average)')
+  
 
 PLOT_FUNCTION = {
   'ex7.2': ex_7_2,
@@ -161,6 +170,7 @@ PLOT_FUNCTION = {
   'section7.3': section_7_3,
   'ex7.7': ex_7_7,
   'ex7.10': ex_7_10,
+  'section7.5': section_7_5,
 }
 
 def main():
@@ -168,10 +178,14 @@ def main():
 
   parser.add_argument('figure', type=str, default=None,
                       help='Figure to reproduce.',
-                      choices=PLOT_FUNCTION.keys())
+                      choices=list(PLOT_FUNCTION.keys()) + ['all'])
   args = parser.parse_args()
 
-  PLOT_FUNCTION[args.figure]()
+  if args.figure == 'all':
+    for f in PLOT_FUNCTION.values():
+      f()
+  else:
+    PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
   main()
