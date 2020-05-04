@@ -33,9 +33,9 @@ class Position:
   def get_wall(self):
     return (self.x, self.y) in WALLS
   
-  def next_state(self, action): 
+  def next_state(self, action):
     s_p = Position(self.in_bounds(self.x + action[0], 0), self.in_bounds(self.y + action[1], 1))
-    return self if s_p.is_wall else s_p
+    return self if (s_p.is_wall or self.is_goal) else s_p
 
   def __eq__(self, other_pos):
     if isinstance(other_pos, tuple):
