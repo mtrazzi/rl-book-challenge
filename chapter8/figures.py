@@ -19,11 +19,12 @@ def save_plot(filename):
 
 def section_8_1():
   env = DynaMaze()
-  alg = TabularQ(SampleModel(env), SEC_8_1_ALP, DYNA_MAZE_GAMMA)
+  alg = TabularQ(FullModel(env), SEC_8_1_ALP, DYNA_MAZE_GAMMA)
+  alg.seed(0)
   alg.rand_sam_one_step_pla(SEC_8_1_N_STEPS, decay=True)
   V = alg.get_V()
-  plt.title('Section 8.1')
-  sns.heatmap(to_arr(V))
+  plt.title('Section 8.1 - tabular Q (1-step random sample, dyna maze)')
+  sns.heatmap(to_arr(V), cbar_kws={'label': 'max(Q(s, a))'})
   save_plot('section8.1')
   plt.show()
 

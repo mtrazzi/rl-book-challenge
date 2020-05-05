@@ -1,4 +1,5 @@
 from utils import sample
+import numpy as np
 
 class TabularQ:
   def __init__(self, model, alpha, gamma):
@@ -25,6 +26,9 @@ class TabularQ:
 
   def get_V(self):
     return {s: max(self.Q[(s, a)] for a in self.A[s]) for s in self.S}
+
+  def seed(self, seed):
+    np.random.seed(seed) 
 
   def reset(self):
     for s in self.S:

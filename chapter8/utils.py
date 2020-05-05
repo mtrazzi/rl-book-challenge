@@ -17,7 +17,6 @@ def to_arr(V):
     min_x, min_y = min(x, min_x), min(y, min_y)
     max_x, max_y = max(x, max_x), max(y, max_y)
   arr = np.zeros((max_x - min_x + 1, max_y - min_y + 1))
-  print(arr.shape)
   for pos, val in V.items():
     arr[pos.x, pos.y] = val
   return arr
