@@ -4,7 +4,7 @@ from dyna_q import DynaQ
 from dyna_maze import DynaMaze 
 from models import FullModel
 from tabular_q import TabularQ
-from utils import to_arr
+from utils import sample, to_arr
 import seaborn as sns
 import numpy as np
 
@@ -17,6 +17,8 @@ FIG_8_2_EPS = 0.1
 FIG_8_2_PLAN_STEPS = [0, 5, 50]
 FIG_8_2_C_DIC = {0: 'b', 5: 'g', 50: 'r'}
 FIG_8_2_N_RUNS = 30
+FIG_8_3_PLAN_STEPS = [0, 50]
+FIG_8_3_HEAT_LAB = {(0, -1): 'left', (0, 1): 'right', (-1, 0): 'up', (1, 0): 'down'}
 BIG_FONT = 15
 
 def save_plot(filename, dpi=None):
@@ -61,11 +63,37 @@ def fig_8_2():
   save_plot('fig8.2', dpi=100)
   plt.show()
 
+def get_dyna_maze_pol(env, Q):
+  pi = {}
+  for s in env.states:
+    q_arr = np.array([Q[(s, a)] for a in env.moves_d[s]])
+    is_max = q_arr == q_arr.max()
+    arg_max_idx = np.flatnonzero(is_max)
+    if np.all(is_max):
+      pi[s] = 0
+    else:
+      pi[s] = arg_max_idx + 1
+  return pi
+
 def fig_8_3():
+  fig = plt.figure()
+  fig.suptitle('Figure 8.3 - Policies found by Dyna-Q after 2 episodes', fontsize=BIG_FONT)
   env = DynaMaze()
   alg = DynaQ(env, SEC_8_1_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
-  alg.tabular_dyna_q(2)
-  pass
+  action_dict = {move_id: env.moves[move_id - 1] for move_id in range(1, len(env.moves) + 1)}
+  heatmap_label = '0 = all equal'
+  for move_id, move in action_dict.items():
+    heatmap_label += f', {move_id}: {FIG_8_3_HEAT_LAB[move]}'
+  for (i, n_plan_steps) in enumerate(FIG_8_3_PLAN_STEPS): 
+    alg.seed(0)
+    alg.reset()
+    ax = fig.add_subplot(f'12{i + 1}')
+    ax.set_title(f"with{'' if n_plan_steps > 0 else 'out'} planning (n={n_plan_steps})")
+    alg.tabular_dyna_q(2, n_plan_steps)
+    sns.heatmap(to_arr(get_dyna_maze_pol(env, alg.Q)), cbar_kws={'label': heatmap_label if i == 0 else None}, xticklabels=False, yticklabels=False)
+  fig.set_size_inches(10, 8)
+  save_plot('fig8.3', dpi=100)
+  plt.show()
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
