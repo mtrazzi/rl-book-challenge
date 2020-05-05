@@ -29,8 +29,9 @@ class Model:
     return strg
 
   def reset(self):
+    self.states = set()
+    self.moves_d = {}
     self.trans = {}
-
 
 class FullModel(Model):
   def __init__(self, env):

@@ -6,15 +6,14 @@ class TabularQ:
     self.model = model
     self.a = alpha
     self.g = gamma
-    self.S = model.states
-    self.A = model.moves_d
     self.Q = {}
-    self.reset()
+    self.reset_q()
 
   def rand_sam_one_step_pla(self, n_updates=1, decay=False):
     decay_rate = (1 - 1 / n_updates) if decay else None
-    s_list = list(self.S)
-    a_dict = {s: list(self.A[s]) for s in s_list}
+    S, A = self.model.states, self.model.moves_d
+    s_list = list(S)
+    a_dict = {s: list(A[s]) for s in s_list}
     for _ in range(n_updates):
       s = sample(s_list)
       a = sample(a_dict[s]) 
@@ -25,12 +24,12 @@ class TabularQ:
         self.a *= decay_rate
 
   def get_V(self):
-    return {s: max(self.Q[(s, a)] for a in self.A[s]) for s in self.S}
+    return {s: max(self.Q[(s, a)] for a in self.model.moves_d[s]) for s in self.model.states}
 
   def seed(self, seed):
     np.random.seed(seed) 
 
-  def reset(self):
-    for s in self.S:
-      for a in self.A[s]:
+  def reset_q(self):
+    for s in self.model.states:
+      for a in self.model.moves_d[s]:
         self.Q[(s, a)] = 0

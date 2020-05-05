@@ -9,7 +9,6 @@ class DynaQ(TabularQ):
     super().__init__(Model(), alpha, gamma)
     self.env = env
     self.eps = eps
-    self.init_Q()
     self.reset()
 
   def best_actions(self, s):
@@ -24,37 +23,33 @@ class DynaQ(TabularQ):
   def eps_gre(self, s):
     if np.random.random() < self.eps:
       return sample(self.env.moves_d[s])
-    return sample(self.best_actions(s))
+    q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
+    return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
 
   def q_learning_update(self, s, a, r, s_p):
-    Q_max = self.Q[(s_p, self.best_actions(s).pop())]
+    Q_max = max(self.Q[(s_p, a_p)] for a_p in self.env.moves_d[s])
     self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
-  def init_Q(self):
+  def Q_reset(self):
     for s in self.env.states:
       for a in self.env.moves_d[s]:
         self.Q[(s, a)] = 0
 
-  def tabular_dyna_q(self, n_eps, n_upd=1):
+  def tabular_dyna_q(self, n_eps, n_plan_steps=1):
     ep_len_l = []
     for ep in range(n_eps):
-      start = time.time()
       s = self.env.reset() 
       n_steps = 0
       while True:
-        if n_steps >= 20000:
-          import ipdb; ipdb.set_trace()
-          #print(self.env)
-          #time.sleep(0.1)
         n_steps += 1
         a = self.eps_gre(s)
         s_p, r, d, _ = self.env.step(a)
         self.q_learning_update(s, a, r, s_p)
         self.model.add_transition(s, a, r, s_p)
-        self.rand_sam_one_step_pla(n_upd)
+        self.rand_sam_one_step_pla(n_plan_steps)
+        s = s_p
         if d:
           ep_len_l.append(n_steps)
-          print(f"ep #{ep + 1} done after {n_steps} steps (only {time.time()-start:.2f}s, so fast!)")
           break
     return ep_len_l
 
@@ -63,5 +58,5 @@ class DynaQ(TabularQ):
     np.random.seed(seed)
 
   def reset(self): 
-    super().reset()
     self.model.reset()
+    self.Q_reset()
