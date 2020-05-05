@@ -1,6 +1,6 @@
 import numpy as np
 
-def sample(l):
+def sample(l): 
   return l[np.random.randint(len(l))]
 
 def print_q_values(alg):

@@ -67,7 +67,7 @@ class DynaMaze:
   def step(self, action):
     next_state = self.state.next_state(action)
     done = next_state.is_goal
-    r = done and not self.state.is_goal
+    r = float(done and not self.state.is_goal)
     self.state = next_state
     return next_state, r, done, {}
 

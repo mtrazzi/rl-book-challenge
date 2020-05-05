@@ -2,7 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 from dyna_q import DynaQ
 from dyna_maze import DynaMaze 
-from models import SampleModel
+from models import FullModel
 from tabular_q import TabularQ
 from utils import to_arr
 import seaborn as sns
@@ -31,6 +31,7 @@ def fig_8_2():
   fig, ax = plt.subplots()
   env = DynaMaze()
   alg = DynaQ(env, SEC_8_1_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
+  alg.seed(0)
   xticks = [2, 10, 20, 30, 40, 50]
   yticks = [14, 200, 400, 600, 800]
   ax.set_xlim([min(xticks), max(xticks)])
