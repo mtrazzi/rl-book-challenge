@@ -53,6 +53,21 @@ class DynaQ(TabularQ):
           break
     return ep_len_l
 
+  def tabular_dyna_q_step(self, n_steps=1, n_plan_steps=1):
+    cum_rew_l = []
+    cum_rew = 0
+    s = self.env.reset()
+    for _ in range(n_steps):
+      a = self.eps_gre(s)
+      s_p, r, d, _ = self.env.step(a)
+      self.q_learning_update(s, a, r, s_p)
+      self.model.add_transition(s, a, r, s_p)
+      self.rand_sam_one_step_pla(n_plan_steps)
+      s = self.env.reset() if d else s_p
+      cum_rew += r
+      cum_rew_l.append(cum_rew)
+    return cum_rew_l
+
   def seed(self, seed):
     self.env.seed(seed)
     np.random.seed(seed)

@@ -20,14 +20,22 @@ FIG_8_2_C_DIC = {0: 'b', 5: 'g', 50: 'r'}
 FIG_8_2_N_RUNS = 30
 FIG_8_3_PLAN_STEPS = [0, 50]
 FIG_8_3_HEAT_LAB = {(0, -1): 'left', (0, 1): 'right', (-1, 0): 'up', (1, 0): 'down'}
+MED_FONT = 10
 BIG_FONT = 15
 EX_8_1_N_LIST = [5, 50]
+FIG_8_4_INIT_POS = (5, 3)
+FIG_8_4_GOAL_POS = (0, 8)
+FIG_8_4_WALLS = [(4, y) for y in range(9)]
+FIG_8_4_CHG_T = 1000
+FIG_8_4_FINAL_T = 3000
+FIG_8_4_PLAN_STEPS = 50
+FIG_8_5_CHG_T = 3000
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
 
 def section_8_1():
-  env = DynaMaze()
+  env = DynaMaze(FIG_8_2_INIT_POS, FIG_8_2_GOAL_POS, FIG_8_2_GRID_SHAPE, FIG_8_2_WALL)
   alg = TabularQ(FullModel(env), SEC_8_1_ALP, DYNA_MAZE_GAMMA)
   alg.seed(0)
   alg.rand_sam_one_step_pla(SEC_8_1_N_STEPS, decay=True)
@@ -115,11 +123,33 @@ def ex_8_1():
   save_plot('ex8.1', dpi=100)
   plt.show()
 
+def fig_8_4():
+  fig, ax = plt.subplots()
+  ax.set_title('Figure 8.4', fontsize=MED_FONT)
+  xticks = [0, 1000, 2000, 3000]
+  yticks = [0, 150]
+  ax.set_xlim([min(xticks), max(xticks)])
+  ax.set_ylim([min(yticks), max(yticks)])
+  ax.set_xticks(xticks)
+  ax.set_yticks(yticks)
+  ax.set_xlabel('Time Steps', fontsize=MED_FONT)
+  ax.set_ylabel('Cumulative\nReward', rotation=0, fontsize=MED_FONT)
+  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
+  alg = DynaQ(env, FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
+  alg.seed(0)
+  cum_rew_l_left = np.array(alg.tabular_dyna_q_step(FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS))
+  alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
+  cum_rew_l_right = np.array(alg.tabular_dyna_q_step(FIG_8_4_FINAL_T - FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS)) + cum_rew_l_left.max()
+  plt.plot(list(cum_rew_l_left) + list(cum_rew_l_right), label='Dyna-Q', color='b')
+  fig.set_size_inches(10, 8)
+  save_plot('8.4', dpi=100)
+  plt.show()
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
   '8.2': fig_8_2,
   '8.3': fig_8_3, 
+  '8.4': fig_8_4, 
   'ex8.1': ex_8_1,
 }
 

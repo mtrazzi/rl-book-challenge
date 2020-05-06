@@ -577,3 +577,11 @@ then:
 Theory: n-step shouldn't be doing much better, as it would reach the goal by random for the first episodes. if n = 3 or something, then it might get the right updates for the 3 moves to the goal. is n is larger (let's say 50) the path would be much more messy so the udpates would be wrong.
 
 Practice: from running the n-step sarsa from chapter 7 with n=5 and n=50, it did update correctly next to the goal (next to walls) for n=5, but that's all. then, for n=50, it updated from start to goal almost always correctly, just a few tiles that were wrong (like 2 tiles out of 20). (cf. nstep_sarsa code and ex_8_1 code in figures.py and ex8.1.png in plots).
+
+### 8.2:
+
+first phase: finding the hole in the blocking task requires exploration, so it makes sense that the dynaQ+ agent found the hole faster with the addditional exploration phase. also, from the note 1. (page 168) dynaQ+ started with a prior on never seen actions of "i'm going to stay at the same place and receive reward of 0", which is correct when hitting limits of the map + when hitting the map. so maybe after having found the correct path once, it kind of "assumed" that the rest would give a reward of 0 and not be a path?
+
+second phase: well, it adapted and found the new path bc of exploration faster (does 6 episodes 2x faster than dynaQ after the change). 
+
+### 8.3
