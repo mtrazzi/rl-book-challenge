@@ -571,3 +571,9 @@ then:
 -the min is the same as what we want,
 -after multiplying by gamma.\pi(A_{t+1}|S_{t+1}) the product starts at i=t+1
 -the delta_t becomes the first term of the sum.
+
+### 8.1
+
+Theory: n-step shouldn't be doing much better, as it would reach the goal by random for the first episodes. if n = 3 or something, then it might get the right updates for the 3 moves to the goal. is n is larger (let's say 50) the path would be much more messy so the udpates would be wrong.
+
+Practice: from running the n-step sarsa from chapter 7 with n=5 and n=50, it did update correctly next to the goal (next to walls) for n=5, but that's all. then, for n=50, it updated from start to goal almost always correctly, just a few tiles that were wrong (like 2 tiles out of 20). (cf. nstep_sarsa code and ex_8_1 code in figures.py and ex8.1.png in plots).

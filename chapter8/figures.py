@@ -7,6 +7,7 @@ from tabular_q import TabularQ
 from utils import sample, to_arr
 import seaborn as sns
 import numpy as np
+from nstep_sarsa import nStepSarsa
 
 SEC_8_1_ALP = 0.001
 SEC_8_1_N_STEPS = int(1e6)
@@ -20,6 +21,7 @@ FIG_8_2_N_RUNS = 30
 FIG_8_3_PLAN_STEPS = [0, 50]
 FIG_8_3_HEAT_LAB = {(0, -1): 'left', (0, 1): 'right', (-1, 0): 'up', (1, 0): 'down'}
 BIG_FONT = 15
+EX_8_1_N_LIST = [5, 50]
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -38,8 +40,7 @@ def section_8_1():
 def fig_8_2():
   fig, ax = plt.subplots()
   env = DynaMaze()
-  alg = DynaQ(env, SEC_8_1_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
-  alg.seed(0)
+  alg = DynaQ(env, FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
   xticks = [2, 10, 20, 30, 40, 50]
   yticks = [14, 200, 400, 600, 800]
   ax.set_title('Figure 8.2', fontsize=BIG_FONT)
@@ -50,12 +51,11 @@ def fig_8_2():
   ax.set_xlabel('Episodes', fontsize=BIG_FONT)
   ax.set_ylabel('Steps\nper\nepisode', rotation=0, labelpad=25, fontsize=BIG_FONT)
   ep_ticks = list(range(2, 51))
+  alg.seed(0)
   for n_plan_steps in FIG_8_2_PLAN_STEPS:
     arr_sum = np.zeros(FIG_8_2_N_EP)
-    for seed in range(FIG_8_2_N_RUNS):
-      print(seed)
+    for _ in range(FIG_8_2_N_RUNS):
       alg.reset()
-      alg.seed(seed)
       arr_sum += np.array(alg.tabular_dyna_q(FIG_8_2_N_EP, n_plan_steps))
     plt.plot(ep_ticks, (arr_sum / FIG_8_2_N_RUNS)[1:], label=f'{n_plan_steps} planning steps', color=FIG_8_2_C_DIC[n_plan_steps])
   plt.legend()
@@ -79,7 +79,7 @@ def fig_8_3():
   fig = plt.figure()
   fig.suptitle('Figure 8.3 - Policies found by Dyna-Q after 2 episodes', fontsize=BIG_FONT)
   env = DynaMaze()
-  alg = DynaQ(env, SEC_8_1_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
+  alg = DynaQ(env, FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
   action_dict = {move_id: env.moves[move_id - 1] for move_id in range(1, len(env.moves) + 1)}
   heatmap_label = '0 = all equal'
   for move_id, move in action_dict.items():
@@ -95,10 +95,32 @@ def fig_8_3():
   save_plot('fig8.3', dpi=100)
   plt.show()
 
+def ex_8_1():
+  fig = plt.figure()
+  fig.suptitle('Exercise 8.1 - Policies found by n-step sarsa after 2 episodes', fontsize=BIG_FONT)
+  env = DynaMaze()
+  action_dict = {move_id: env.moves[move_id - 1] for move_id in range(1, len(env.moves) + 1)}
+  heatmap_label = '0 = all equal'
+  for move_id, move in action_dict.items():
+    heatmap_label += f', {move_id}: {FIG_8_3_HEAT_LAB[move]}'
+  for (i, n) in enumerate(EX_8_1_N_LIST): 
+    alg = nStepSarsa(env, step_size=FIG_8_2_ALP, gamma=DYNA_MAZE_GAMMA, n=n)
+    alg.seed(0)
+    alg.reset()
+    ax = fig.add_subplot(f'12{i + 1}')
+    ax.set_title(f'n={n}')
+    alg.pol_eval(n_ep=2)
+    sns.heatmap(to_arr(get_dyna_maze_pol(env, alg.Q)), cbar_kws={'label': heatmap_label if i == 0 else None}, xticklabels=False, yticklabels=False)
+  fig.set_size_inches(10, 8)
+  save_plot('ex8.1', dpi=100)
+  plt.show()
+
+
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
   '8.2': fig_8_2,
   '8.3': fig_8_3, 
+  'ex8.1': ex_8_1,
 }
 
 def main():
@@ -106,9 +128,15 @@ def main():
 
   parser.add_argument('figure', type=str, default=None,
                       help='Figure to reproduce.',
-                      choices=list(PLOT_FUNCTION.keys()))
+                      choices=list(PLOT_FUNCTION.keys()) + ['all'])
   args = parser.parse_args()
-  PLOT_FUNCTION[args.figure]()
+  if args.figure == 'all':
+    for key, f in PLOT_FUNCTION.items():
+      print(f"[{key}]")
+      f()
+  else:
+    print(f"[{args.figure}]")
+    PLOT_FUNCTION[args.figure]()
 
 if __name__ == '__main__':
   main()
