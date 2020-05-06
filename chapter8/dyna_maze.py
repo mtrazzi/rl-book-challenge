@@ -100,7 +100,7 @@ class DynaMaze:
           s += AGENT_KEY
         elif (x, y) in self.pos_char_dict.keys():
           s += self.pos_char_dict[(x, y)]
-        elif Position(x, y).is_wall:
+        elif Position(x, y, self.walls).is_wall:
           s += WALL_KEY
         else:
           s += '.'

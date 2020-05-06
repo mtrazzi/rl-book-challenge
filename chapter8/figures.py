@@ -25,10 +25,11 @@ BIG_FONT = 15
 EX_8_1_N_LIST = [5, 50]
 FIG_8_4_INIT_POS = (5, 3)
 FIG_8_4_GOAL_POS = (0, 8)
-FIG_8_4_WALLS = [(4, y) for y in range(9)]
+FIG_8_4_WALLS = [(3, y) for y in range(9)]
 FIG_8_4_CHG_T = 1000
 FIG_8_4_FINAL_T = 3000
 FIG_8_4_PLAN_STEPS = 50
+FIG_8_4_N_RUNS = 1
 FIG_8_5_CHG_T = 3000
 
 def save_plot(filename, dpi=None):
@@ -137,10 +138,16 @@ def fig_8_4():
   env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
   alg = DynaQ(env, FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
   alg.seed(0)
-  cum_rew_l_left = np.array(alg.tabular_dyna_q_step(FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS))
-  alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
-  cum_rew_l_right = np.array(alg.tabular_dyna_q_step(FIG_8_4_FINAL_T - FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS)) + cum_rew_l_left.max()
-  plt.plot(list(cum_rew_l_left) + list(cum_rew_l_right), label='Dyna-Q', color='b')
+  arr_sum = np.zeros(FIG_8_4_FINAL_T)
+  for run in range(FIG_8_4_N_RUNS):
+    alg.reset()
+    print(f"run {run + 1}/{FIG_8_4_N_RUNS}")
+    alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
+    cum_rew_l_left = np.array(alg.tabular_dyna_q_step(FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS))
+    alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[1:])
+    cum_rew_l_right = np.array(alg.tabular_dyna_q_step(FIG_8_4_FINAL_T - FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS)) + cum_rew_l_left.max()
+    arr_sum += np.array(list(cum_rew_l_left) + list(cum_rew_l_right))
+  plt.plot(arr_sum / FIG_8_4_N_RUNS, label='Dyna-Q', color='b')
   fig.set_size_inches(10, 8)
   save_plot('8.4', dpi=100)
   plt.show()

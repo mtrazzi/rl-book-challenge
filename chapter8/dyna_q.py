@@ -27,6 +27,10 @@ class DynaQ(TabularQ):
     return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
 
   def q_learning_update(self, s, a, r, s_p):
+    max_val = -np.inf
+    for a_p in self.env.moves_d[s]:
+      if (s_p, a_p) not in self.Q:
+        self.Q[(s_p, a_p)] = 0
     Q_max = max(self.Q[(s_p, a_p)] for a_p in self.env.moves_d[s])
     self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
@@ -57,7 +61,10 @@ class DynaQ(TabularQ):
     cum_rew_l = []
     cum_rew = 0
     s = self.env.reset()
-    for _ in range(n_steps):
+    for step in range(n_steps):
+      #print(step)
+      #print(self.env)
+      #time.sleep(0.01)
       a = self.eps_gre(s)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)
