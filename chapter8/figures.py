@@ -31,6 +31,8 @@ FIG_8_4_FINAL_T = 3000
 FIG_8_4_PLAN_STEPS = 50
 FIG_8_4_N_RUNS = 1
 FIG_8_5_CHG_T = 3000
+FIG_8_5_FINAL_T = 6000
+FIG_8_5_PLAN_STEPS = 50
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -124,39 +126,43 @@ def ex_8_1():
   save_plot('ex8.1', dpi=100)
   plt.show()
 
-def fig_8_4():
+def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t, walls1, walls2, plan_steps):
+  def new_env(walls):
+    return DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=walls)
   fig, ax = plt.subplots()
-  ax.set_title('Figure 8.4', fontsize=MED_FONT)
-  xticks = [0, 1000, 2000, 3000]
-  yticks = [0, 150]
-  ax.set_xlim([min(xticks), max(xticks)])
-  ax.set_ylim([min(yticks), max(yticks)])
+  ax.set_title(title, fontsize=MED_FONT)
   ax.set_xticks(xticks)
   ax.set_yticks(yticks)
   ax.set_xlabel('Time Steps', fontsize=MED_FONT)
   ax.set_ylabel('Cumulative\nReward', rotation=0, fontsize=MED_FONT)
-  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
-  alg = DynaQ(env, FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
+  alg = DynaQ(new_env(walls1), FIG_8_2_ALP, DYNA_MAZE_GAMMA, FIG_8_2_EPS)
   alg.seed(0)
-  arr_sum = np.zeros(FIG_8_4_FINAL_T)
-  for run in range(FIG_8_4_N_RUNS):
+  arr_sum = np.zeros(final_t)
+  for run in range(n_runs):
     alg.reset()
     print(f"run {run + 1}/{FIG_8_4_N_RUNS}")
-    alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[:-1])
-    cum_rew_l_left = np.array(alg.tabular_dyna_q_step(FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS))
-    alg.env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=FIG_8_4_WALLS[1:])
-    cum_rew_l_right = np.array(alg.tabular_dyna_q_step(FIG_8_4_FINAL_T - FIG_8_4_CHG_T, FIG_8_4_PLAN_STEPS)) + cum_rew_l_left.max()
-    arr_sum += np.array(list(cum_rew_l_left) + list(cum_rew_l_right))
+    alg.env = new_env(walls1)
+    cum_rew_l_left = alg.tabular_dyna_q_step(change_t, plan_steps)
+    alg.env = new_env(walls2)
+    cum_rew_l_right = np.array(alg.tabular_dyna_q_step(final_t - change_t, FIG_8_4_PLAN_STEPS)) + cum_rew_l_left[-1]
+    arr_sum += np.array(cum_rew_l_left + list(cum_rew_l_right))
   plt.plot(arr_sum / FIG_8_4_N_RUNS, label='Dyna-Q', color='b')
   fig.set_size_inches(10, 8)
   save_plot('8.4', dpi=100)
   plt.show()
+
+def fig_8_4():
+  run_dynaq_dynaqp('Figure 8.4', '8.4', FIG_8_4_N_RUNS, [0, 1000, 2000, 3000], [0, 150], FIG_8_4_CHG_T, FIG_8_4_FINAL_T, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:], FIG_8_4_PLAN_STEPS)
+
+def fig_8_5():
+  run_dynaq_dynaqp('Figure 8.5', '8.5', FIG_8_4_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS)
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
   '8.2': fig_8_2,
   '8.3': fig_8_3, 
   '8.4': fig_8_4, 
+  '8.5': fig_8_5, 
   'ex8.1': ex_8_1,
 }
 
