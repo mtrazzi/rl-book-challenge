@@ -67,10 +67,10 @@ class DynaQ(TabularQ):
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      if step % 100 == 0:
-        print(step)
-      print(self.env)
-      time.sleep(0.01)
+      #if step % 100 == 0:
+      #  print(step)
+      #print(self.env)
+      #time.sleep(0.01)
       a = self.eps_gre(s)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)

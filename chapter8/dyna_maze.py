@@ -16,10 +16,9 @@ WALL_KEY = 'W'
 WALLS = [(1, 2), (2, 2), (3, 2), (4, 5), (0, 7), (1, 7), (2, 7)]
 
 class Position:
-  def __init__(self, x, y, walls):
+  def __init__(self, x, y):
     self.x = x
     self.y = y
-    self.is_wall = self.get_wall(walls)
     self.is_goal = self.get_goal()
 
   def get_goal(self):
@@ -27,13 +26,10 @@ class Position:
 
   def in_bounds(self, index, axis):
     return max(0, min(index, GRID_SHAPE[axis] - 1))
-
-  def get_wall(self, walls):
-    return (self.x, self.y) in walls
-  
-  def next_state(self, action, walls):
-    s_p = Position(self.in_bounds(self.x + action[0], 0), self.in_bounds(self.y + action[1], 1), walls)
-    return self if (s_p.is_wall or self.is_goal) else s_p
+ 
+  def move(self, action):
+    s_p = Position(self.in_bounds(self.x + action[0], 0), self.in_bounds(self.y + action[1], 1))
+    return self if self.is_goal else s_p
 
   def __eq__(self, other_pos):
     if isinstance(other_pos, tuple):
@@ -47,32 +43,42 @@ class Position:
     return f"({self.x}, {self.y})"
 
 class DynaMaze:
-  def __init__(self, init_pos=INIT_POS, goal_pos=GOAL_POS, grid_shape=GRID_SHAPE, walls=WALLS):
+  def __init__(self, init_pos=INIT_POS, goal_pos=GOAL_POS, grid_shape=GRID_SHAPE, walls1=WALLS, walls2=WALLS):
     self.init_pos = init_pos
     self.goal_pos = goal_pos
     self.grid_shape = grid_shape
-    self.walls = walls
     self.get_states()
     self.get_moves()
     self.get_moves_dict()
     self.get_keys()
     self.pos_char_dict = {self.init_pos: INIT_KEY, self.goal_pos: GOAL_KEY}
+    self.walls = walls1
+    self.walls1 = walls1
+    self.walls2 = walls2
+
+  def switch_walls(self):
+    if self.walls == self.walls1:
+      self.walls = self.walls2
+    else:
+      self.walls = self.walls1
 
   def get_moves(self):
     self.moves = [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1] if (abs(x) + abs(y)) == 1]
 
   def get_states(self):
-    self.states = [Position(x, y, self.walls) for x in range(GRID_SHAPE[0]) for y in range(GRID_SHAPE[1]) if not Position(x, y, self.walls).is_wall]
+    self.states = [Position(x, y) for x in range(GRID_SHAPE[0]) for y in range(GRID_SHAPE[1])]
 
   def get_moves_dict(self):
     self.moves_d = {s: self.moves for s in self.states}
 
   def step(self, action):
-    next_state = self.state.next_state(action, self.walls)
-    done = next_state.is_goal
-    r = float(done and not self.state.is_goal)
-    self.state = next_state
-    return next_state, r, done, {}
+    s_curr = self.state
+    s_p = s_curr.move(action)
+    s_next = s_curr if (s_p.x, s_p.y) in self.walls else s_p
+    done = s_next.is_goal
+    r = float(done and not s_curr.is_goal)
+    self.state = s_next
+    return s_next, r, done, {}
 
   def get_keys(self):
     self.keys = KEY_ACTION_DICT.keys()
@@ -81,7 +87,7 @@ class DynaMaze:
     return self.step(KEY_ACTION_DICT[key])
 
   def reset(self):
-    self.state = Position(*self.init_pos, self.walls)
+    self.state = Position(*self.init_pos)
     return self.state
 
   def seed(self, seed):
@@ -100,7 +106,7 @@ class DynaMaze:
           s += AGENT_KEY
         elif (x, y) in self.pos_char_dict.keys():
           s += self.pos_char_dict[(x, y)]
-        elif Position(x, y, self.walls).is_wall:
+        elif (x, y) in self.walls:
           s += WALL_KEY
         else:
           s += '.'

@@ -29,7 +29,7 @@ FIG_8_4_GOAL_POS = (0, 8)
 FIG_8_4_WALLS = [(3, y) for y in range(9)]
 FIG_8_4_CHG_T = 1000
 FIG_8_4_FINAL_T = 3000
-FIG_8_4_PLAN_STEPS = 50
+FIG_8_4_PLAN_STEPS = 0
 FIG_8_4_N_RUNS = 1
 FIG_8_4_ALP = 0.1
 FIG_8_4_EPS = 0.1
@@ -139,31 +139,33 @@ def ex_8_1():
   save_plot('ex8.1', dpi=100)
   plt.show()
 
-def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t, walls1, walls2, plan_steps, alpha, eps, k):
-  def new_env(walls):
-    return DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls=walls)
+def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t, walls1, walls2, plan_steps, alpha, eps, k): 
+  
+  # initialization
   fig, ax = plt.subplots()
+  arr_sum = np.zeros(final_t)
+  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls1=walls1, walls2=walls2)
+  dyna_q_alg = DynaQ(env, alpha, DYNA_MAZE_GAMMA, eps)
+  dyna_qp_alg = DynaQPlus(env, alpha, DYNA_MAZE_GAMMA, eps, k)
+  for (alg, label) in [(dyna_q_alg, 'Dyna-Q'), (dyna_qp_alg, 'Dyna-Q+')]:
+    alg.seed(0)
+    for run in range(n_runs):
+      alg.reset()
+      print(f"run {run + 1}/{FIG_8_4_N_RUNS}")
+      cum_rew_l_left = alg.tabular_dyna_q_step(change_t, plan_steps)
+      alg.env.switch_walls()
+      cum_rew_l_right = np.array(alg.tabular_dyna_q_step(final_t - change_t, plan_steps)) + cum_rew_l_left[-1]
+      arr_sum += np.array(cum_rew_l_left + list(cum_rew_l_right))
+      alg.env.switch_walls()
+    plt.plot(arr_sum / FIG_8_4_N_RUNS, label=label)
+  
+  # plot 
+  plt.legend()
   ax.set_title(title, fontsize=MED_FONT)
   #ax.set_xticks(xticks)
   #ax.set_yticks(yticks)
   ax.set_xlabel('Time Steps', fontsize=MED_FONT)
   ax.set_ylabel('Cumulative\nReward', rotation=0, labelpad=25, fontsize=MED_FONT)
-  arr_sum = np.zeros(final_t)
-  dyna_q_alg = DynaQ(new_env(walls1), alpha, DYNA_MAZE_GAMMA, eps)
-  dyna_qp_alg = DynaQPlus(new_env(walls1), alpha, DYNA_MAZE_GAMMA, eps, k)
-  for (alg, label) in [(dyna_qp_alg, 'Dyna-Q+')]:
-    alg.seed(0)
-    for run in range(n_runs):
-      alg.reset()
-      print(f"run {run + 1}/{FIG_8_4_N_RUNS}")
-      alg.env = new_env(walls1)
-      cum_rew_l_left = alg.tabular_dyna_q_step(change_t, plan_steps)
-      alg.env = new_env(walls2)
-      cum_rew_l_right = np.array(alg.tabular_dyna_q_step(final_t - change_t, plan_steps)) + cum_rew_l_left[-1]
-      show_pol(alg)
-      arr_sum += np.array(cum_rew_l_left + list(cum_rew_l_right))
-    plt.plot(arr_sum / FIG_8_4_N_RUNS, label=label)
-  plt.legend()
   fig.set_size_inches(10, 8)
   save_plot('8.4', dpi=100)
   plt.show()
