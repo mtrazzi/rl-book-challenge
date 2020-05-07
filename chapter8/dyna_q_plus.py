@@ -20,25 +20,28 @@ class DynaQPlus(DynaQ):
       Q_max = max(self.Q[(s_p, a_p)] for a_p in a_dict[s])
       self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
-  def update_trans_count(self, s, a_0):
-    for a in self.env.moves_d[s]:
-      if a != a_0:
-        self.trans_count[(s, a)] += 1
-      else:
-        self.trans_count[(s, a)] = 0
+  def incr_trans_count(self, s, a_0):
+    for s in self.env.states:
+      for a in self.env.moves_d[s]:
+        if a != a_0:
+          self.trans_count[(s, a)] += 1   
+        else:
+          self.trans_count[(s, a)] = 0
 
   def tabular_dyna_q_step(self, n_steps=1, n_plan_steps=1):
     cum_rew_l = []
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      #if step % 100 == 0:
-      #  print(step)
-      #print(self.env)
-      #time.sleep(0.01)
+      print(f"\n\n##########\n\ndynaq+ {step}")
+      print(self.env)
+      for a in self.env.moves_d[s]:
+        print(f"Q({str(s)}, {a}) = {self.Q[(s, a)]}")
       a = self.eps_gre(s)
+      print(f"s={self.env.state}, a={a}")
+      time.sleep(0.01)
       s_p, r, d, _ = self.env.step(a)
-      self.update_trans_count(s, a)
+      self.incr_trans_count(s, a)
       self.q_learning_update(s, a, r, s_p)
       self.model.add_transition(s, a, r, s_p)
       self.plan_dyna_q_plus(n_plan_steps)

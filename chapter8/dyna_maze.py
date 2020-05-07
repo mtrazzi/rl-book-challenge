@@ -16,20 +16,17 @@ WALL_KEY = 'W'
 WALLS = [(1, 2), (2, 2), (3, 2), (4, 5), (0, 7), (1, 7), (2, 7)]
 
 class Position:
-  def __init__(self, x, y):
+  def __init__(self, x, y, is_goal):
     self.x = x
     self.y = y
-    self.is_goal = self.get_goal()
+    self.is_goal = is_goal
 
-  def get_goal(self):
-    return self.x == GOAL_POS[0] and self.y == GOAL_POS[1] 
-
-  def in_bounds(self, index, axis):
-    return max(0, min(index, GRID_SHAPE[axis] - 1))
+  def in_bounds(self, grid_shape, index, axis):
+    return max(0, min(index, grid_shape[axis] - 1))
  
-  def move(self, action):
-    s_p = Position(self.in_bounds(self.x + action[0], 0), self.in_bounds(self.y + action[1], 1))
-    return self if self.is_goal else s_p
+  def move(self, action, grid_shape, goal_pos):
+    x_p, y_p = self.in_bounds(grid_shape, self.x + action[0], 0), self.in_bounds(grid_shape, self.y + action[1], 1)
+    return self if self.is_goal else Position(x_p, y_p, (x_p, y_p) == goal_pos)
 
   def __eq__(self, other_pos):
     if isinstance(other_pos, tuple):
@@ -66,14 +63,14 @@ class DynaMaze:
     self.moves = [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1] if (abs(x) + abs(y)) == 1]
 
   def get_states(self):
-    self.states = [Position(x, y) for x in range(GRID_SHAPE[0]) for y in range(GRID_SHAPE[1])]
+    self.states = [Position(x, y, (x, y) == self.goal_pos) for x in range(self.grid_shape[0]) for y in range(self.grid_shape[1])]
 
   def get_moves_dict(self):
     self.moves_d = {s: self.moves for s in self.states}
 
   def step(self, action):
     s_curr = self.state
-    s_p = s_curr.move(action)
+    s_p = s_curr.move(action, self.grid_shape, self.goal_pos)
     s_next = s_curr if (s_p.x, s_p.y) in self.walls else s_p
     done = s_next.is_goal
     r = float(done and not s_curr.is_goal)
@@ -87,7 +84,7 @@ class DynaMaze:
     return self.step(KEY_ACTION_DICT[key])
 
   def reset(self):
-    self.state = Position(*self.init_pos)
+    self.state = Position(*self.init_pos, self.init_pos == self.goal_pos)
     return self.state
 
   def seed(self, seed):
@@ -100,8 +97,8 @@ class DynaMaze:
     x_ag, y_ag = self.state.x, self.state.y
     s = ''
     s += '\n'
-    for x in range(GRID_SHAPE[0]):
-      for y in range(GRID_SHAPE[1]):
+    for x in range(self.grid_shape[0]):
+      for y in range(self.grid_shape[1]):
         if (x, y) == (x_ag, y_ag):
           s += AGENT_KEY
         elif (x, y) in self.pos_char_dict.keys():

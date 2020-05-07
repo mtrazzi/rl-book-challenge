@@ -24,12 +24,13 @@ FIG_8_3_HEAT_LAB = {(0, -1): 'left', (0, 1): 'right', (-1, 0): 'up', (1, 0): 'do
 MED_FONT = 10
 BIG_FONT = 15
 EX_8_1_N_LIST = [5, 50]
-FIG_8_4_INIT_POS = (5, 3)
-FIG_8_4_GOAL_POS = (0, 8)
-FIG_8_4_WALLS = [(3, y) for y in range(9)]
+FIG_8_4_INIT_POS = (2, 2)
+FIG_8_4_GOAL_POS = (0, 4)
+FIG_8_4_GRID_SHAPE = (3, 5)
+FIG_8_4_WALLS = [(1, y) for y in range(FIG_8_4_GRID_SHAPE[1])]
 FIG_8_4_CHG_T = 1000
 FIG_8_4_FINAL_T = 3000
-FIG_8_4_PLAN_STEPS = 0
+FIG_8_4_PLAN_STEPS = 5
 FIG_8_4_N_RUNS = 1
 FIG_8_4_ALP = 0.1
 FIG_8_4_EPS = 0.1
@@ -143,11 +144,11 @@ def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t,
   
   # initialization
   fig, ax = plt.subplots()
-  arr_sum = np.zeros(final_t)
-  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, walls1=walls1, walls2=walls2)
+  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, FIG_8_4_GRID_SHAPE, walls1, walls2)
   dyna_q_alg = DynaQ(env, alpha, DYNA_MAZE_GAMMA, eps)
   dyna_qp_alg = DynaQPlus(env, alpha, DYNA_MAZE_GAMMA, eps, k)
-  for (alg, label) in [(dyna_q_alg, 'Dyna-Q'), (dyna_qp_alg, 'Dyna-Q+')]:
+  for (alg, label) in [(dyna_q_alg, 'Dyna-Q'), (dyna_qp_alg, 'Dyna-Q+')][1:]:
+    arr_sum = np.zeros(final_t)
     alg.seed(0)
     for run in range(n_runs):
       alg.reset()
