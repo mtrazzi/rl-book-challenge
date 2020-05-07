@@ -25,7 +25,8 @@ class Model:
     for s in self.states:
       strg += str(s) + '\n'
       for a in self.moves_d[s]:
-        strg += f"->{a}\n"
+        s_r = f"(s_p={str(self.trans[(s, a)][0])}, r={self.trans[(s, a)][1]})" if (s, a) in self.trans else '???'
+        strg += f"-{a} --> {s_r}\n"
     return strg
 
   def reset(self):

@@ -4,12 +4,20 @@ from utils import sample
 from models import Model
 import time
 
+def show(alg):
+  from figures import show_pol
+  import matplotlib.pyplot as plt
+  fig = plt.figure()
+  show_pol(alg)
+  plt.show()
+
 class DynaQ(TabularQ):
   def __init__(self, env, alpha, gamma, eps):
     super().__init__(Model(), alpha, gamma)
     self.env = env
     self.eps = eps
     self.reset()
+    self.counter = 0
 
   def best_actions(self, s):
     q_max, a_max_l = -np.inf, []
@@ -31,6 +39,10 @@ class DynaQ(TabularQ):
     for a_p in self.env.moves_d[s]:
       if (s_p, a_p) not in self.Q:
         self.Q[(s_p, a_p)] = 0
+    if s_p.x == 3 and s_p.y == 0:
+      for a_p in self.env.moves_d[s_p]:
+        print(self.Q[(s_p, a_p)])
+      #show(self)
     Q_max = max(self.Q[(s_p, a_p)] for a_p in self.env.moves_d[s])
     self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
@@ -62,9 +74,10 @@ class DynaQ(TabularQ):
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      #print(step)
-      #print(self.env)
-      #time.sleep(0.01)
+      if step % 100 == 0:
+        print(step)
+      print(self.env)
+      time.sleep(0.01)
       a = self.eps_gre(s)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)
