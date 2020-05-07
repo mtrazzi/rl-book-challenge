@@ -36,13 +36,6 @@ class DynaQ(TabularQ):
 
   def q_learning_update(self, s, a, r, s_p):
     max_val = -np.inf
-    for a_p in self.env.moves_d[s]:
-      if (s_p, a_p) not in self.Q:
-        self.Q[(s_p, a_p)] = 0
-    if s_p.x == 3 and s_p.y == 0:
-      for a_p in self.env.moves_d[s_p]:
-        print(self.Q[(s_p, a_p)])
-      #show(self)
     Q_max = max(self.Q[(s_p, a_p)] for a_p in self.env.moves_d[s])
     self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
