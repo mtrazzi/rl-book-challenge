@@ -14,6 +14,12 @@ class Model:
       self.moves_d[s] = set([a])
     self.trans[(s, a)] = (s_p, r)
 
+  def add_transition_cheat(self, s, a, r, s_p, moves):
+    self.states.add(s)
+    self.moves_d[s] = set(moves)
+    for a_p in moves:
+      self.trans[(s, a_p)] = (s_p, r) if a == a_p else (s, 0)
+
   def sample_s_r(self, s, a):
     try:
       return self.trans[(s, a)]

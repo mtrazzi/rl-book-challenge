@@ -74,7 +74,7 @@ class DynaQ(TabularQ):
       a = self.eps_gre(s)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)
-      self.model.add_transition(s, a, r, s_p)
+      self.model.add_transition_cheat(s, a, r, s_p, self.env.moves_d[s])
       self.rand_sam_one_step_pla(n_plan_steps)
       s = self.env.reset() if d else s_p
       cum_rew += r

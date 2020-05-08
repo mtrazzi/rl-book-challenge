@@ -21,26 +21,27 @@ FIG_8_2_C_DIC = {0: 'b', 5: 'g', 50: 'r'}
 FIG_8_2_N_RUNS = 30
 FIG_8_3_PLAN_STEPS = [0, 50]
 FIG_8_3_HEAT_LAB = {(0, -1): 'left', (0, 1): 'right', (-1, 0): 'up', (1, 0): 'down'}
-MED_FONT = 10
+MED_FONT = 13
 BIG_FONT = 15
 EX_8_1_N_LIST = [5, 50]
-FIG_8_4_INIT_POS = (2, 2)
-FIG_8_4_GOAL_POS = (0, 4)
-FIG_8_4_GRID_SHAPE = (3, 5)
-FIG_8_4_WALLS = [(1, y) for y in range(FIG_8_4_GRID_SHAPE[1])]
+FIG_8_4_INIT_POS = (5, 3)
+FIG_8_4_GOAL_POS = (0, 8)
+FIG_8_4_GRID_SHAPE = (6, 9)
+FIG_8_4_WALLS = [(3, y) for y in range(FIG_8_4_GRID_SHAPE[1])]
 FIG_8_4_CHG_T = 1000
 FIG_8_4_FINAL_T = 3000
-FIG_8_4_PLAN_STEPS = 5
-FIG_8_4_N_RUNS = 1
-FIG_8_4_ALP = 0.1
+FIG_8_4_PLAN_STEPS = 50
+FIG_8_4_N_RUNS = 5
+FIG_8_4_ALP = 1
 FIG_8_4_EPS = 0.1
-FIG_8_4_K = 0.1
+FIG_8_4_K = 0.001
 FIG_8_5_CHG_T = 3000
 FIG_8_5_FINAL_T = 6000
 FIG_8_5_PLAN_STEPS = 50
-FIG_8_5_ALP = 0.1
+FIG_8_5_N_RUNS = 1
+FIG_8_5_ALP = 1
 FIG_8_5_EPS = 0.1
-FIG_8_5_K = 0.1
+FIG_8_5_K = 0.001
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -147,7 +148,7 @@ def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t,
   env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, FIG_8_4_GRID_SHAPE, walls1, walls2)
   dyna_q_alg = DynaQ(env, alpha, DYNA_MAZE_GAMMA, eps)
   dyna_qp_alg = DynaQPlus(env, alpha, DYNA_MAZE_GAMMA, eps, k)
-  for (alg, label) in [(dyna_q_alg, 'Dyna-Q'), (dyna_qp_alg, 'Dyna-Q+')][1:]:
+  for (alg, label) in [(dyna_q_alg, 'Dyna-Q'), (dyna_qp_alg, 'Dyna-Q+')]:
     arr_sum = np.zeros(final_t)
     alg.seed(0)
     for run in range(n_runs):
@@ -162,11 +163,11 @@ def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t,
   
   # plot 
   plt.legend()
-  ax.set_title(title, fontsize=MED_FONT)
-  #ax.set_xticks(xticks)
-  #ax.set_yticks(yticks)
-  ax.set_xlabel('Time Steps', fontsize=MED_FONT)
-  ax.set_ylabel('Cumulative\nReward', rotation=0, labelpad=25, fontsize=MED_FONT)
+  ax.set_title(title + f" ({n_runs} runs average, n={plan_steps} planning steps, a={alpha}, k={k})", fontsize=MED_FONT)
+  ax.set_xticks(xticks)
+  ax.set_yticks(yticks)
+  ax.set_xlabel('Time Steps', fontsize=BIG_FONT)
+  ax.set_ylabel('Cumulative\nReward', rotation=0, labelpad=15, fontsize=BIG_FONT-2)
   fig.set_size_inches(10, 8)
   save_plot('8.4', dpi=100)
   plt.show()
@@ -175,7 +176,7 @@ def fig_8_4():
   run_dynaq_dynaqp('Figure 8.4', '8.4', FIG_8_4_N_RUNS, [0, 1000, 2000, 3000], [0, 150], FIG_8_4_CHG_T, FIG_8_4_FINAL_T, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K)
 
 def fig_8_5():
-  run_dynaq_dynaqp('Figure 8.5', '8.5', FIG_8_4_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS, alpha=FIG_8_5_ALP, eps=FIG_8_5_EPS, k=FIG_8_5_K)
+  run_dynaq_dynaqp('Figure 8.5', '8.5', FIG_8_5_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS, alpha=FIG_8_5_ALP, eps=FIG_8_5_EPS, k=FIG_8_5_K)
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
