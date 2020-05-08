@@ -585,3 +585,11 @@ first phase: finding the hole in the blocking task requires exploration, so it m
 second phase: well, it adapted and found the new path bc of exploration faster (does 6 episodes 2x faster than dynaQ after the change). 
 
 ### 8.3
+
+this one was observed when running simulations! actually, the dynaq+ agent needs to re-explore parts of the map from times to time (bc of the exploration factor), so it's suboptimal compared to the normal dynaq agent. this slight difference, over 3k steps, becomes noticeable (how much actually depends on the factor K of exploration, i used k=0.001).
+
+### 8.4
+
+Theory: it seems pretty important to change those Q-values. indeed, by design, if you change the Q-values somewhere, the max(Q) will change, so it will propagate to the other Q-values until it reaches the point where the agent is currently blocked (using planning). if you only change the estimated reward WHEN CHOOSING ACTIONS then it's only a heuristic for acting, not used in planning. so my guess it that: it's good at unblocking yourself when there are only a few steps to do. if it's a maze where you need to do multiple good choices (> 5) in a row to reach the goal then it won't work. 
+
+Experiments:

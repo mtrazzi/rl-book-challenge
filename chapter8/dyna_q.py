@@ -4,13 +4,6 @@ from utils import sample
 from models import Model
 import time
 
-def show(alg):
-  from figures import show_pol
-  import matplotlib.pyplot as plt
-  fig = plt.figure()
-  show_pol(alg)
-  plt.show()
-
 class DynaQ(TabularQ):
   def __init__(self, env, alpha, gamma, eps):
     super().__init__(Model(), alpha, gamma)
@@ -67,10 +60,6 @@ class DynaQ(TabularQ):
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      #if step % 100 == 0:
-      #  print(step)
-      #print(self.env)
-      #time.sleep(0.01)
       a = self.eps_gre(s)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)

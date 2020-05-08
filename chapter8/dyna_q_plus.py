@@ -18,7 +18,6 @@ class DynaQPlus(DynaQ):
       s_p, r_raw = self.model.sample_s_r(s, a) if a in self.model.moves_d[s] else (s, 0)
       r = r_raw + self.k * np.sqrt(self.trans_count[(s, a)])
       Q_max = max(self.Q[(s_p, a_p)] for a_p in a_dict[s])
-      #print(f"updating Q[({str(s)}, {a})]: += {self.a * (r + self.g * Q_max - self.Q[(s, a)])} ({self.a} * ({r} + {self.g} * {Q_max} - {self.Q[(s, a)]}))")
       self.Q[(s, a)] += self.a * (r + self.g * Q_max - self.Q[(s, a)])
 
   def upd_count(self, s_0, a_0):
@@ -32,14 +31,9 @@ class DynaQPlus(DynaQ):
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      #print(f"\n\n##########\n\ndynaq+ {step}")
-      #self.print_trans_count()
-      #print(self.env)
-      #time.sleep(0.1)
       a = self.eps_gre(s)
       self.upd_count(s, a)
       s_p, r, d, _ = self.env.step(a)
-      #print(f"s={s} --({a}, {r})--> {s_p}=s_p")
       self.q_learning_update(s, a, r, s_p)
       self.model.add_transition(s, a, r, s_p)
       self.plan_dyna_q_plus(n_plan_steps)
