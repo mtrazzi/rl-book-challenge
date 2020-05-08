@@ -42,6 +42,17 @@ FIG_8_5_N_RUNS = 5
 FIG_8_5_ALP = 0.5
 FIG_8_5_EPS = 0.1
 FIG_8_5_K = 0.001
+EX_8_4_INIT_POS = (5, 3)
+EX_8_4_GOAL_POS = (0, 8)
+EX_8_4_GRID_SHAPE = (6, 9)
+EX_8_4_WALLS = [(3, y) for y in range(FIG_8_4_GRID_SHAPE[1])]
+EX_8_4_CHG_T = 1000
+EX_8_4_FINAL_T = 3000
+EX_8_4_PLAN_STEPS = 50
+EX_8_4_N_RUNS = 5
+EX_8_4_ALP = 0.5
+EX_8_4_EPS = 0.1
+EX_8_4_K = 0.001
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -178,6 +189,19 @@ def fig_8_4():
 def fig_8_5():
   run_dynaq_dynaqp('Figure 8.5', 'fig8.5', FIG_8_5_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS, alpha=FIG_8_5_ALP, eps=FIG_8_5_EPS, k=FIG_8_5_K)
 
+def ex_8_4():
+  fig, ax = plt.subplots()
+  ax.set_title('Exercise 8.4')
+  env = DynaMaze(EX_8_4_INIT_POS, EX_8_4_GOAL_POS, EX_8_4_GRID_SHAPE, walls1, walls2)
+  alg = DynaQPlus(env, alpha, DYNA_MAZE_GAMMA, eps, k)
+  cum_rew_l_left = alg.ex_8_4(EX_8_4_CHG_T, EX_8_4_PLAN_STEPS)
+  alg.env.switch_walls()
+  cum_rew_l_right = np.array(alg.ex_8_4(EX_8_4_FINAL_T - EX_8_4_FINAL_T, EX_8_4_PLAN_STEPS)) + cum_rew_l_left[-1]
+  arr_sum += np.array(cum_rew_l_left + list(cum_rew_l_right))
+  plt.plot(cum_rew_l_left + cum_rew_l_right)
+  plt.show()
+  save_plot('ex8.4')
+
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
   '8.2': fig_8_2,
@@ -185,6 +209,7 @@ PLOT_FUNCTION = {
   '8.4': fig_8_4, 
   '8.5': fig_8_5, 
   'ex8.1': ex_8_1,
+  'ex8.4': ex_8_4,
 }
 
 def main():
