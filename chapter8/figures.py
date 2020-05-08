@@ -32,14 +32,14 @@ FIG_8_4_CHG_T = 1000
 FIG_8_4_FINAL_T = 3000
 FIG_8_4_PLAN_STEPS = 50
 FIG_8_4_N_RUNS = 5
-FIG_8_4_ALP = 1
+FIG_8_4_ALP = 0.5
 FIG_8_4_EPS = 0.1
 FIG_8_4_K = 0.001
 FIG_8_5_CHG_T = 3000
 FIG_8_5_FINAL_T = 6000
 FIG_8_5_PLAN_STEPS = 50
-FIG_8_5_N_RUNS = 1
-FIG_8_5_ALP = 1
+FIG_8_5_N_RUNS = 5
+FIG_8_5_ALP = 0.5
 FIG_8_5_EPS = 0.1
 FIG_8_5_K = 0.001
 
@@ -153,13 +153,13 @@ def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t,
     alg.seed(0)
     for run in range(n_runs):
       alg.reset()
-      print(f"run {run + 1}/{FIG_8_4_N_RUNS}")
+      print(f"run {run + 1}/{n_runs}")
       cum_rew_l_left = alg.tabular_dyna_q_step(change_t, plan_steps)
       alg.env.switch_walls()
       cum_rew_l_right = np.array(alg.tabular_dyna_q_step(final_t - change_t, plan_steps)) + cum_rew_l_left[-1]
       arr_sum += np.array(cum_rew_l_left + list(cum_rew_l_right))
       alg.env.switch_walls()
-    plt.plot(arr_sum / FIG_8_4_N_RUNS, label=label)
+    plt.plot(arr_sum / n_runs, label=label)
   
   # plot 
   plt.legend()
@@ -169,14 +169,14 @@ def run_dynaq_dynaqp(title, filename, n_runs, xticks, yticks, change_t, final_t,
   ax.set_xlabel('Time Steps', fontsize=BIG_FONT)
   ax.set_ylabel('Cumulative\nReward', rotation=0, labelpad=15, fontsize=BIG_FONT-2)
   fig.set_size_inches(10, 8)
-  save_plot('8.4', dpi=100)
+  save_plot(filename, dpi=100)
   plt.show()
 
 def fig_8_4():
-  run_dynaq_dynaqp('Figure 8.4', '8.4', FIG_8_4_N_RUNS, [0, 1000, 2000, 3000], [0, 150], FIG_8_4_CHG_T, FIG_8_4_FINAL_T, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K)
+  run_dynaq_dynaqp('Figure 8.4', 'fig8.4', FIG_8_4_N_RUNS, [0, 1000, 2000, 3000], [0, 150], FIG_8_4_CHG_T, FIG_8_4_FINAL_T, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K)
 
 def fig_8_5():
-  run_dynaq_dynaqp('Figure 8.5', '8.5', FIG_8_5_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS, alpha=FIG_8_5_ALP, eps=FIG_8_5_EPS, k=FIG_8_5_K)
+  run_dynaq_dynaqp('Figure 8.5', 'fig8.5', FIG_8_5_N_RUNS, [0, 3000, 6000], [0, 400], FIG_8_5_CHG_T, FIG_8_5_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[1:-1], FIG_8_5_PLAN_STEPS, alpha=FIG_8_5_ALP, eps=FIG_8_5_EPS, k=FIG_8_5_K)
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
