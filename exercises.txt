@@ -592,4 +592,12 @@ this one was observed when running simulations! actually, the dynaq+ agent needs
 
 Theory: it seems pretty important to change those Q-values. indeed, by design, if you change the Q-values somewhere, the max(Q) will change, so it will propagate to the other Q-values until it reaches the point where the agent is currently blocked (using planning). if you only change the estimated reward WHEN CHOOSING ACTIONS then it's only a heuristic for acting, not used in planning. so my guess it that: it's good at unblocking yourself when there are only a few steps to do. if it's a maze where you need to do multiple good choices (> 5) in a row to reach the goal then it won't work. 
 
-Experiments:
+Experiments: from comparing dynaq+ with the original version on the blocking task (cf. plots/ex8.4.png) the weakness of this new version is that it takes more time to find the correct solution when the environment changes, but then its episodes lengths are shorter on average because it doesn't need to re-try every part of the map that he hasn't explored in a while.
+
+### 8.5
+
+Instead of selecting "THE" s_p, r from transition s, a, you just sample from a distribution on what you already encountered on s, a (e.g. if you got s_p,r = 1, 0 once and 2, 3 twice then the probability of the first is 1/3 and the second one is 2/3).
+
+This might perform poorly because when everytime it went up it as going up at the beginning, so it will take a long amount of time until the "distribution" mentioned above changes to the correct model. (like we have 1000 wrong instances, to get something 99% correct after a change in environment we would need 99 000 new transition from the new environment).
+
+For something that is good at both stochastic and changing environment, it would need to somehow have a distribution in the model (as mentioned) but this distribution should be rapidly updated for things it hasn't seen in a while (for instance, if it didn't see "up" cause a movement "up" in a while, then the probability of it happening in the model could decrease proportionally to 1 / (number of timesteps since last seen)).

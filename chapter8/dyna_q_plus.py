@@ -56,17 +56,18 @@ class DynaQPlus(DynaQ):
     cum_rew = 0
     s = self.env.reset()
     for step in range(n_steps):
-      self.add_expl_q_vals(s, a, remove=False)
+      self.add_expl_q_vals(s, remove=False)
       a = self.eps_gre(s)
-      self.add_expl_q_vals(s, a, remove=True)
+      self.add_expl_q_vals(s, remove=True)
       self.upd_count(s, a)
       s_p, r, d, _ = self.env.step(a)
       self.q_learning_update(s, a, r, s_p)
       self.model.add_transition(s, a, r, s_p)
-      self.plan_dyna_q_plus(n_plan_steps)
+      self.plan_dyna_q_plus(n_plan_steps, expl_term=False)
       s = self.env.reset() if d else s_p
       cum_rew += r
       cum_rew_l.append(cum_rew)
+    return cum_rew_l
 
   def print_trans_count(self):
     for s in self.env.states:
