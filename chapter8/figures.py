@@ -9,6 +9,7 @@ from utils import sample, to_arr
 import seaborn as sns
 import numpy as np
 from nstep_sarsa import nStepSarsa
+from prior_sweep import PrioritizedSweeping
 
 SEC_8_1_ALP = 0.001
 SEC_8_1_N_STEPS = int(1e6)
@@ -25,7 +26,7 @@ MED_FONT = 13
 BIG_FONT = 15
 EX_8_1_N_LIST = [5, 50]
 FIG_8_4_INIT_POS = (5, 3)
-FIG_8_4_GOAL_POS = (0, 8)
+FIG_8_4_GOAL_POS_L = [(0, 8)]
 FIG_8_4_GRID_SHAPE = (6, 9)
 FIG_8_4_WALLS = [(3, y) for y in range(FIG_8_4_GRID_SHAPE[1])]
 FIG_8_4_CHG_T = 1000
@@ -39,6 +40,7 @@ FIG_8_5_CHG_T = 3000
 FIG_8_5_FINAL_T = 6000
 EX_8_4_CHG_T = 6000
 EX_8_4_FINAL_T = 12000
+EXAMPLE_8_4_THETA = 1e-4
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -51,7 +53,7 @@ def show_pol(alg, show_label=True):
   sns.heatmap(to_arr(get_dyna_maze_pol(alg.env, alg.Q)), cbar_kws={'label': heatmap_label if show_label else None}, xticklabels=False, yticklabels=False)
 
 def section_8_1():
-  env = DynaMaze(FIG_8_2_INIT_POS, FIG_8_2_GOAL_POS, FIG_8_2_GRID_SHAPE, FIG_8_2_WALL)
+  env = DynaMaze(FIG_8_2_INIT_POS, FIG_8_2_GOAL_POS_L, FIG_8_2_GRID_SHAPE, FIG_8_2_WALL)
   alg = TabularQ(FullModel(env), SEC_8_1_ALP, DYNA_MAZE_GAMMA)
   alg.seed(0)
   alg.rand_sam_one_step_pla(SEC_8_1_N_STEPS, decay=True)
@@ -179,6 +181,12 @@ def fig_8_5():
 def ex_8_4():
   run_dynaq_dynaqp('Exercise 8.4', 'ex8.4', FIG_8_4_N_RUNS, [0, 6000, 12000], [0, 1000], EX_8_4_CHG_T, EX_8_4_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[:-1], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K, ex_8_4=True)
 
+def example_8_4():
+  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, FIG_8_4_GRID_SHAPE, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:])
+  alg = PrioritizedSweeping(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
+  alg.seed(0)
+  alg.updates_until_optimal(1000, max_plan_upd=5)
+
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
   '8.2': fig_8_2,
@@ -187,6 +195,7 @@ PLOT_FUNCTION = {
   '8.5': fig_8_5, 
   'ex8.1': ex_8_1,
   'ex8.4': ex_8_4,
+  'example8.4': example_8_4,
 }
 
 def main():

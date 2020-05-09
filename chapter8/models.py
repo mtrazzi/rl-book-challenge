@@ -25,6 +25,7 @@ class Model:
       return self.trans[(s, a)]
     except KeyError:
       print(f"transition {s}, {a} doesn't exist yet")
+      import ipdb; ipdb.set_trace()
 
   def __str__(self):
     strg = ''

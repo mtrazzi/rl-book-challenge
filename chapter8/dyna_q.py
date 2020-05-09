@@ -10,7 +10,6 @@ class DynaQ(TabularQ):
     self.env = env
     self.eps = eps
     self.reset()
-    self.counter = 0
 
   def best_actions(self, s):
     q_max, a_max_l = -np.inf, []
