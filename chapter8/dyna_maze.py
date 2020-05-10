@@ -1,7 +1,7 @@
 import numpy as np
 
 INIT_POS = (2, 0)
-GOAL_POS = (0, 8)
+GOAL_POS_L = [(0, 8)]
 GRID_SHAPE = (6, 9)
 KEY_ACTION_DICT = {
   'z': (-1, 0),
@@ -14,11 +14,6 @@ GOAL_KEY = 'G'
 INIT_KEY = 'S'
 WALL_KEY = 'W'
 WALLS = [(1, 2), (2, 2), (3, 2), (4, 5), (0, 7), (1, 7), (2, 7)]
-
-def dyna_maze_partitioned(n_states):
-  n_row, n_col = GRID_SHAPE
-  n_partitions = int(np.log(n_states / (n_row * n_col)) / np.log(2))
-  pass
 
 class Position:
   def __init__(self, x, y, is_goal):
@@ -53,7 +48,7 @@ class DynaMaze:
     self.get_moves()
     self.get_moves_dict()
     self.get_keys()
-    self.pos_char_dict = {self.init_pos: INIT_KEY, self.goal_pos_l[0]: GOAL_KEY}
+    self.pos_char_dict = {pos: INIT_KEY if pos == self.init_pos else GOAL_KEY for pos in [self.init_pos] + self.goal_pos_l}
     self.walls = walls1
     self.walls1 = walls1
     self.walls2 = walls2

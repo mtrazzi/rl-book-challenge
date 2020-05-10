@@ -2,7 +2,8 @@ import argparse
 import matplotlib.pyplot as plt
 from dyna_q import DynaQ
 from dyna_q_plus import DynaQPlus
-from dyna_maze import DynaMaze 
+from dyna_maze import DynaMaze
+from dyna_maze_part import DynaMazePartitioned
 from models import FullModel
 from tabular_q import TabularQ
 from utils import sample, to_arr
@@ -182,7 +183,7 @@ def ex_8_4():
   run_dynaq_dynaqp('Exercise 8.4', 'ex8.4', FIG_8_4_N_RUNS, [0, 6000, 12000], [0, 1000], EX_8_4_CHG_T, EX_8_4_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[:-1], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K, ex_8_4=True)
 
 def example_8_4():
-  env = DynaMaze(FIG_8_4_INIT_POS, FIG_8_4_GOAL_POS, FIG_8_4_GRID_SHAPE, FIG_8_4_WALLS[:-1], FIG_8_4_WALLS[1:])
+  env = DynaMazePartitioned(2)
   alg = PrioritizedSweeping(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
   alg.seed(0)
   alg.updates_until_optimal(1000, max_plan_upd=5)
