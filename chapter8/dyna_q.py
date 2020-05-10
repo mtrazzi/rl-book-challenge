@@ -20,11 +20,15 @@ class DynaQ(TabularQ):
         q_max = q_val
     return a_max_l
 
+  def gre(self, s):
+    q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
+    return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+    
+
   def eps_gre(self, s):
     if np.random.random() < self.eps:
       return sample(self.env.moves_d[s])
-    q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
-    return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+    return self.gre(s)
 
   def q_learning_update(self, s, a, r, s_p):
     max_val = -np.inf

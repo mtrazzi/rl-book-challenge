@@ -31,9 +31,9 @@ class PrioritizedSweeping(DynaQ):
       self.PQueue.put(Pair(P, s, a))
 
   def updates_until_optimal(self, n_steps_opt, max_plan_upd):
-    self.env.reset()
     n_updates = 0
     while True:
+      self.env.reset()
       n_steps = 0
       while True:
         s = self.env.state
@@ -56,9 +56,21 @@ class PrioritizedSweeping(DynaQ):
             _, _r = self.model.sample_s_r(_s, _a)
             self.PQueue_update(_s, _a, _r, s)
         if d:
+          print(n_steps)
+          print(n_steps_opt)
+          input("done")
           break
-      if n_steps <= n_steps_opt:
+      if self.test_n_steps(n_steps_opt):
         return n_updates
+
+  def test_n_steps(self, max_steps): 
+    s = self.env.reset()
+    n_steps = 0
+    d = False
+    while n_steps < max_steps and not d:
+      s, _, d, _ = self.env.step(self.gre(s))
+      n_steps += 1
+    return d
 
   def reset(self):
     super().reset()
