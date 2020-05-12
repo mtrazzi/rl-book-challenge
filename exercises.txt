@@ -601,3 +601,24 @@ Instead of selecting "THE" s_p, r from transition s, a, you just sample from a d
 This might perform poorly because when everytime it went up it as going up at the beginning, so it will take a long amount of time until the "distribution" mentioned above changes to the correct model. (like we have 1000 wrong instances, to get something 99% correct after a change in environment we would need 99 000 new transition from the new environment).
 
 For something that is good at both stochastic and changing environment, it would need to somehow have a distribution in the model (as mentioned) but this distribution should be rapidly updated for things it hasn't seen in a while (for instance, if it didn't see "up" cause a movement "up" in a while, then the probability of it happening in the model could decrease proportionally to 1 / (number of timesteps since last seen)).
+
+### 8.6
+
+This would weaken the case of sample updates over expected updates.
+
+Let's say that there's one state-action pair that could lead to a reward of 10 ** 20 with probability 10 ** (-15) and 0 otherwise. No matter how many samples you do, you won't do more than 10 ** (15) samples for this state action pair (given current hardware limits), so you're really not likely to sample this really high (possible) reward which gives an expected value for this action pair of 1000 (not 0).
+
+### 8.7
+
+The graph shows the value of a start state under the greedy policy. For b = 1, there are only two actions that lead to two different (or the same) states, deterministically. 
+
+My guesses for why is scalloped in the early portions:
+- for each regime, the model oscillates between two different actions for each state action pair, which corresponds to two states (b=1).
+- it says "all the while assuming the model is correct". it seems that with two possible next states, the "wrong" model oscillates between two different modes for each state, so that's why it scumbles.
+
+Parts of the data that supports my point:
+- low graph with b=1 has the same behaviour for uniform
+- it's somewhat also true with b=3 and not true for b=10, so it shows that the scumbleness becomes lower with b, which makes sense given what i said above.
+
+Why it's not also the case with b=1 on policy:
+- my guess is that because the examples with b=1 on-policy converge super quickly, we don't get to see the scumbleness.
