@@ -43,6 +43,9 @@ EX_8_4_CHG_T = 6000
 EX_8_4_FINAL_T = 12000
 EXAMPLE_8_4_THETA = 1e-4
 EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
+EXAMPLE_8_4_N_RUNS = 4
+FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
+FIG_8_7_N_RUNS = 5
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -184,31 +187,61 @@ def ex_8_4():
   run_dynaq_dynaqp('Exercise 8.4', 'ex8.4', FIG_8_4_N_RUNS, [0, 6000, 12000], [0, 1000], EX_8_4_CHG_T, EX_8_4_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[:-1], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K, ex_8_4=True)
 
 def example_8_4():
-  import time
   fig, ax = plt.subplots()  
-  ax.set_title('Example 8.4')
-  n_upd_prio_l, n_upd_dyna_l, n_states_l = [[] for _ in range(3)]
+  ax.set_title(f'Example 8.4 ({EXAMPLE_8_4_N_RUNS} runs per datapoint)', fontsize=BIG_FONT)
+  n_upd_prio_l, n_upd_dyna_l, n_states_l = [], [], []
   for n in EXAMPLE_8_4_N_PART:
+    env = DynaMazePartitioned(n)
+    n_moves_opt = sum(env.expand((6, 8)))
+    n_states_l.append(len(env.states)-len(env.walls))
     print(f"n={n}")
-    prio_alg = PrioritizedSweeping(DynaMazePartitioned(n), FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
-    dyna_alg = DynaQ(DynaMazePartitioned(n), FIG_8_4_ALP, DYNA_MAZE_GAMMA, FIG_8_4_EPS)
-    n_moves_opt = sum(prio_alg.env.expand((6, 8)))
-    print(f"dyna...")
-    start = time.time()
-    n_upd_dyna_l.append(dyna_alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
-    print(f"{time.time()-start:.2f}s, so fast!")
-    print(f"prio...")
-    start = time.time()
-    n_upd_prio_l.append(prio_alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
-    print(f"{time.time()-start:.2f}s, so fast!")
-    n_states_l.append(len(prio_alg.env.states)-len(prio_alg.env.walls))
-  ax.set_xticks(n_states_l)
-  ax.set_yticks([10 ** k for k in range(3)])
-  plt.yscale('log')
-  plt.plot(n_states_l, n_upd_prio_l, color='r', label='Prioritized Sweeping')
-  plt.plot(n_states_l, n_upd_dyna_l, color='b', label='Dyna-Q')
-  save_plot('example8.4')
+    for (alg_class, param, n_upd_l) in [(PrioritizedSweeping, EXAMPLE_8_4_THETA, n_upd_prio_l), (DynaQ, FIG_8_4_EPS, n_upd_dyna_l)]:
+      n_upd_l.append(0)
+      alg = alg_class(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, param)
+      alg.seed(0)
+      for _ in range(EXAMPLE_8_4_N_RUNS):
+        alg.reset()
+        n_upd_l[-1] += (alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
+      n_upd_l[-1] /= EXAMPLE_8_4_N_RUNS
+  ax.set_xlabel('Gridworld states (#states)', fontsize=BIG_FONT-2)
+  ax.set_ylabel('Updates\nuntil\noptimal\nsolution', rotation=0, labelpad=25, fontsize=BIG_FONT-2)
+  ax.set_xscale('log', basex=2)
+  x_name = ['0'] + [str(n_states) for n_states in n_states_l]
+  xticks = [2 ** k for k in range(len(n_states_l) + 1)]
+  plt.xticks(xticks, x_name)
+  ax.set_yscale('log')
+  plt.plot(xticks, [10] + n_upd_prio_l, color='r', label='Prioritized Sweeping')
+  plt.plot(xticks, [10] + n_upd_dyna_l, color='b', label='Dyna-Q')
+  plt.legend()
+  fig.set_size_inches(10, 8)
+  save_plot('example8.4', dpi=100)
   plt.show()
+
+def fig_8_7():
+  fig, ax = plt.subplots()  
+  ax.set_title('Figure 8.7', fontsize=BIG_FONT)
+  R = 0
+  gamma = 1
+  for b in FIG_8_7_B_L[:1]:
+    true_q_vals = np.random.randn(b)
+    qstar = R + gamma * np.mean(true_q_vals)
+    #estim =   
+    for _ in range(FIG_8_7_N_RUNS):
+      qhat = qstar + np.random.choice([-1, 1])
+      errors = []
+      for t in range(1, 2 * b + 1):
+        sampled_idx = np.random.randint(b)
+        qhat += (1 / (t + 1)) * (R + gamma * true_q_vals[sampled_idx] - qhat)
+        estim[t - 1] += qhat
+    xidxs = [x / (2 * b) for x in range(1, 2 * b + 1)]
+    rms_err = np.linalg.norm((estim - qstar) / FIG_8_7_N_RUNS)
+    plt.plot(xidxs,  rms_err, label=f'b={b}')
+  xname = ['0', '1b', '2b']
+  xticks = [0, 1 / 2, 1]
+  plt.xticks(xticks, xname)
+  plt.legend()
+  plt.show()
+  save_plot('fig8.7')
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
@@ -219,6 +252,7 @@ PLOT_FUNCTION = {
   'ex8.1': ex_8_1,
   'ex8.4': ex_8_4,
   'example8.4': example_8_4,
+  '8.7': fig_8_7,
 }
 
 def main():
