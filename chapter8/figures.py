@@ -188,7 +188,7 @@ def example_8_4():
     alg = PrioritizedSweeping(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
     alg.seed(0)
     n_moves_opt = sum(alg.env.expand((6, 8)))
-    alg.updates_until_optimal(n_moves_opt, max_plan_upd=5)
+    alg.updates_until_optimal(n_moves_opt, max_plan_upd=5, tol=0.5)
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
