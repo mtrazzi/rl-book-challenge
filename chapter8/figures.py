@@ -42,6 +42,7 @@ FIG_8_5_FINAL_T = 6000
 EX_8_4_CHG_T = 6000
 EX_8_4_FINAL_T = 12000
 EXAMPLE_8_4_THETA = 1e-4
+EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -183,12 +184,31 @@ def ex_8_4():
   run_dynaq_dynaqp('Exercise 8.4', 'ex8.4', FIG_8_4_N_RUNS, [0, 6000, 12000], [0, 1000], EX_8_4_CHG_T, EX_8_4_FINAL_T, FIG_8_4_WALLS[1:], FIG_8_4_WALLS[:-1], FIG_8_4_PLAN_STEPS, alpha=FIG_8_4_ALP, eps=FIG_8_4_EPS, k=FIG_8_4_K, ex_8_4=True)
 
 def example_8_4():
-  for n in range(1):
-    env = DynaMazePartitioned(n)
-    alg = PrioritizedSweeping(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
-    alg.seed(0)
-    n_moves_opt = sum(alg.env.expand((6, 8)))
-    alg.updates_until_optimal(n_moves_opt, max_plan_upd=5, tol=0.5)
+  import time
+  fig, ax = plt.subplots()  
+  ax.set_title('Example 8.4')
+  n_upd_prio_l, n_upd_dyna_l, n_states_l = [[] for _ in range(3)]
+  for n in EXAMPLE_8_4_N_PART:
+    print(f"n={n}")
+    prio_alg = PrioritizedSweeping(DynaMazePartitioned(n), FIG_8_4_ALP, DYNA_MAZE_GAMMA, EXAMPLE_8_4_THETA)
+    dyna_alg = DynaQ(DynaMazePartitioned(n), FIG_8_4_ALP, DYNA_MAZE_GAMMA, FIG_8_4_EPS)
+    n_moves_opt = sum(prio_alg.env.expand((6, 8)))
+    print(f"dyna...")
+    start = time.time()
+    n_upd_dyna_l.append(dyna_alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
+    print(f"{time.time()-start:.2f}s, so fast!")
+    print(f"prio...")
+    start = time.time()
+    n_upd_prio_l.append(prio_alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
+    print(f"{time.time()-start:.2f}s, so fast!")
+    n_states_l.append(len(prio_alg.env.states))
+  ax.set_xticks(n_states_l)
+  #ax.set_yticks([10 ** k for k in range(3)])
+  plt.yscale('log')
+  plt.plot(n_states_l, n_upd_prio_l, color='r', label='Prioritized Sweeping')
+  plt.plot(n_states_l, n_upd_dyna_l, color='b', label='Dyna-Q')
+  save_plot('example8.4')
+  plt.show()
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,

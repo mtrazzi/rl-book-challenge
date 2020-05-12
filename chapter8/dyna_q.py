@@ -73,6 +73,29 @@ class DynaQ(TabularQ):
       cum_rew_l.append(cum_rew)
     return cum_rew_l
 
+  def test_n_steps(self, max_steps, tol=0.1): 
+    s = self.env.reset()
+    n_steps = 0
+    d = False
+    while n_steps < ((1 + tol) * max_steps) and not d:
+      s, _, d, _ = self.env.step(self.gre(s))
+      n_steps += 1
+    return d
+
+  def updates_until_optimal(self, n_steps_opt, n_plan_steps, tol=0.1):
+    n_updates = 0
+    s = self.env.reset()
+    while True:
+      a = self.eps_gre(s)
+      s_p, r, d, _ = self.env.step(a)
+      self.q_learning_update(s, a, r, s_p)
+      self.model.add_transition(s, a, r, s_p)
+      self.rand_sam_one_step_pla(n_plan_steps)
+      s = self.env.reset() if d else s_p
+      n_updates += n_plan_steps + 1
+      if d and self.test_n_steps(n_steps_opt, tol):
+        return n_updates
+
   def seed(self, seed):
     self.env.seed(seed)
     np.random.seed(seed)

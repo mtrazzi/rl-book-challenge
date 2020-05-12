@@ -30,24 +30,20 @@ class PrioritizedSweeping(DynaQ):
     if P > self.theta:
       self.PQueue.put(Pair(P, s, a))
 
-  def updates_until_optimal(self, n_steps_opt, max_plan_upd, tol=0.1):
+  def updates_until_optimal(self, n_steps_opt, n_plan_steps, tol=0.1):
     n_updates = 0
-    counter = 0
     while True:
-      counter += 1
       self.env.reset()
-      n_steps = 0
       while True:
         s = self.env.state
         #print(self.env)
         #time.sleep(0.01)
         a = self.policy(s, self.Q)
         s_p, r, d, _ = self.env.step(a)
-        n_steps += 1
         self.model.add_transition(s, a, r, s_p)
         self.predecessor[s_p].add((s, a))
         self.PQueue_update(s, a, r, s_p)
-        for _ in range(max_plan_upd):
+        for _ in range(n_plan_steps):
           if self.PQueue.empty():
             break
           s, a = self.PQueue.get().get_s_a()
@@ -58,23 +54,9 @@ class PrioritizedSweeping(DynaQ):
             _, _r = self.model.sample_s_r(_s, _a)
             self.PQueue_update(_s, _a, _r, s)
         if d:
-          if counter >= 3:
-            time.sleep(1)
-            print("n_steps=n_steps")
           break
       if self.test_n_steps(n_steps_opt, tol):
         return n_updates
-
-  def test_n_steps(self, max_steps, tol=0.1): 
-    s = self.env.reset()
-    n_steps = 0
-    d = False
-    while n_steps < ((1 + tol) * max_steps) and not d:
-      s, _, d, _ = self.env.step(self.gre(s))
-      n_steps += 1
-    print(f"{n_steps} < {((1 + tol) * max_steps)}")
-    print(d)
-    return d
 
   def reset(self):
     super().reset()
