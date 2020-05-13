@@ -11,6 +11,8 @@ import seaborn as sns
 import numpy as np
 from nstep_sarsa import nStepSarsa
 from prior_sweep import PrioritizedSweeping
+from traj_sampling import TrajectorySampling
+from task import Task, START_STATE
 import time
 
 SEC_8_1_ALP = 0.001
@@ -47,8 +49,14 @@ EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
 FIG_8_7_N_RUNS = 100
-FIG_8_7_N_ST_UPPER = 1000
-FIG_8_7_N_ST_LOWER = 10000
+FIG_8_8_N_ST_UPPER = 1000
+FIG_8_8_N_ST_LOWER = 10000
+FIG_8_8_N_UPD_UPPER = 1000
+FIG_8_8_N_UPD_LOWER = 200000
+FIG_8_8_B_L_UPPER = [1, 3, 10]
+FIG_8_8_B_L_LOWER = [1]
+FIG_8_8_LOG_FREQ_UPPER = 100
+FIG_8_8_LOG_FREQ_LOWER = 1000
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -253,15 +261,29 @@ def fig_8_7():
   save_plot('fig8.7')
   plt.show()
 
-def value_start_state_under_greedy_pol(b, on_policy):
-  return 0
+def set_axis(ax, n_states):
+  ax.set_title(f'{n_states} states')
+  xlabel = 'Computation time, in expected updates'
+  ylabel = 'Value of\nstart state\nunder\ngreedy\npolicy'
+  ax.set_xlabel(xlabel, fontsize=BIG_FONT-4)
+  ax.set_ylabel(ylabel, rotation=0, labelpad=25, fontsize=BIG_FONT-4)
 
 def fig_8_8():
-  #fig, ax = plt.subplots() 
-  value_start_state_under_greedy_pol(b=1, on_policy=True)
-  #fig.suptitle('Figure 8.8')
+  fig = plt.figure() 
+  ax = fig.add_subplot('121')
+  for b in FIG_8_8_B_L_UPPER[:1]:
+    print(f"b={b}")
+    env = Task(b, FIG_8_8_N_ST_UPPER)
+    alg = TrajectorySampling(env) 
+    s_0 = alg.env.reset()
+    xticks = [FIG_8_8_LOG_FREQ_UPPER * k for k in range(FIG_8_8_N_UPD_UPPER // FIG_8_8_LOG_FREQ_UPPER)]
+    plt.plot(xticks, alg.uniform(START_STATE, FIG_8_8_N_UPD_UPPER, FIG_8_8_LOG_FREQ_UPPER)) 
+    ax.set_xticks(xticks + [FIG_8_8_N_UPD_UPPER])
+  set_axis(ax, FIG_8_8_N_ST_UPPER)
+  fig.suptitle('Figure 8.8')
+  fig.set_size_inches(20, 16)
   #save_plot('fig8.8')
-  #plt.show()
+  plt.show()
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
