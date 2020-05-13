@@ -11,6 +11,7 @@ import seaborn as sns
 import numpy as np
 from nstep_sarsa import nStepSarsa
 from prior_sweep import PrioritizedSweeping
+import time
 
 SEC_8_1_ALP = 0.001
 SEC_8_1_N_STEPS = int(1e6)
@@ -45,7 +46,9 @@ EXAMPLE_8_4_THETA = 1e-4
 EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
-FIG_8_7_N_RUNS = 5
+FIG_8_7_N_RUNS = 100
+FIG_8_7_N_ST_UPPER = 1000
+FIG_8_7_N_ST_LOWER = 10000
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -194,14 +197,17 @@ def example_8_4():
     env = DynaMazePartitioned(n)
     n_moves_opt = sum(env.expand((6, 8)))
     n_states_l.append(len(env.states)-len(env.walls))
-    print(f"n={n}")
+    print(f"n_states={n_states_l[-1]}")
     for (alg_class, param, n_upd_l) in [(PrioritizedSweeping, EXAMPLE_8_4_THETA, n_upd_prio_l), (DynaQ, FIG_8_4_EPS, n_upd_dyna_l)]:
+      print(("prio" if alg_class == PrioritizedSweeping else "dyna") + "...")
       n_upd_l.append(0)
       alg = alg_class(env, FIG_8_4_ALP, DYNA_MAZE_GAMMA, param)
       alg.seed(0)
-      for _ in range(EXAMPLE_8_4_N_RUNS):
+      for run in range(EXAMPLE_8_4_N_RUNS):
         alg.reset()
+        start = time.time()
         n_upd_l[-1] += (alg.updates_until_optimal(n_moves_opt, n_plan_steps=5, tol=0.5))
+        print(f"run #{run} took {time.time()-start:.2f}s")
       n_upd_l[-1] /= EXAMPLE_8_4_N_RUNS
   ax.set_xlabel('Gridworld states (#states)', fontsize=BIG_FONT-2)
   ax.set_ylabel('Updates\nuntil\noptimal\nsolution', rotation=0, labelpad=25, fontsize=BIG_FONT-2)
@@ -219,29 +225,43 @@ def example_8_4():
 
 def fig_8_7():
   fig, ax = plt.subplots()  
-  ax.set_title('Figure 8.7', fontsize=BIG_FONT)
+  ax.set_title(f'Figure 8.7 ({FIG_8_7_N_RUNS} runs per b)', fontsize=BIG_FONT)
   R = 0
   gamma = 1
-  for b in FIG_8_7_B_L[:1]:
+  def rms_error(vals, true_vals, n):
+    return np.sqrt(np.sum((vals - true_vals) ** 2) / n)
+  for b in FIG_8_7_B_L:
+    print(f"b={b}")
     true_q_vals = np.random.randn(b)
     qstar = R + gamma * np.mean(true_q_vals)
-    #estim =   
-    for _ in range(FIG_8_7_N_RUNS):
-      qhat = qstar + np.random.choice([-1, 1])
+    estim = np.zeros((2 * b + 1, FIG_8_7_N_RUNS))
+    qhat_0 = qstar + np.random.choice([-1, 1])
+    for run in range(FIG_8_7_N_RUNS):
+      qhat = qhat_0
       errors = []
       for t in range(1, 2 * b + 1):
         sampled_idx = np.random.randint(b)
         qhat += (1 / (t + 1)) * (R + gamma * true_q_vals[sampled_idx] - qhat)
-        estim[t - 1] += qhat
+        estim[t - 1, run] = qhat
     xidxs = [x / (2 * b) for x in range(1, 2 * b + 1)]
-    rms_err = np.linalg.norm((estim - qstar) / FIG_8_7_N_RUNS)
+    rms_err = [rms_error(estim[t - 1, :], qstar, FIG_8_7_N_RUNS) for t in range(1, 2 * b + 1)]
     plt.plot(xidxs,  rms_err, label=f'b={b}')
   xname = ['0', '1b', '2b']
   xticks = [0, 1 / 2, 1]
   plt.xticks(xticks, xname)
   plt.legend()
-  plt.show()
   save_plot('fig8.7')
+  plt.show()
+
+def value_start_state_under_greedy_pol(b, on_policy):
+  return 0
+
+def fig_8_8():
+  #fig, ax = plt.subplots() 
+  value_start_state_under_greedy_pol(b=1, on_policy=True)
+  #fig.suptitle('Figure 8.8')
+  #save_plot('fig8.8')
+  #plt.show()
 
 PLOT_FUNCTION = {
   'section8.1': section_8_1,
@@ -253,6 +273,7 @@ PLOT_FUNCTION = {
   'ex8.4': ex_8_4,
   'example8.4': example_8_4,
   '8.7': fig_8_7,
+  '8.8': fig_8_8,
 }
 
 def main():
