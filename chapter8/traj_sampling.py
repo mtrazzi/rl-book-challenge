@@ -49,5 +49,17 @@ class TrajectorySampling:
         values.append(self.gre_estimation(start_state))
     return values
 
+  def on_policy(self, start_state, n_updates, log_freq=100):
+    values = []
+    start = time.time()
+    for upd in range(n_updates):
+      for s in self.env.states:
+        for a in self.env.moves_d[s]:
+          self.exp_update(s, a) 
+      if upd % log_freq == (log_freq - 1):
+        print(f"{upd + 1} updates (total of {time.time()-start:.2f}s)")
+        values.append(self.gre_estimation(start_state))
+    return values
+
   def reset(self):
     self.Q = {(s, a): 0 for s in self.env.states for a in self.env.moves_d[s]} 

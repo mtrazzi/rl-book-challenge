@@ -49,14 +49,14 @@ EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
 FIG_8_7_N_RUNS = 100
-FIG_8_8_N_ST_UPPER = 1000
-FIG_8_8_N_ST_LOWER = 10000
-FIG_8_8_N_UPD_UPPER = 1000
-FIG_8_8_N_UPD_LOWER = 200000
+FIG_8_8_N_ST_UPPER = 50
+FIG_8_8_N_ST_LOWER = 100
+FIG_8_8_N_UPD_UPPER = 500
+FIG_8_8_N_UPD_LOWER = 400
 FIG_8_8_B_L_UPPER = [1, 3, 10]
 FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_UPPER = 100
-FIG_8_8_LOG_FREQ_LOWER = 1000
+FIG_8_8_LOG_FREQ_LOWER = 100
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -261,28 +261,33 @@ def fig_8_7():
   save_plot('fig8.7')
   plt.show()
 
-def set_axis(ax, n_states):
+def set_axis(ax, n_states, xticks, show_ylabel=True):
   ax.set_title(f'{n_states} states')
   xlabel = 'Computation time, in expected updates'
   ylabel = 'Value of\nstart state\nunder\ngreedy\npolicy'
   ax.set_xlabel(xlabel, fontsize=BIG_FONT-4)
-  ax.set_ylabel(ylabel, rotation=0, labelpad=25, fontsize=BIG_FONT-4)
+  if show_ylabel:
+    ax.set_ylabel(ylabel, rotation=0, labelpad=25, fontsize=BIG_FONT-4)
+  ax.set_xticks(xticks)
 
 def fig_8_8():
   fig = plt.figure() 
-  ax = fig.add_subplot('121')
-  for b in FIG_8_8_B_L_UPPER[:1]:
-    print(f"b={b}")
-    env = Task(b, FIG_8_8_N_ST_UPPER)
-    alg = TrajectorySampling(env) 
-    s_0 = alg.env.reset()
-    xticks = [FIG_8_8_LOG_FREQ_UPPER * k for k in range(FIG_8_8_N_UPD_UPPER // FIG_8_8_LOG_FREQ_UPPER)]
-    plt.plot(xticks, alg.uniform(START_STATE, FIG_8_8_N_UPD_UPPER, FIG_8_8_LOG_FREQ_UPPER)) 
-    ax.set_xticks(xticks + [FIG_8_8_N_UPD_UPPER])
-  set_axis(ax, FIG_8_8_N_ST_UPPER)
+  for (n_st, log_freq, n_upd, b_list, fig_id) in [(FIG_8_8_N_ST_UPPER, FIG_8_8_LOG_FREQ_UPPER, FIG_8_8_N_UPD_UPPER, FIG_8_8_B_L_UPPER, '121'),
+                                                  (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')]:
+    xticks = [log_freq * k for k in range(n_upd // log_freq)]
+    set_axis(fig.add_subplot(fig_id), n_st, xticks + [n_upd], fig_id == '121')
+    for b in b_list:
+      print(f"b={b}")
+      alg = TrajectorySampling(Task(b, n_st)) 
+      for (updates, label) in [(alg.uniform, 'uniform'), 
+                               (alg.on_policy, 'on policy')]:
+        plt.plot(xticks,
+                 updates(START_STATE, n_upd, log_freq),
+                 label=f'b={b}, ' + label) 
+      plt.legend()
   fig.suptitle('Figure 8.8')
   fig.set_size_inches(20, 16)
-  #save_plot('fig8.8')
+  save_plot('fig8.8')
   plt.show()
 
 PLOT_FUNCTION = {
