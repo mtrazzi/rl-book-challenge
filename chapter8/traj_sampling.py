@@ -47,7 +47,7 @@ class TrajectorySampling:
       if upd % log_freq == (log_freq - 1):
         print(f"{upd + 1} updates (total of {time.time()-start:.2f}s)")
         values.append(self.gre_estimation(start_state))
-    return values
+    return np.array(values)
 
   def on_policy(self, start_state, n_updates, log_freq=100):
     values = []

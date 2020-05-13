@@ -49,14 +49,16 @@ EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
 FIG_8_7_N_RUNS = 100
-FIG_8_8_N_ST_UPPER = 50
-FIG_8_8_N_ST_LOWER = 100
-FIG_8_8_N_UPD_UPPER = 500
-FIG_8_8_N_UPD_LOWER = 400
+FIG_8_8_N_RUNS = 20
+FIG_8_8_N_ST_UPPER = 1000
+FIG_8_8_N_UPD_UPPER = 1000
 FIG_8_8_B_L_UPPER = [1, 3, 10]
-FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_UPPER = 100
+FIG_8_8_N_ST_LOWER = 100
+FIG_8_8_N_UPD_LOWER = 400
+FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_LOWER = 100
+FIG_8_8_S_0 = START_STATE
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -272,15 +274,21 @@ def set_axis(ax, n_states, xticks, show_ylabel=True):
 
 def fig_8_8():
   fig = plt.figure() 
+  np.random.seed(0)
   for (n_st, log_freq, n_upd, b_list, fig_id) in [(FIG_8_8_N_ST_UPPER, FIG_8_8_LOG_FREQ_UPPER, FIG_8_8_N_UPD_UPPER, FIG_8_8_B_L_UPPER, '121'),
-                                                  (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')]:
+                                                  (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')][:1]:
     xticks = [log_freq * k for k in range(n_upd // log_freq)]
     set_axis(fig.add_subplot(fig_id), n_st, xticks + [n_upd], fig_id == '121')
-    for b in b_list:
+    for b in b_list[:1]:
       print(f"b={b}")
-      alg = TrajectorySampling(Task(b, n_st)) 
-      for (updates, label) in [(alg.uniform, 'uniform'), 
-                               (alg.on_policy, 'on policy')]:
+      for label in ['uniform', 'on policy'][:1]:
+        print(f"{label}..")
+        vals = 0
+        for run in range(FIG_8_8_N_RUNS):
+          print(f"run #{run}")
+          alg = TrajectorySampling(Task(b, n_st)) 
+          updates = alg.uniform if label == 'uniform' else alg.on_policy
+          vals += updates(FIG_8_8_S_0, n_upd, log_freq)
         plt.plot(xticks,
                  updates(START_STATE, n_upd, log_freq),
                  label=f'b={b}, ' + label) 
