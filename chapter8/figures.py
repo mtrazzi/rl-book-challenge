@@ -58,7 +58,7 @@ FIG_8_8_B_L_UPPER = [1, 3, 10]
 FIG_8_8_N_ST_UPPER = 1000
 FIG_8_8_N_UPD_UPPER = 20000
 FIG_8_8_LOG_FREQ_UPPER = 1000
-FIG_8_8_N_RUNS = 3
+FIG_8_8_N_RUNS = 10
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -270,7 +270,7 @@ def set_axis(ax, n_states, xticks, show_ylabel=True):
   ax.set_xlabel(xlabel, fontsize=BIG_FONT-4)
   if show_ylabel:
     ax.set_ylabel(ylabel, rotation=0, labelpad=35, fontsize=BIG_FONT-4)
-  ax.set_xticks(xticks)
+  ax.set_xticks([xticks[k] for k in [0, 5, 10, 15, 20]])
 
 def fig_8_8():
   fig = plt.figure() 
