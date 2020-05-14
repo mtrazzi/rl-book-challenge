@@ -36,6 +36,24 @@ python figures 8.4
 python figures 8.5
 ```
 
+### Figure 8.7:
+
+![fig8.7.png](plots/fig8.7.png)
+
+
+```bash
+python figures 8.7
+```
+
+### Figure 8.8:
+
+![fig8.8.png](plots/fig8.8.png)
+
+
+```bash
+python figures 8.8
+```
+
 ## Exercises
 
 ### Exercise 8.1
@@ -44,6 +62,14 @@ python figures 8.5
 
 ```bash
 python figures ex8.1
+```
+
+### Exercise 8.4
+
+![ex8.4.png](plots/ex8.4.png)
+
+```bash
+python figures ex8.4
 ```
 
 ## Sections
