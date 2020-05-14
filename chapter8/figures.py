@@ -53,7 +53,7 @@ FIG_8_8_S_0 = START_STATE
 FIG_8_8_N_ST_LOWER = 10000
 FIG_8_8_N_UPD_LOWER = 200000
 FIG_8_8_B_L_LOWER = [1]
-FIG_8_8_LOG_FREQ_LOWER = 100
+FIG_8_8_LOG_FREQ_LOWER = 10000
 FIG_8_8_B_L_UPPER = [1, 3, 10]
 FIG_8_8_N_ST_UPPER = 1000
 FIG_8_8_N_UPD_UPPER = 20000
@@ -279,7 +279,7 @@ def fig_8_8():
                                                   (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')]:
     xticks = [log_freq * k for k in range(n_upd // log_freq + 1)]
     set_axis(fig.add_subplot(fig_id), n_st, xticks + [n_upd], fig_id == '121')
-    for b in b_list[:1]:
+    for b in b_list:
       task_list = [Task(b, n_st) for _ in range(FIG_8_8_N_RUNS)]
       print(f"b={b}")
       for label in ['uniform', 'on policy']:
