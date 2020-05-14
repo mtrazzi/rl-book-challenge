@@ -9,12 +9,13 @@ RIGHT = 1
 P_TERM = 0.1
 
 class Task:
-  def __init__(self, b, n_states):
+  def __init__(self, b, n_states, eps=P_TERM):
     self.b = b 
     self.n_states = n_states
     self.get_states()
     self.get_moves_d()
     self.get_transitions()
+    self.eps = eps
 
   def get_states(self):
     self.states = [TERMINAL_STATE] + list(range(self.n_states))
@@ -43,8 +44,9 @@ class Task:
   def step(self, a):
     s = self.state 
     exp_rew, next_states = self.trans[(s, a)]
-    done = np.random.random() < P_TERM
+    done = np.random.random() < self.eps
     s_p = TERMINAL_STATE if done else sample(next_states)
+    self.state = s_p
     return s_p, exp_rew, done, {}
 
   def seed(self, seed):

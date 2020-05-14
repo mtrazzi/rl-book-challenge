@@ -49,16 +49,18 @@ EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
 FIG_8_7_N_RUNS = 100
-FIG_8_8_N_RUNS = 20
-FIG_8_8_N_ST_UPPER = 1000
-FIG_8_8_N_UPD_UPPER = 1000
-FIG_8_8_B_L_UPPER = [1, 3, 10]
-FIG_8_8_LOG_FREQ_UPPER = 100
 FIG_8_8_N_ST_LOWER = 100
 FIG_8_8_N_UPD_LOWER = 400
 FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_LOWER = 100
+
+FIG_8_8_B_L_UPPER = [1, 3, 10]
+FIG_8_8_N_ST_UPPER = 1000
 FIG_8_8_S_0 = START_STATE
+
+FIG_8_8_N_UPD_UPPER = 5000
+FIG_8_8_LOG_FREQ_UPPER = 1000
+FIG_8_8_N_RUNS = 1
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -289,8 +291,9 @@ def fig_8_8():
           alg = TrajectorySampling(Task(b, n_st)) 
           updates = alg.uniform if label == 'uniform' else alg.on_policy
           vals += updates(FIG_8_8_S_0, n_upd, log_freq)
+          print(vals)
         plt.plot(xticks,
-                 updates(START_STATE, n_upd, log_freq),
+                 vals / FIG_8_8_N_RUNS,
                  label=f'b={b}, ' + label) 
       plt.legend()
   fig.suptitle('Figure 8.8')

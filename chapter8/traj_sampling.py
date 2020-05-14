@@ -12,21 +12,18 @@ class TrajectorySampling:
     q_arr = np.array([self.Q[(s, a)] for a in self.env.moves_d[s]])
     return self.env.moves_d[s][np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
 
-  #def estimate_state(self, s_0, pi=None):
-  #  if pi is None:
-  #    a_max = self.gre(s_0)
-  #    moves = self.env.moves_d[s_0]
-  #    p_a = self.eps / len(moves)
-  #    pi = {(s_0, a): p_a + (1 - self.eps) * (a == a_max) for a in moves}
-  #  return sum(pi[(s_0, a)] * self.Q[(s_0, a)] for a in moves)
-
-  def gre_estimation(self, s):
-    r_sum, d = 0, False
-    self.env.force_state(s)
-    while not d:
-      s, r, d, _ = self.env.step(self.gre(s))
-      r_sum += r
-    return r_sum
+  def gre_value_iteration(self, s_0, theta=1e-4):
+    V = {s: 0 for s in self.env.states}
+    while True:
+      delta = 0
+      for s in self.env.states:
+        v = V[s]
+        r, next_states = self.env.trans[(s, self.gre(s))]
+        V[s] = r + ((1 - self.env.eps)  / self.env.b) * sum(V[s_p] for s_p in next_states)
+        delta = max(delta, abs(v-V[s]))
+      if delta < theta:
+        break
+    return V[s_0]
 
   def eps_gre(self, s):
     if np.random.random() < self.eps:
@@ -46,7 +43,7 @@ class TrajectorySampling:
           self.exp_update(s, a) 
       if upd % log_freq == (log_freq - 1):
         print(f"{upd + 1} updates (total of {time.time()-start:.2f}s)")
-        values.append(self.gre_estimation(start_state))
+        values.append(self.gre_value_iteration(start_state, theta=1))
     return np.array(values)
 
   def on_policy(self, start_state, n_updates, log_freq=100):
