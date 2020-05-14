@@ -49,18 +49,16 @@ EXAMPLE_8_4_N_PART = list(range(int(np.log(6016 // 47) / np.log(2)) + 1))
 EXAMPLE_8_4_N_RUNS = 4
 FIG_8_7_B_L = [2, 10, 100, 1000, 10000]
 FIG_8_7_N_RUNS = 100
-FIG_8_8_N_ST_LOWER = 100
-FIG_8_8_N_UPD_LOWER = 400
+FIG_8_8_S_0 = START_STATE
+FIG_8_8_N_ST_LOWER = 10000
+FIG_8_8_N_UPD_LOWER = 200000
 FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_LOWER = 100
-
 FIG_8_8_B_L_UPPER = [1, 3, 10]
-FIG_8_8_N_ST_UPPER = 500
-FIG_8_8_S_0 = START_STATE
-
-FIG_8_8_N_UPD_UPPER = 5000
+FIG_8_8_N_ST_UPPER = 1000
+FIG_8_8_N_UPD_UPPER = 20000
 FIG_8_8_LOG_FREQ_UPPER = 1000
-FIG_8_8_N_RUNS = 10
+FIG_8_8_N_RUNS = 3
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -271,32 +269,33 @@ def set_axis(ax, n_states, xticks, show_ylabel=True):
   ylabel = 'Value of\nstart state\nunder\ngreedy\npolicy'
   ax.set_xlabel(xlabel, fontsize=BIG_FONT-4)
   if show_ylabel:
-    ax.set_ylabel(ylabel, rotation=0, labelpad=25, fontsize=BIG_FONT-4)
+    ax.set_ylabel(ylabel, rotation=0, labelpad=35, fontsize=BIG_FONT-4)
   ax.set_xticks(xticks)
 
 def fig_8_8():
   fig = plt.figure() 
   np.random.seed(0)
   for (n_st, log_freq, n_upd, b_list, fig_id) in [(FIG_8_8_N_ST_UPPER, FIG_8_8_LOG_FREQ_UPPER, FIG_8_8_N_UPD_UPPER, FIG_8_8_B_L_UPPER, '121'),
-                                                  (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')][:1]:
-    xticks = [log_freq * k for k in range(n_upd // log_freq)]
+                                                  (FIG_8_8_N_ST_LOWER, FIG_8_8_LOG_FREQ_LOWER, FIG_8_8_N_UPD_LOWER, FIG_8_8_B_L_LOWER, '122')]:
+    xticks = [log_freq * k for k in range(n_upd // log_freq + 1)]
     set_axis(fig.add_subplot(fig_id), n_st, xticks + [n_upd], fig_id == '121')
     for b in b_list[:1]:
+      task_list = [Task(b, n_st) for _ in range(FIG_8_8_N_RUNS)]
       print(f"b={b}")
-      for label in ['uniform', 'on policy'][:1]:
+      for label in ['uniform', 'on policy']:
         print(f"{label}..")
         vals = 0
-        for run in range(FIG_8_8_N_RUNS):
-          print(f"run #{run}")
-          alg = TrajectorySampling(Task(b, n_st)) 
+        for (run_id, task) in enumerate(task_list):
+          print(f"run #{run_id}")
+          alg = TrajectorySampling(task) 
           updates = alg.uniform if label == 'uniform' else alg.on_policy
           vals += updates(FIG_8_8_S_0, n_upd, log_freq)
           print(vals)
         plt.plot(xticks,
-                 vals / FIG_8_8_N_RUNS,
+                 [0] + list(vals / FIG_8_8_N_RUNS),
                  label=f'b={b}, ' + label) 
       plt.legend()
-  fig.suptitle('Figure 8.8')
+  fig.suptitle(f'Figure 8.8 ({FIG_8_8_N_RUNS} sample tasks)')
   fig.set_size_inches(20, 16)
   save_plot('fig8.8')
   plt.show()
