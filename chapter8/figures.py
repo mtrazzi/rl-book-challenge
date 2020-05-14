@@ -55,12 +55,12 @@ FIG_8_8_B_L_LOWER = [1]
 FIG_8_8_LOG_FREQ_LOWER = 100
 
 FIG_8_8_B_L_UPPER = [1, 3, 10]
-FIG_8_8_N_ST_UPPER = 1000
+FIG_8_8_N_ST_UPPER = 500
 FIG_8_8_S_0 = START_STATE
 
 FIG_8_8_N_UPD_UPPER = 5000
 FIG_8_8_LOG_FREQ_UPPER = 1000
-FIG_8_8_N_RUNS = 1
+FIG_8_8_N_RUNS = 10
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)

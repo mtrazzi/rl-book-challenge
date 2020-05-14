@@ -7,6 +7,7 @@ TERMINAL_STATE = -1
 LEFT = 0
 RIGHT = 1
 P_TERM = 0.1
+R_TERM = 0
 
 class Task:
   def __init__(self, b, n_states, eps=P_TERM):
@@ -24,9 +25,10 @@ class Task:
     self.moves_d = {s: [LEFT, RIGHT] for s in self.states}
 
   def sample_next_states(self):
-    states_copy = copy.copy(self.states)
+    states_no_term = self.states[1:]
+    states_copy = copy.copy(states_no_term)
     next_states = []
-    n_states = len(self.states)
+    n_states = len(states_no_term)
     for i in range(self.b):
       s_idx = np.random.randint(n_states - i)
       next_states.append(states_copy[s_idx])
@@ -37,8 +39,11 @@ class Task:
     self.trans = {}
     for s in self.states:
       for a in self.moves_d[s]:
-        exp_rew = np.random.randn()
-        next_states = self.sample_next_states()
+        if s == TERMINAL_STATE:
+          exp_rew, next_states = R_TERM, [s]
+        else:
+          exp_rew = np.random.randn()
+          next_states = self.sample_next_states()
         self.trans[(s, a)] = exp_rew, next_states
 
   def step(self, a):
