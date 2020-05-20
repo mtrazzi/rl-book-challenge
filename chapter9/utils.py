@@ -1,11 +1,13 @@
 import numpy as np
 
+R_TERM = 0
+
 def sample_action(env, pi, s):
   moves = env.moves_d[s]
   pi_dist = [pi[(a, s)] for a in moves]
   return env.moves_d[s][np.random.choice(np.arange(len(moves)), p=pi_dist)]
 
-def gen_traj(env, pi, s_0=None): 
+def gen_traj(env, pi, s_0=None, inc_term=False): 
   if s_0 is None:
     s = env.reset()
   else:
@@ -16,6 +18,8 @@ def gen_traj(env, pi, s_0=None):
     s_p, r, d, _ = env.step(sample_action(env, pi, s))
     traj.append((s, r))
     s = s_p
+  if inc_term:
+    traj.append((s, R_TERM))
   return traj
 
 def gen_traj_ret(env, pi, gamma, s_0=None):
