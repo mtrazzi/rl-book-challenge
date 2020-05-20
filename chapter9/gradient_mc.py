@@ -29,10 +29,14 @@ class GradientMC:
       G = r + self.g * G
       ret_traj.append((s, G))
     return ret_traj[::-1]
-  
+
   def seed(self, seed):
     self.env.seed(seed)
     np.random.seed(seed)
 
-  def reset(self):
-    self.w = np.zeros(d)
+  def pol_eva(self, pi, vhat, nab_vhat, n_ep, w_0=None):
+    self.w = np.zeros(self.d) if w_0 is None else w_0
+    for _ in range(n_ep):
+      for (S_t, G_t) in self.gen_traj(pi):
+        self.w += self.a * (G_t - vhat(S_t, self.w)) * nab_vhat(S_t, self.w)
+
