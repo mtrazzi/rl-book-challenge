@@ -30,7 +30,7 @@ class RandomWalk:
     self.states = list(range(self.n_states)) + [self.absorbing_state]
 
   def sample_shift(self):
-    return np.sign(np.random.random() - P_LEFT) * np.random.randint(1, SHIFT + 1)
+    return int(np.sign(np.random.random() - P_LEFT) * np.random.randint(1, SHIFT + 1))
 
   def step(self, action):
     if self.state == self.n_states:
