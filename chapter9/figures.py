@@ -1,7 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 from randomwalk import RandomWalk, EMPTY_MOVE
-from gradient_mc import GradientMC
+from gradient_methods import GradientMC, SemiGradientTD0
 from utils import est
 import numpy as np
 
@@ -12,6 +12,13 @@ EXA_9_1_W_DIM = 100
 EXA_9_1_N_EP = 10 ** 5
 EXA_9_1_N_EP_TR = 1000
 EXA_9_1_G = 1
+
+EXA_9_2_ALP = EXA_9_1_ALP
+EXA_9_2_W_DIM = EXA_9_1_W_DIM
+EXA_9_2_N_EP = 10 ** 2
+EXA_9_2_N_EP_TR = 1000
+EXA_9_2_G = 1
+
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -28,18 +35,22 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel, label
   ax.set_ylabel(ylabel, rotation=0, fontsize=MED_FONT, labelpad=labelpad)
   plt.legend(loc='upper left')
 
-def fig_9_1():
-  def enc(s, w): return s // len(w)
-  def vhat(s, w): return w[enc(s, w)]
-  def nab_vhat(s, w):
-    return np.array([i == enc(s, w) for i in range(len(w))])
+def enc_st_agg(s, w):
+  return s // len(w)
 
+def vhat_st_agg(s, w):
+  return w[enc_st_agg(s, w)]
+
+def nab_vhat_st_agg(s, w):
+  return np.array([i == enc_st_agg(s, w) for i in range(len(w))])
+
+def fig_9_1():
   env = RandomWalk() 
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
   grad_mc = GradientMC(env, EXA_9_1_ALP, EXA_9_1_W_DIM)
   grad_mc.seed(0)
-  grad_mc.pol_eva(pi, vhat, nab_vhat, EXA_9_1_N_EP, EXA_9_1_G)
-  est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
+  grad_mc.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, EXA_9_1_N_EP, EXA_9_1_G)
+  est_vals = [vhat_st_agg(s, grad_mc.w) for s in env.states][:-1]
   true_vals = [est(env, pi, s, EXA_9_1_G, n_ep=EXA_9_1_N_EP_TR) for s in env.states]
 
   fig, ax1 = plt.subplots()
@@ -55,8 +66,18 @@ def fig_9_1():
   save_plot('fig9.1', dpi=100)
   plt.show()
 
+def fig_9_2():
+  env = RandomWalk()
+  pi = {(EMPTY_MOVE, s): 1 for s in env.states}
+  semi_grad_td = SemiGradientTD0(env, EXA_9_1_ALP, EXA_9_1_W_DIM)
+  semi_grad_td.seed(0)
+  semi_grad_td.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, EXA_9_1_N_EP, EXA_9_1_G)
+  est_vals = [vhat_st_agg(s, semi_grad_td.w) for s in env.states][:-1]
+  true_vals = [est(env, pi, s, EXA_9_1_G, n_ep=EXA_9_1_N_EP_TR) for s in env.states]
+
 PLOT_FUNCTION = {
   '9.1': fig_9_1,
+  '9.2': fig_9_2,
 }
 
 def main():
