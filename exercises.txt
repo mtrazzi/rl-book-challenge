@@ -629,4 +629,8 @@ Why it's not also the case with b=1 on policy:
 
 ### 9.1
 
+in linear function approximation \hat v (s, \bold w) = \bold w^T  \bold x(s)
 
+now, let's say that \bold x(s) is a vector of length |S| which encodes as a one-hot the id of a state (e.g. (1, 0, ..., 0) for the first state).
+
+then when we're using tabular methods we're trying to find the correct weights w_1, ..., w_{|S|} which approximate v_{\pi}(s_1}, ..., v_{\pi}(s_|S|)
