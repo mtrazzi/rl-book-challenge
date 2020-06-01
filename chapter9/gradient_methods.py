@@ -13,6 +13,9 @@ class GradientAlg:
     self.env.seed(seed)
     np.random.seed(seed)
 
+  def get_value_list(self, vhat):
+    return [vhat(s, self.w) for s in self.env.states]
+
   def reset(self):
     self.w = np.zeros(self.d)
     self.mu = np.zeros(len(self.env.states))

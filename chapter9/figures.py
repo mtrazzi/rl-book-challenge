@@ -16,10 +16,13 @@ FIG_9_1_G = 1
 
 FIG_9_2_ALP = FIG_9_1_ALP
 FIG_9_2_W_DIM = FIG_9_1_W_DIM
-FIG_9_2_N_EP = int(5e2)
+FIG_9_2_N_EP_L = int(5e2)
+FIG_9_2_N_EP_R = 10
+FIG_9_2_N_RUNS_R = 1000
 FIG_9_2_N_EP_TR = 10
 FIG_9_2_G = 1
 FIG_9_2_N = 2
+FIG_9_2_MAX_N = 2
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -67,6 +70,34 @@ def fig_9_1():
   save_plot('fig9.1', dpi=100)
   plt.show()
 
+def param_study(ax, alg, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G):
+  n_l = [2 ** k for k in range(int(np.log(max_n) / np.log(2)) + 1)]
+  for n in n_l:
+    alg.n = n
+    print(f">> n={n}")
+    err_l = []
+    alpha_max = 1 if (n <= 16 or ex_7_2) else 1 / (np.log(n // 8) / np.log(2))
+    alpha_l = np.linspace(0, alpha_max, 5)
+    for alpha in alpha_l:
+      alg.step_size = alpha
+      print(f"alpha={alpha}")
+      err_sum = 0
+      for seed in range(n_runs):
+        alg.reset()
+        alg.seed(seed)
+        for ep in range(n_ep):
+          alg.pol_eval(pi, vhat, nab_vhat, n_ep=1, gamma=gamma)
+          v_arr = np.array(alg.get_value_list(vhat)[:-1]) # removes absorbing state
+          err_sum += np.sqrt(np.sum((v_arr-true_vals) ** 2) / env.n_states)
+      err_l.append(err_sum / (n_runs * n_ep))
+    plt.plot(alpha_l, err_l, label=f'{extra_label} n={n}', linestyle='dashed' if dashed else None)
+  ax.set_xticks(np.linspace(0, 1, 6))
+  yticks = np.linspace(0.25, 0.55, 6)
+  ax.set_yticks(yticks)
+  ax.set_ylim([min(yticks), max(yticks)])
+  ax.set_xlabel('Stepsize')
+  ax.set_ylabel(f'Average RMS error ({alg.env.n_states} states, first {n_ep} episodes)')
+
 def fig_9_2():
   fig = plt.figure()
   env = RandomWalk()
@@ -77,13 +108,22 @@ def fig_9_2():
   #semi_grad_td.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP, FIG_9_2_G)
   #est_vals = [vhat_st_agg(s, semi_grad_td.w) for s in env.states][:-1]
   #ax1 = fig.add_subplot('211')
-  ##true_vals = [est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states]
+  if input("load true values? (y/N)") == "y":
+    print("loading true vals")
+    true_vals = np.load('true_vals.arr')
+  else:
+    true_vals = [est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states]
+    if input("save true values? (y/N)?") == 'y':
+      print("saving true vals")
+      true_vals.dump('true_vals.arr')
   #ax1.plot(est_vals, 'b', label='Approximate MC value vhat')
   ##ax1.plot(true_vals, 'r', label='True value v_pi')
   #plot_figure(ax1, 'Figure 9.2', [0, 999], [1, 1000], 'State', [-1, 0, 1], [-1, 0, 1], '\n\nValue\nScale')
 
   nstep_semi_grad = nStepSemiGrad(env, FIG_9_2_ALP, FIG_9_2_W_DIM, FIG_9_2_G, FIG_9_2_N)
-  nstep_semi_grad.pol_eval(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP)
+  ax2 = fig.add_subplot('212')
+  #nstep_semi_grad.pol_eval(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP)
+  param_study(ax2, nstep_semi_grad, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP_R, FIG_9_2_N_RUNS_R, true_vals=true_vals, max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G)
   save_plot('fig9.2', dpi=100)
   plt.show()
 
