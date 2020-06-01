@@ -33,10 +33,10 @@ class nStepSemiGrad:
       G = G + g_l[n] * vhat(S[(tau + n) % (n + 1)], self.w)
     return G
 
-  def pol_eval(self, pi, vhat, nab_vhat, n_ep):
+  def pol_eva(self, pi, vhat, nab_vhat, n_ep, gamma):
+    self.g_l = [gamma ** k for k in range(self.n + 1)]
     n, R, S = self.n, self.R, self.S
     for ep in range(n_ep):
-      print(ep)
       S[0] = self.env.reset()
       T = np.inf
       t = 0
@@ -54,12 +54,14 @@ class nStepSemiGrad:
           break
         t += 1
 
+  def get_value_list(self, vhat):
+    return [vhat(s, self.w) for s in self.env.states]
+
   def seed(self, seed):
     self.env.seed(seed)
     np.random.seed(seed)
 
   def reset(self):
-    self.g_l = [self.g ** k for k in range(self.n + 1)]
     self.S = [None for _ in range(self.n + 1)]
     self.R = [None for _ in range(self.n + 1)]
     self.w = np.zeros(self.d)
