@@ -634,3 +634,20 @@ in linear function approximation \hat v (s, \bold w) = \bold w^T  \bold x(s)
 now, let's say that \bold x(s) is a vector of length |S| which encodes as a one-hot the id of a state (e.g. (1, 0, ..., 0) for the first state).
 
 then when we're using tabular methods we're trying to find the correct weights w_1, ..., w_{|S|} which approximate v_{\pi}(s_1}, ..., v_{\pi}(s_|S|)
+
+### 9.2
+
+(n + 1)^k features for dimension k because for each product there are (n + 1) possibilities and k terms so (n + 1)^k possibilities. the "why" we're using all those combinations is because it's both the maximum and the minimum to get all the relationships between the variables
+
+### 9.3
+
+n = 2
+c_{1,1}, c_{1, 2} = (0, 0)
+c_{2,1}, c_{2, 2} = (1, 0)
+c_{3,1}, c_{3, 2} = (0, 1)
+c_{4,1}, c_{4, 2} = (1, 1)
+c_{5,1}, c_{5, 2} = (2, 0)
+c_{6,1}, c_{6, 2} = (0, 2)
+c_{7,1}, c_{7, 2} = (1, 2)
+c_{8,1}, c_{8, 2} = (2, 1)
+c_{9,1}, c_{9, 2} = (2, 2)
