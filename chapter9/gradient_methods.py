@@ -32,7 +32,6 @@ class GradientMC(GradientAlg):
         self.w += self.a * (G - vhat(s, self.w)) * nab_vhat(s, self.w)
     self.mu /= self.mu.sum()
 
-
 class SemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim):
     super().__init__(env, alpha, w_dim)
