@@ -9,19 +9,19 @@ import numpy as np
 MED_FONT = 13
 
 FIG_9_1_ALP = 2e-5
-FIG_9_1_W_DIM = 100
+FIG_9_1_W_DIM = 10
 FIG_9_1_N_EP = 10 ** 5
 FIG_9_1_N_EP_TR = 1000
 FIG_9_1_G = 1
 
 FIG_9_2_ALP = FIG_9_1_ALP
-FIG_9_2_W_DIM = FIG_9_1_W_DIM
-FIG_9_2_N_EP_L = 10 ** 4
+FIG_9_2_W_DIM_L = FIG_9_1_W_DIM
+FIG_9_2_W_DIM_R = 20
+FIG_9_2_N_EP_L = 10 ** 5
 FIG_9_2_N_EP_R = 10
-FIG_9_2_N_RUNS_R = 10
+FIG_9_2_N_RUNS_R = 100
 FIG_9_2_N_EP_TR = 10 ** 3
 FIG_9_2_G = 1
-FIG_9_2_N = 2
 FIG_9_2_MAX_N = 512
 
 def save_plot(filename, dpi=None):
@@ -39,14 +39,18 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel, label
   ax.set_ylabel(ylabel, rotation=0, fontsize=MED_FONT, labelpad=labelpad)
   plt.legend(loc='upper left')
 
-def enc_st_agg(s, w):
-  return s // len(w)
+def enc_st_agg(s, w, tot_st=1000):
+  return s // (tot_st // len(w))
 
-def vhat_st_agg(s, w):
-  return w[enc_st_agg(s, w)]
+def vhat_st_agg(s, w, tot_st=1000):
+  if s == tot_st:
+    return 0
+  return w[enc_st_agg(s, w, tot_st)]
 
-def nab_vhat_st_agg(s, w):
-  return np.array([i == enc_st_agg(s, w) for i in range(len(w))])
+def nab_vhat_st_agg(s, w, tot_st=1000):
+  if s == tot_st:
+    return 0
+  return np.array([i == enc_st_agg(s, w, tot_st) for i in range(len(w))])
 
 def fig_9_1():
   env = RandomWalk() 
@@ -77,13 +81,12 @@ def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n
     print(f">> n={n}")
     err_l = []
     alpha_max = 1 if n <= 16 else 1 / (np.log(n // 8) / np.log(2))
-    alpha_l = np.linspace(0, alpha_max, 5)
+    alpha_l = np.linspace(0, alpha_max, 31)
     for alpha in alpha_l:
       alg.a = alpha
       print(f"alpha={alpha}")
       err_sum = 0
       for seed in range(n_runs):
-        print(f"seed={seed}")
         alg.reset()
         alg.seed(seed)
         for ep in range(n_ep):
@@ -92,7 +95,7 @@ def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n
           err_sum += np.sqrt(np.sum((v_arr-true_vals[:-1]) ** 2) / alg.env.n_states)
       err_l.append(err_sum / (n_runs * n_ep))
     plt.plot(alpha_l, err_l, label=f'n={n}')
-  ax.set_xticks(np.linspace(0, 1, 31))
+  ax.set_xticks(np.linspace(0, 1, 6))
   yticks = np.linspace(0.25, 0.55, 6)
   ax.set_yticks(yticks)
   ax.set_ylim([min(yticks), max(yticks)])
@@ -117,7 +120,7 @@ def fig_9_2():
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
   true_vals = get_true_vals(env, pi)
 
-  semi_grad_td = SemiGradientTD0(env, FIG_9_2_ALP, FIG_9_2_W_DIM)
+  semi_grad_td = SemiGradientTD0(env, FIG_9_2_ALP, FIG_9_2_W_DIM_L)
   semi_grad_td.seed(0)
   semi_grad_td.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP_L, FIG_9_2_G)
   est_vals = [vhat_st_agg(s, semi_grad_td.w) for s in env.states][:-1]
@@ -126,16 +129,22 @@ def fig_9_2():
   ax1.plot(true_vals, 'r', label='True value v_pi')
   plot_figure(ax1, '', [0, 999], [1, 1000], 'State', [-1, 0, 1], [-1, 0, 1], '\n\nValue\nScale')
 
-  nstep_semi_grad = nStepSemiGrad(env, None, FIG_9_2_W_DIM, FIG_9_2_G, FIG_9_2_N)
+  nstep_semi_grad = nStepSemiGrad(env, None, FIG_9_2_W_DIM_R, FIG_9_2_G, 0)
   ax2 = fig.add_subplot('122')
   param_study(ax2, nstep_semi_grad, pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP_R, FIG_9_2_N_RUNS_R, true_vals=true_vals, max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G)
   plt.legend()
+  fig.set_size_inches(20, 14)
   save_plot('fig9.2', dpi=100)
   plt.show()
+
+def fig_9_5():
+  fig, ax = plt.subplots()
+  fig.suptitle('Figure 9.5')
 
 PLOT_FUNCTION = {
   '9.1': fig_9_1,
   '9.2': fig_9_2,
+  '9.5': fig_9_5,
 }
 
 def main():
