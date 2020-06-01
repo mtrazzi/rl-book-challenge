@@ -19,7 +19,7 @@ FIG_9_2_W_DIM = FIG_9_1_W_DIM
 FIG_9_2_N_EP_L = 10 ** 4
 FIG_9_2_N_EP_R = 10
 FIG_9_2_N_RUNS_R = 10
-FIG_9_2_N_EP_TR = 100
+FIG_9_2_N_EP_TR = 10 ** 3
 FIG_9_2_G = 1
 FIG_9_2_N = 2
 FIG_9_2_MAX_N = 512
@@ -76,7 +76,7 @@ def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n
     alg.n = n
     print(f">> n={n}")
     err_l = []
-    alpha_max = 1 if (n <= 16 or ex_7_2) else 1 / (np.log(n // 8) / np.log(2))
+    alpha_max = 1 if n <= 16 else 1 / (np.log(n // 8) / np.log(2))
     alpha_l = np.linspace(0, alpha_max, 5)
     for alpha in alpha_l:
       alg.a = alpha
@@ -92,7 +92,7 @@ def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n
           err_sum += np.sqrt(np.sum((v_arr-true_vals[:-1]) ** 2) / alg.env.n_states)
       err_l.append(err_sum / (n_runs * n_ep))
     plt.plot(alpha_l, err_l, label=f'n={n}')
-  ax.set_xticks(np.linspace(0, 1, 6))
+  ax.set_xticks(np.linspace(0, 1, 31))
   yticks = np.linspace(0.25, 0.55, 6)
   ax.set_yticks(yticks)
   ax.set_ylim([min(yticks), max(yticks)])

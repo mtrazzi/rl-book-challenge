@@ -1,18 +1,18 @@
-### 1.1: Self-play
+### 1.1
 
 I think they would start playing randomly, then start exploiting some bad moves (when played random) from the opponent, becoming both better, until eventually both reaching an optimal policy
 
-### 1.2: Symmetries
+### 1.2
 
 We could just say that symmetric positions are the same states? It would make the learning go faster (like 4 time faster is we take into account symmetries etc.)
 
 But if the opponent didn't take advantage of symmetries, it might play differently in different symmetries, so we shouldn't put the same values for all the same positions.
 
-### 1.3: Greedy Play
+### 1.3
 
 It will learn to play worse because it might fall into local maxima, not exploring some parts of the tree.
 
-### 1.4: Learning from exploration
+### 1.4
 
 When we do learn from exploratory moves, then the probability of winning should always be slightly underestimated (unless for the last moves). When we're not learning from them, then the proba might reach something like only 0 or 1 style integer proba, because it _knows_ at some point what's the optimal moves.
 
@@ -20,39 +20,39 @@ If we continue to make exploratory moves, then the set non-integer proba is bett
 
 Maybe if we just want to maximize for win then the integer thing where we never update makes us be risk averse (in a minimax style).
 
-### 1.5: Other improvements
+### 1.5
 
 Other improvements: (From 1.4, make the exploration rate go down.) Add some discount factor? Use some neural network? Have something the decreases the step size in a smart way? Actually learn something from exploratory moves but not too much? Initialize better the probabilities (instead of just 0.5 pb of winning, put something bigger if close to win, and less than 0.5 if close to loss). Or just the average of win vs. loss in the position (same until you reach initial board).
 
 Better way to solve the tic-tac-toe pb: Do some meta-learning on a bunch of different players so it can adapt to new players quickly.
-### 2.1: Epsilon Greedy
+
+### 2.1
 
 If \epsilon is 0.5 than probability of the greedy action is 0.5.
 
-### 2.2: Bandit Example
+### 2.2
 
 It definitely occured at the timesteps 4 and 5 (at timestep 4 because Q(2) < 0 = Q(3), and at timestep 5 because Q(2) > Q(3) = 0).
 
-### 2.3:
+### 2.3
 
 The \eps=0.01 will be better in the long run. It will select the optimal action 11=(0.99/0.9)x times more often. The EV is given by: EV = (1-\epsilon) * mean_maximum_action + \epsilon * EV(random action) = (1-\epsilon) * mean_maximum_action because the action values were sampled from a gaussian of mean 0.
 
 Therefore, the solution with \epsilon = 0.01 will have (0.99 - 0.9) * mean_maximum_action = 0.09 * mean_maximum_action more reward per action.
 
-### 2.4:
+### 2.4
 
 Q_{n + 1} = Q_1 \prod_{i=1}^n (1-\alpha_i) + \sum_{i=1}^n \alpha_i \prod_{k=1}^{n-i} (1 - \alpha_{n-i-k+2})
 
-
-### 2.5:
+### 2.5
 
 Main result is that reward get up to 2+ with alpha=0.1 but if we do sample average it only goes up to 1.5. From plotting the distance to true q, we see that we sample average at some point we get further and further but with a constant alpha we keep on getting closer.
 
-### 2.6: Mysterious spikes
+### 2.6
 
 The optimistic greedy will underperform for the first moves or so, because it will try out the arms that have initial values of 5. However, there will be some kind of spike (on average after 5 moves) because it will definitely find the best value in the first 10 steps, on average after 5 moves. Then, after 10 moves, it tried out all the arms at least once, so will start to play a bit with the arms greedily, being a bit better than the one with the realistic algorithm because already explored all of them. So it will grow faster (in percentage of optimal action) until it outperforms the realistic eps-greedy.
 
-### 2.7:  Unbiased constant step-size trick
+### 2.7
 
 The value in front of Q_1 is multiplied by 1-\beta_1 right at the beginning with \beta_1 = 1 so no bias.
 
@@ -69,25 +69,26 @@ And for the exponentially weighted, the \beta^{n-i} makes it exponentially small
 
 EDIT: after having coded the function (cf. chapter2/weights.py) it occurs that it doesn't really sum to 1... BUT the sum does converge to some mysterious number. So it's still exponentially weighted with the total weight being fixed at some point.
 
-### 2.8:  UCB spikes
+### 2.8
 
 There is a spike at the 11th action because it finally can select the argmax (and not choose the latest random action).
 
-### 2.9:
+### 2.9
 
 \pi_t(a) = \sigma(H_t(a) - H_t(b))
 
-### 2.10:
+### 2.10
 
 First case: best expectation of success is 0.5 whatever your policy.
 Second case: 0.55 by doing 2 on A and 1 on B.
 
-### 2.11:
+### 2.11
 
 After averaging over 10 bandits (cf. [/plots/ex2.11.png](/plots/ex2.11.png)), it seems that epsilon-greedy has the better performance, then greedy with optimistic initialization, then ucb and finally gradient bandit.
 
 My explanation: ucb exploration decreases over time so cannot really adapt to 100 000 steps of random walk. Epsilon-greedy does better than optimistic greedy because of the exploration. I don't know why gradient bandit completely fails on random walks (compared to the others).
-### 3.1:
+
+### 3.1
 
 Task 1: Real Life
 - A = {sleep, work}
@@ -116,17 +117,17 @@ Task 3: Hardcore Navigation
 3. Infinite / continuous state space.
 4. Infinite reward.
 
-### 3.2:
+### 3.2
 
 It's hard to find clear exceptions because all "goal directed behaviour" can be redefined as a MDP where "goal achieved" = terminal state with transition leading to this state having a reward of 1, and rest of transitions having a reward of 0. 
 
 However, in practice the MDP framework is not useful when the rewards are not (yet) well-defined or hard to define. For instance, as a clear exception, "understand a text" would be something hard to define for a ML model in February 2020. As for the walking robot problem, defining what "walking in a human way" or "behaving according to human values" is somehow arbitrary and hard to specify clearly.
 
-### 3.3:
+### 3.3
 
 The natural place to delimit the agent and the environment is what the agent can move in less than 0.01s (e.g. our muscles). The basis is "it has actual control over that thing". For a robot that limit might be different (can send signals much quicker, but cannot move as fast). It's somewhat a free choice where you draw the line, but I still feel that "what the agent can actually move in 0.1s" is kinda natural for human agents.
 
-### 3.4:
+### 3.4
 
 state s | action  | state s' | reward r | p(s', r | s, a)
 --------------------------------------------------------
@@ -137,7 +138,7 @@ low | search | low  | r_{search} | \beta
 high | wait | high | r_{wait} | 1
 low | wait | low | r_{wait} | 1
 
-### 3.5:
+### 3.5
 
 In episodic tasks, S^{+} = S \bigup {terminal state}
 
@@ -145,15 +146,15 @@ In (3.3), considering the terminal state as an absorbing state, we just need to 
 
 If we want to make sth more complex, then we might consider terminal state as sth that goes into the first state after a reset? But Suttong & Barto say "very slightly" so I guess just need to change S to S^{+}.
 
-### 3.6:
+### 3.6
 
 The return would be exactly the same?
 
-### 3.7:
+### 3.7
 
 Must also include a penalty for every step, so that it learns to get out as quickly as possible.
 
-### 3.8:
+### 3.8
 
 G_5 = 0
 G_4 = 2
@@ -162,69 +163,69 @@ G_2 = 6 + (1/2) * 4 = 8
 G_1 = 2 + (1/2) * 8 = 6
 G_0 = -1+ + (1/2)* 6 = 2
 
-### 3.9:
+### 3.9
 
 G_1 = 7 / (1-0.9) = 70
 G_0 = 2 + 0.9 * 70 = 65
 
-### 3.10:
+### 3.10
 
 \sum_{k=0}{n} \gamma^k = (1 - \gamma^{n+1}) / (1-\gamma) (just multiply both sides by (1-\gamma). It's a sum of positive things inferior to 1/(1-\gamma) so it has a limit. Taking the limit, the sum is 1/(1-\gamma).
 
-### 3.11:
+### 3.11
 
 \mathbb{E}[R_{t+1}] = sum_{r \in R} r \sum{s'} \sum{a} p(s', r|s, a) \pi(a | s)
 
-### 3.12: 
+### 3.12
 
 v_{\pi}(s) = \sum{a} \pi(a|s) q_{\pi}(s, a)
 
-### 3.13:
+### 3.13
 
 q_{\pi}(s, a) = \sum{s'}\sum{r} p(s', r| s, a) (r + \gamma.v_{\pi}(s'))
 
-### 3.14:
+### 3.14
 
 0.7 ~= (1/4) * (0.4 - 0.4 + 2.3 + 0.7) = 3/4
 
-### 3.15:
+### 3.15
 
 Intervals are important, not the sign. Using 3.8, adding a constant c adds v_c=c/(1-\gamma) to the value of all states.
 
-### 3.16:
+### 3.16
 
 In maze running, if the reward for each step is not negative then the agent might want to never finish the task.
 
-### 3.17:
+### 3.17
 
 q_{\pi}(s, a) = \sum_{r, s'} r + \gamma \sum_{a'} \pi(a'|s')q_{\pi}(s', a')
 
-### 3.18:
+### 3.18
 
 v_{\pi}(s) = \mathbb(E)_{a~\pi(\dot|s)}[q_{\pi}(s, a)]
 
 v_{\pi}(s) = \sum_{a} \pi(a|s) q_{\pi}(s, a)
 
-### 3.19:
+### 3.19
 
 q_{\pi}(s, a) = \mathbb(E)[R_{t+1} + v_{\pi}(S_{t+1})]
               = \sum_r \sum_{s'} p(s', r|s, a) (r + \gamma.v_{\pi}(s'))
 
-### 3.20:
+### 3.20
 
 optimal state-value function is: -2 everywhere apart the green (just use the driver to get to the green then putter), -1 if already on the green and 0 on the flag.
 
-### 3.21:
+### 3.21
 
 -4 if cannot reach the -2 zone of q*(., driver), -3 if can reach this zone, -2 if close enough to reach the green, -1 if on the green, 0 if on the flag.
 
-### 3.22:
+### 3.22
 
 \gamma=0: left
 \gamma=0.5: both
 \gamma=0.9: right
 
-### 3.23:
+### 3.23
 
 Let mh = max(q*(h,s), q*(h,w)) and ml=max(q*(l, s), q*(l, w), q*(l, re))
 let a = \alpha and b = \beta and g = \gamma
@@ -236,27 +237,27 @@ q*(l, s) = b(rs + g.ml) + (1-b)(-3 + g.mh)
 q*(l, w) = rw + g.ml
 q*(l, re) = 1 + g.mh
 
-### 3.24:
+### 3.24
 
 Essentially, you write the sum of rewards as 10 + 10 * 0.9^5 + ... = 10.\sum 0.9^4k = 10 / (1 - 0.9^5) =  24.419
 
-### 3.25:
+### 3.25
 
 v*(s) = max_a q*(s,a)
 
-### 3.26:
+### 3.26
 
 q*(s, a) = \sum_{r, s'} p(s', r | s, a) [r + \gamma.v*(s')]
 
-### 3.27:
+### 3.27
 
 \pi*(a|s) = 1 if a \in argmax q_{\pi}(s,a) else 0
 
-### 3.28:
+### 3.28
 
 \pi*(a|s) = 1 if a \in argmax \sum_{r, s'} p(s', r | s, a)(r + v_{\pi}(s')) else 0
 
-### 3.29:
+### 3.29
 
 v*(s) = max_a \sum_{s'} p(s'|s, a) [r(s, a) + v*(s)]
 
@@ -265,30 +266,31 @@ v_{\pi}(s) = \sum_a \pi(a|s) \sum_{s'} p(s'|s, a) [r(s, a) + v_{\pi}(s')]
 q*(s, a) = \sum_{s'} p(s'|s, a) [r(s, a) + max_{a'}q*(s, a')]
 
 q_{\pi}(s, a) = \sum_{s'} p(s'|s, a) [r(s, a) + \sum_{a'} \pi(a'|s') q_{\pi}(s', a')]
-### 4.1:
+
+### 4.1
 
 q_{\pi}(11, down) = -1
 q_{\pi}(7, down) = -15
 
-### 4.2:
+### 4.2
 
 v_{\pi}(15) = -19 then -20
 
-### 4.3:
+### 4.3
 
 (4.3) q_{\pi}(s, a) = \mathbb(E)[R_{t+1} + \gamma.q_{\pi}(S_{t+1}, A_{t+1}) | S_t=s, A_t=a]
 (4.4) q_{\pi}(s, a) = \sum_{s', r} p(s', r | s, a) [r + \gamma.\sum_{a'} \pi(a'|s').q_{\pi}(s', a')]
 (4.5) q_{k+1}(s, a) = \sum_{s', r} p(s', r | s, a) [r + \gamma.\sum_{a'} \pi(a'|s').q_(s', a')]
 
-### 4.4:
+### 4.4
 
 my solution: keep a list of past policies and stop when looping on past policy (see chapter4/figures)
 
-### 4.5:
+### 4.5
 
 cf. code in chapter4/figures
 
-### 4.6:
+### 4.6
 
 intuitive needed changes:
 - in 3), make the argmax action have value \pi(a|s) of (|min(A(s))|-\epsilon)/|min(A(s))|, \epsilon/|min(A(s))|.
@@ -316,7 +318,8 @@ for p\_{heads} = 0.55, the value function grows really smoothly, and the optimal
 ### 4.10
 
 q(s, a) = \sum_{r, s_p} p(s_p, r|s, a) (r + \gamma max_{a_p} q(s_p, a_p))
-### 5.1:
+
+### 5.1
 
 the value function jumps off because it's highly likely to win if you stick with 20 (and you definitetly win or draw if you get 21), but if you hit with something like 19 you're very likely to lose.
 
@@ -397,13 +400,14 @@ then it's the same formula with \sum (W_k * G_k) / \sum W_k, we just need to cha
 actually, now the weights depend both on t and h so it's sum of W(s,h) G(s,h) divided by a sum of W(s,h).
 
 for the details, see chapter5/mc.py OffPolicyMCControl then truncated_weighted_avg_est.
-### 6.1:
+
+### 6.1
 
 G_t - V_t[S_t] = sum_{t}^{T-1} \gamma^{k-t} (\delta_k + \gamma.(V_{k+1}[S_{k+1}] - V_k[S_{k+1}])
 
 so the diff. G_t - V_t[S_t] - (sum of td errors) is inferior to (\gamma / (1 - \gamma)) * ||V_{k+1} - V_k||_{inf}
 
-### 6.2:
+### 6.2
 
 considering the driving pb., a situation where TD update might be more efficient than MC update: when i can't wait until the end of the episode to make my prediction (like, online learning for an autonomous vehicle on unknown environment). or when the MC trajectories are too difficult to sample, as they would necessit an intractable number of steps to reach the end of the episode (cf. race track example from end of chapter 5).
 
@@ -421,13 +425,13 @@ theoretical answer:
 
 empirical answer (cf. plots/ex6.4.png: using higher step sizes did indeed lead to really high bias (and converging to wrong value with high variance), and using smaller step sizes is definitely too slow (doesn't converge in 100 episodes), but should give better results if we run for more episodes?
 
-### 6.5:
+### 6.5
 
 theoretical answer: my inituion is that this init value of 0.5 maximizes the kind of variance in the random walks, so that there's an infinity of variance somehow in the samples we get, and so the error gets higher throughout the episodes because we get longer walks? using smaller of bigger V_init will make it converge faster toa wrong value somehow?
 
 empirical answer (cf. plots/ex6.5.png): among other initialization (V_init = 0, 0.25, 0.75 or 1) it only happened that clearly with 0.5.
 
-### 6.6:
+### 6.6
 
 first way (which i used): solve system of equations.
 
@@ -435,7 +439,7 @@ second way: dynamic programming.
 
 i think the system of equations was used because, given how slow MC/TD methods are, it doesn't seem that you could get fast convergence with DP. and also we can compute exact values here, duh.
 
-### 6.7:
+### 6.7
 
 cf. implementation in chapter6/old_pol_td.py 
 
@@ -578,7 +582,7 @@ Theory: n-step shouldn't be doing much better, as it would reach the goal by ran
 
 Practice: from running the n-step sarsa from chapter 7 with n=5 and n=50, it did update correctly next to the goal (next to walls) for n=5, but that's all. then, for n=50, it updated from start to goal almost always correctly, just a few tiles that were wrong (like 2 tiles out of 20). (cf. nstep_sarsa code and ex_8_1 code in figures.py and ex8.1.png in plots).
 
-### 8.2:
+### 8.2
 
 first phase: finding the hole in the blocking task requires exploration, so it makes sense that the dynaQ+ agent found the hole faster with the addditional exploration phase. also, from the note 1. (page 168) dynaQ+ started with a prior on never seen actions of "i'm going to stay at the same place and receive reward of 0", which is correct when hitting limits of the map + when hitting the map. so maybe after having found the correct path once, it kind of "assumed" that the rest would give a reward of 0 and not be a path?
 
@@ -622,3 +626,7 @@ Parts of the data that supports my point:
 
 Why it's not also the case with b=1 on policy:
 - my guess is that because the examples with b=1 on-policy converge super quickly, we don't get to see the scumbleness.
+
+### 9.1
+
+
