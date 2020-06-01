@@ -25,10 +25,13 @@ class GradientMC(GradientAlg):
 
   def pol_eva(self, pi, vhat, nab_vhat, n_ep, gamma):
     for ep in range(n_ep):
-      if ep > 0 and run % 1000 == 0:
+      if ep > 0 and ep % 1000 == 0:
         print(f"ep #{ep}")
       for (s, G) in gen_traj_ret(self.env, pi, gamma):
         self.mu[s] += 1
+        #print(f"w={self.w}")
+        #print(G, vhat(s, self.w), nab_vhat(s, self.w))
+        #input()
         self.w += self.a * (G - vhat(s, self.w)) * nab_vhat(s, self.w)
     self.mu /= self.mu.sum()
 

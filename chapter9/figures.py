@@ -5,24 +5,30 @@ from gradient_methods import GradientMC, SemiGradientTD0
 from nstep_semi_grad import nStepSemiGrad
 from utils import est
 import numpy as np
+from feat_const import poly_feat
 
 MED_FONT = 13
 
 FIG_9_1_ALP = 2e-5
 FIG_9_1_W_DIM = 10
 FIG_9_1_N_EP = 10 ** 5
-FIG_9_1_N_EP_TR = 1000
+FIG_9_1_N_EP_TR = 10 ** 3
 FIG_9_1_G = 1
 
 FIG_9_2_ALP = FIG_9_1_ALP
 FIG_9_2_W_DIM_L = FIG_9_1_W_DIM
 FIG_9_2_W_DIM_R = 20
-FIG_9_2_N_EP_L = 10 ** 5
+FIG_9_2_N_EP_L = FIG_9_1_N_EP
 FIG_9_2_N_EP_R = 10
 FIG_9_2_N_RUNS_R = 100
-FIG_9_2_N_EP_TR = 10 ** 3
-FIG_9_2_G = 1
+FIG_9_2_N_EP_TR = FIG_9_1_N_EP_TR
+FIG_9_2_G = FIG_9_1_G
 FIG_9_2_MAX_N = 512
+
+FIG_9_5_POL_BAS = [5]
+FIG_9_5_ALP = 1e-4
+FIG_9_5_N_EP = 10 ** 4
+FIG_9_5_G = FIG_9_1_G
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -52,14 +58,26 @@ def nab_vhat_st_agg(s, w, tot_st=1000):
     return 0
   return np.array([i == enc_st_agg(s, w, tot_st) for i in range(len(w))])
 
+def get_true_vals(env, pi):
+  if input("load true values? (Y/n)") != "n":
+    print("loading true vals")
+    true_vals = np.load('true_vals.arr', allow_pickle=True)
+  else:
+    true_vals = np.array([est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states])
+    if input("save true values? (y/N)?") != 'n':
+      print("saving true vals")
+      true_vals.dump('true_vals.arr')
+  return true_vals
+
 def fig_9_1():
   env = RandomWalk() 
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
+  true_vals = get_true_vals(env, pi)
+
   grad_mc = GradientMC(env, FIG_9_1_ALP, FIG_9_1_W_DIM)
   grad_mc.seed(0)
   grad_mc.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_1_N_EP, FIG_9_1_G)
   est_vals = [vhat_st_agg(s, grad_mc.w) for s in env.states][:-1]
-  true_vals = [est(env, pi, s, FIG_9_1_G, n_ep=FIG_9_1_N_EP_TR) for s in env.states]
 
   fig, ax1 = plt.subplots()
   ax1.plot(est_vals, 'b', label='Approximate MC value vhat')
@@ -102,17 +120,6 @@ def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n
   ax.set_xlabel('Stepsize')
   ax.set_ylabel(f'Average RMS error ({alg.env.n_states} states, first {n_ep} episodes)')
 
-def get_true_vals(env, pi):
-  if input("load true values? (Y/n)") != "n":
-    print("loading true vals")
-    true_vals = np.load('true_vals.arr', allow_pickle=True)
-  else:
-    true_vals = np.array([est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states])
-    if input("save true values? (y/N)?") != 'n':
-      print("saving true vals")
-      true_vals.dump('true_vals.arr')
-  return true_vals
-
 def fig_9_2():
   fig = plt.figure()
   fig.suptitle('Figure 9.2')
@@ -125,7 +132,7 @@ def fig_9_2():
   semi_grad_td.pol_eva(pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP_L, FIG_9_2_G)
   est_vals = [vhat_st_agg(s, semi_grad_td.w) for s in env.states][:-1]
   ax1 = fig.add_subplot('121')
-  ax1.plot(est_vals, 'b', label='Approximate MC value vhat')
+  ax1.plot(est_vals, 'b', label='Approximate TD value vhat')
   ax1.plot(true_vals, 'r', label='True value v_pi')
   plot_figure(ax1, '', [0, 999], [1, 1000], 'State', [-1, 0, 1], [-1, 0, 1], '\n\nValue\nScale')
 
@@ -140,6 +147,18 @@ def fig_9_2():
 def fig_9_5():
   fig, ax = plt.subplots()
   fig.suptitle('Figure 9.5')
+  env = RandomWalk()
+  pi = {(EMPTY_MOVE, s): 1 for s in env.states}
+  true_vals = get_true_vals(env, pi)
+
+  for base in FIG_9_5_POL_BAS:
+    def vhat_pol(s, w): return np.dot(w, poly_feat(s / 1000, base))
+    def nab_vhat_pol(s, w): return poly_feat(s / 1000, base)
+    w_dim = base + 1
+    grad_mc = GradientMC(env, FIG_9_5_ALP, w_dim)
+    grad_mc.seed(0)
+    grad_mc.pol_eva(pi, vhat_pol, nab_vhat_pol, FIG_9_5_N_EP, FIG_9_5_G)
+    est_vals = [vhat_polynomial(s / 1000, grad_mc.w) for s in env.states][:-1]
 
 PLOT_FUNCTION = {
   '9.1': fig_9_1,
