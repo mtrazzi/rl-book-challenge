@@ -5,7 +5,7 @@ from gradient_methods import GradientMC, SemiGradientTD0
 from nstep_semi_grad import nStepSemiGrad
 from utils import est
 import numpy as np
-from feat_const import poly_feat
+from feat_const import poly_feat, four_feat
 
 MED_FONT = 13
 
@@ -26,9 +26,11 @@ FIG_9_2_G = FIG_9_1_G
 FIG_9_2_MAX_N = 512
 
 FIG_9_5_POL_BAS = [5]
+FIG_9_5_FOU_BAS = [5]
 FIG_9_5_ALP = 1e-4
-FIG_9_5_N_EP = 10 ** 4
+FIG_9_5_N_EP = int(5e2)
 FIG_9_5_G = FIG_9_1_G
+FIG_9_5_N_RUNS = 1
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -59,14 +61,14 @@ def nab_vhat_st_agg(s, w, tot_st=1000):
   return np.array([i == enc_st_agg(s, w, tot_st) for i in range(len(w))])
 
 def get_true_vals(env, pi):
-  if input("load true values? (Y/n)") != "n":
-    print("loading true vals")
-    true_vals = np.load('true_vals.arr', allow_pickle=True)
-  else:
-    true_vals = np.array([est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states])
-    if input("save true values? (y/N)?") != 'n':
-      print("saving true vals")
-      true_vals.dump('true_vals.arr')
+  #if input("load true values? (Y/n)") != "n":
+  print("loading true vals")
+  true_vals = np.load('true_vals.arr', allow_pickle=True)
+  #else:
+  #  true_vals = np.array([est(env, pi, s, FIG_9_2_G, n_ep=FIG_9_2_N_EP_TR) for s in env.states])
+  #  if input("save true values? (y/N)?") != 'n':
+  #    print("saving true vals")
+  #    true_vals.dump('true_vals.arr')
   return true_vals
 
 def fig_9_1():
@@ -151,14 +153,29 @@ def fig_9_5():
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
   true_vals = get_true_vals(env, pi)
 
-  for base in FIG_9_5_POL_BAS:
-    def vhat_pol(s, w): return np.dot(w, poly_feat(s / 1000, base))
-    def nab_vhat_pol(s, w): return poly_feat(s / 1000, base)
-    w_dim = base + 1
-    grad_mc = GradientMC(env, FIG_9_5_ALP, w_dim)
-    grad_mc.seed(0)
-    grad_mc.pol_eva(pi, vhat_pol, nab_vhat_pol, FIG_9_5_N_EP, FIG_9_5_G)
-    est_vals = [vhat_polynomial(s / 1000, grad_mc.w) for s in env.states][:-1]
+  for (feat, base_l, label) in [(poly_feat, FIG_9_5_POL_BAS, 'polynomial basis'),
+                                (four_feat, FIG_9_5_FOU_BAS, 'fourier basis')]:
+    for base in FIG_9_5_POL_BAS:
+      def vhat(s, w): return np.dot(w, feat(s / 1000, base))
+      def nab_vhat(s, w): return feat(s / 1000, base)
+      w_dim = base + 1
+      grad_mc = GradientMC(env, FIG_9_5_ALP, w_dim)
+      err_sum = np.zeros(FIG_9_5_N_EP)
+      for seed in range(FIG_9_5_N_RUNS):
+        print(f"seed={seed}")
+        grad_mc.reset()
+        grad_mc.seed(seed)
+        err_per_ep = []
+        for ep in range(FIG_9_5_N_EP):
+          if ep % 100 == 0 and ep > 0:
+            print(ep)
+          grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_5_G)
+          est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
+          err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
+        err_sum += err_per_ep
+      plt.plot(err_sum / FIG_9_5_N_RUNS, label=f'{label}, n={base}')
+  plt.legend()
+  plt.show()
 
 PLOT_FUNCTION = {
   '9.1': fig_9_1,

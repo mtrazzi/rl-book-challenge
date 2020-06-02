@@ -18,3 +18,6 @@ def poly_feat(s, n):
         break
     idx += 1
   return x_s
+
+def four_feat(s, n):
+  return poly_feat(s, n)
