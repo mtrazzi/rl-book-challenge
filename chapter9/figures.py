@@ -25,8 +25,7 @@ FIG_9_2_N_EP_TR = FIG_9_1_N_EP_TR
 FIG_9_2_G = FIG_9_1_G
 FIG_9_2_MAX_N = 512
 
-FIG_9_5_POL_BAS = [5]
-FIG_9_5_FOU_BAS = [5]
+FIG_9_5_BAS = [5]
 FIG_9_5_ALP = 1e-4
 FIG_9_5_N_EP = int(5e2)
 FIG_9_5_G = FIG_9_1_G
@@ -153,9 +152,9 @@ def fig_9_5():
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
   true_vals = get_true_vals(env, pi)
 
-  for (feat, base_l, label) in [(poly_feat, FIG_9_5_POL_BAS, 'polynomial basis'),
-                                (four_feat, FIG_9_5_FOU_BAS, 'fourier basis')]:
-    for base in FIG_9_5_POL_BAS:
+  for (feat, label) in [(poly_feat, 'polynomial basis'),
+                        (four_feat, 'fourier basis')]:
+    for base in FIG_9_5_BAS:
       def vhat(s, w): return np.dot(w, feat(s / 1000, base))
       def nab_vhat(s, w): return feat(s / 1000, base)
       w_dim = base + 1
