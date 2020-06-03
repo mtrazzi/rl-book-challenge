@@ -25,26 +25,27 @@ FIG_9_2_N_EP_TR = FIG_9_1_N_EP_TR
 FIG_9_2_G = FIG_9_1_G
 FIG_9_2_MAX_N = 512
 
-FIG_9_5_BAS = [5]
-FIG_9_5_ALP = 1e-4
-FIG_9_5_N_EP = int(5e2)
+FIG_9_5_BAS = [5, 10, 20]
+FIG_9_5_ALP_POL = 1e-4
+FIG_9_5_ALP_FOU = 5e-5
+FIG_9_5_N_EP = int(5e3)
 FIG_9_5_G = FIG_9_1_G
-FIG_9_5_N_RUNS = 1
+FIG_9_5_N_RUNS = 3
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
 
-def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel, labelpad=15):
-  ax.set_title(title, fontsize=MED_FONT)
+def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel, labelpad=15, font=MED_FONT, loc='upper left'):
+  ax.set_title(title, fontsize=font)
   ax.set_xticks(xticks)
   ax.set_xticklabels(xnames)
   ax.set_yticks(yticks)
   ax.set_yticklabels(ynames)
   ax.set_xlim([min(xticks), max(xticks)])
   ax.set_ylim([min(yticks), max(yticks)])
-  ax.set_xlabel(xlabel, fontsize=MED_FONT)
-  ax.set_ylabel(ylabel, rotation=0, fontsize=MED_FONT, labelpad=labelpad)
-  plt.legend(loc='upper left')
+  ax.set_xlabel(xlabel, fontsize=font)
+  ax.set_ylabel(ylabel, rotation=0, fontsize=font, labelpad=labelpad)
+  plt.legend(loc=loc)
 
 def enc_st_agg(s, w, tot_st=1000):
   return s // (tot_st // len(w))
@@ -147,18 +148,17 @@ def fig_9_2():
 
 def fig_9_5():
   fig, ax = plt.subplots()
-  fig.suptitle('Figure 9.5')
   env = RandomWalk()
   pi = {(EMPTY_MOVE, s): 1 for s in env.states}
   true_vals = get_true_vals(env, pi)
 
-  for (feat, label) in [(poly_feat, 'polynomial basis'),
-                        (four_feat, 'fourier basis')]:
+  for (feat, alp, label) in [(poly_feat, FIG_9_5_ALP_POL, 'polynomial basis'),
+                        (four_feat, FIG_9_5_ALP_FOU, 'fourier basis')]:
     for base in FIG_9_5_BAS:
       def vhat(s, w): return np.dot(w, feat(s / 1000, base))
       def nab_vhat(s, w): return feat(s / 1000, base)
       w_dim = base + 1
-      grad_mc = GradientMC(env, FIG_9_5_ALP, w_dim)
+      grad_mc = GradientMC(env, alp, w_dim)
       err_sum = np.zeros(FIG_9_5_N_EP)
       for seed in range(FIG_9_5_N_RUNS):
         print(f"seed={seed}")
@@ -174,6 +174,9 @@ def fig_9_5():
         err_sum += err_per_ep
       plt.plot(err_sum / FIG_9_5_N_RUNS, label=f'{label}, n={base}')
   plt.legend()
+  plot_figure(ax, 'Figure 9.5', [0, 5000], [0, 5000], "Episodes", [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'], f"Root\nMean\nSquared\nValue\nError\n({FIG_9_5_N_RUNS} runs)", labelpad=30, font=MED_FONT, loc='lower left')
+  fig.set_size_inches(20, 14)
+  save_plot('fig9.5', dpi=100)
   plt.show()
 
 PLOT_FUNCTION = {
