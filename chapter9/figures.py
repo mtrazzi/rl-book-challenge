@@ -32,10 +32,20 @@ FIG_9_5_N_EP = int(5e3)
 FIG_9_5_G = FIG_9_1_G
 FIG_9_5_N_RUNS = 3
 
+FIG_9_10_ALP_ST_AGG = 1e-4
+FIG_9_10_TIL_L = [1, 50]
+FIG_9_10_ALP_TIL_L = [FIG_9_10_ALP_ST_AGG / n_til for n_til in FIG_9_10_TIL_L]
+FIG_9_10_TOT_ST = 1000
+FIG_9_10_ST_AGG = 200
+FIG_9_10_N_EP = int(5e2)
+FIG_9_10_G = FIG_9_1_G
+FIG_9_10_N_RUNS = 1
+
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
 
-def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel, labelpad=15, font=MED_FONT, loc='upper left'):
+def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
+                labelpad=15, font=MED_FONT, loc='upper left'):
   ax.set_title(title, fontsize=font)
   ax.set_xticks(xticks)
   ax.set_xticklabels(xnames)
@@ -84,7 +94,8 @@ def fig_9_1():
   fig, ax1 = plt.subplots()
   ax1.plot(est_vals, 'b', label='Approximate MC value vhat')
   ax1.plot(true_vals, 'r', label='True value v_pi')
-  plot_figure(ax1, 'Figure 9.1', [0, 999], [1, 1000], 'State', [-1, 0, 1], [-1, 0, 1], '\n\nValue\nScale')
+  plot_figure(ax1, 'Figure 9.1', [0, 999], [1, 1000], 'State',
+              [-1, 0, 1], [-1, 0, 1], '\n\nValue\nScale')
   ax2 = ax1.twinx()
   ax2.set_yticks([0, 0.0017, 0.0137])
   ax2.set_ylabel('Distribution\nscale', rotation=0, fontsize=MED_FONT)
@@ -94,7 +105,8 @@ def fig_9_1():
   save_plot('fig9.1', dpi=100)
   plt.show()
 
-def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None, max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G):
+def param_study(ax, alg, pi, vhat, nab_vhat, n_ep, n_runs, true_vals=None,
+                max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G):
   n_l = [2 ** k for k in range(int(np.log(max_n) / np.log(2)) + 1)]
   for n in n_l:
     alg.n = n
@@ -140,7 +152,9 @@ def fig_9_2():
 
   nstep_semi_grad = nStepSemiGrad(env, None, FIG_9_2_W_DIM_R, FIG_9_2_G, 0)
   ax2 = fig.add_subplot('122')
-  param_study(ax2, nstep_semi_grad, pi, vhat_st_agg, nab_vhat_st_agg, FIG_9_2_N_EP_R, FIG_9_2_N_RUNS_R, true_vals=true_vals, max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G)
+  param_study(ax2, nstep_semi_grad, pi, vhat_st_agg, nab_vhat_st_agg,
+              FIG_9_2_N_EP_R, FIG_9_2_N_RUNS_R, true_vals=true_vals,
+              max_n=FIG_9_2_MAX_N, gamma=FIG_9_2_G)
   plt.legend()
   fig.set_size_inches(20, 14)
   save_plot('fig9.2', dpi=100)
@@ -174,15 +188,69 @@ def fig_9_5():
         err_sum += err_per_ep
       plt.plot(err_sum / FIG_9_5_N_RUNS, label=f'{label}, n={base}')
   plt.legend()
-  plot_figure(ax, 'Figure 9.5', [0, 5000], [0, 5000], "Episodes", [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'], f"Root\nMean\nSquared\nValue\nError\n({FIG_9_5_N_RUNS} runs)", labelpad=30, font=MED_FONT, loc='lower left')
+  plot_figure(ax, 'Figure 9.5', [0, 5000], [0, 5000], "Episodes",
+             [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'],
+             f"Root\nMean\nSquared\nValue\nError\n({FIG_9_5_N_RUNS} runs)",
+             labelpad=30, font=MED_FONT, loc='lower left')
   fig.set_size_inches(20, 14)
   save_plot('fig9.5', dpi=100)
+  plt.show()
+
+def fig_9_10():
+  fig, ax = plt.subplots()
+  env = RandomWalk()
+  pi = {(EMPTY_MOVE, s): 1 for s in env.states}
+  true_vals = get_true_vals(env, pi)
+
+  def feat_tile(s, offset, st_per_agg):
+    if s < offset:
+      return 0
+    return (s - offset) // st_per_agg + 1
+
+  def feat(s, st_per_agg, n_tiles):
+    dx = st_per_agg // n_tiles
+    ft_per_til = FIG_9_10_TOT_ST // st_per_agg + 1
+    feat_arr = np.zeros(ft_per_til * n_tiles)
+    for n in range(n_tiles):
+      idx_min = n * ft_per_til
+      s_id = feat_tile(s, n * dx, st_per_agg)
+      feat_arr[idx_min + s_id] = True
+    return feat_arr.astype(bool)
+
+  for (idx, n_tiles) in enumerate(FIG_9_10_TIL_L):
+    def feat_vec(s): return feat(s, FIG_9_10_ST_AGG, n_tiles)
+    def vhat(s, w): return np.sum(w[feat_vec(s)]) if s < FIG_9_10_TOT_ST else 0
+    def nab_vhat(s, w): return feat_vec(s) if s < FIG_9_10_TOT_ST else 0
+    w_dim = (FIG_9_10_TOT_ST // FIG_9_10_ST_AGG + 1) * n_tiles
+    grad_mc = GradientMC(env, FIG_9_10_ALP_TIL_L[idx], w_dim)
+    err_sum = np.zeros(FIG_9_10_N_EP)
+    for seed in range(FIG_9_10_N_RUNS):
+      print(f"seed={seed}")
+      grad_mc.reset()
+      grad_mc.seed(seed)
+      err_per_ep = []
+      for ep in range(FIG_9_10_N_EP):
+        if ep % 100 == 0 and ep > 0:
+          print(ep)
+        grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_10_G)
+        est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
+        err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
+      err_sum += err_per_ep
+    plt.plot(err_sum / FIG_9_10_N_RUNS, label=f'{n_tiles} tiles')
+  plt.legend()
+  plot_figure(ax, 'Figure 9.10', [0, 5000], [0, 5000], "Episodes",
+             [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'],
+             f"Root\nMean\nSquared\nValue\nError\n({FIG_9_10_N_RUNS} runs)",
+             labelpad=30, font=MED_FONT, loc='lower left')
+  fig.set_size_inches(20, 14)
+  save_plot('fig9.10', dpi=100)
   plt.show()
 
 PLOT_FUNCTION = {
   '9.1': fig_9_1,
   '9.2': fig_9_2,
   '9.5': fig_9_5,
+  '9.10': fig_9_10,
 }
 
 def main():
