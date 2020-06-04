@@ -37,7 +37,7 @@ FIG_9_10_TIL_L = [1, 50]
 FIG_9_10_ALP_TIL_L = [FIG_9_10_ALP_ST_AGG / n_til for n_til in FIG_9_10_TIL_L]
 FIG_9_10_TOT_ST = 1000
 FIG_9_10_ST_AGG = 200
-FIG_9_10_N_EP = int(5e2)
+FIG_9_10_N_EP = int(5e3)
 FIG_9_10_G = FIG_9_1_G
 FIG_9_10_N_RUNS = 1
 
@@ -208,12 +208,12 @@ def fig_9_10():
     return (s - offset) // st_per_agg + 1
 
   def feat(s, st_per_agg, n_tiles):
-    dx = st_per_agg // n_tiles
-    ft_per_til = FIG_9_10_TOT_ST // st_per_agg + 1
+    dx = st_per_agg // n_tiles if n_tiles > 1 else 0
+    ft_per_til = FIG_9_10_TOT_ST // st_per_agg + (n_tiles > 1)
     feat_arr = np.zeros(ft_per_til * n_tiles)
     for n in range(n_tiles):
       idx_min = n * ft_per_til
-      s_id = feat_tile(s, n * dx, st_per_agg)
+      s_id = feat_tile(s, n * dx, st_per_agg) - (n_tiles == 1)
       feat_arr[idx_min + s_id] = True
     return feat_arr.astype(bool)
 
@@ -221,8 +221,9 @@ def fig_9_10():
     def feat_vec(s): return feat(s, FIG_9_10_ST_AGG, n_tiles)
     def vhat(s, w): return np.sum(w[feat_vec(s)]) if s < FIG_9_10_TOT_ST else 0
     def nab_vhat(s, w): return feat_vec(s) if s < FIG_9_10_TOT_ST else 0
-    w_dim = (FIG_9_10_TOT_ST // FIG_9_10_ST_AGG + 1) * n_tiles
+    w_dim = (FIG_9_10_TOT_ST // FIG_9_10_ST_AGG + (n_tiles > 1)) * n_tiles
     grad_mc = GradientMC(env, FIG_9_10_ALP_TIL_L[idx], w_dim)
+    print(f"w_dim={w_dim}, alpha={grad_mc.a}, n_tiles={n_tiles}")
     err_sum = np.zeros(FIG_9_10_N_EP)
     for seed in range(FIG_9_10_N_RUNS):
       print(f"seed={seed}")
@@ -235,7 +236,7 @@ def fig_9_10():
         grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_10_G)
         est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
         err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
-      err_sum += err_per_ep
+      err_sum += np.array(err_per_ep)
     plt.plot(err_sum / FIG_9_10_N_RUNS, label=f'{n_tiles} tiles')
   plt.legend()
   plot_figure(ax, 'Figure 9.10', [0, 5000], [0, 5000], "Episodes",
