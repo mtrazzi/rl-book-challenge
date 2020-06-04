@@ -655,3 +655,17 @@ c_{9,1}, c_{9, 2} = (2, 2)
 ### 9.4
 
 tiles that are elongated along one dimension, such as stripe tilings from 9.12 (middle), or log stripes.
+
+### 9.5
+
+\alpha = \frac{1}{10 * 98} (\tau = 10 and 98 tiles, using 1/{\tau * n_tiles} from section 9.5.4)
+
+### 9.6
+
+using (9.7), U_t unbiased estimate and the definition of \hat v & \nabla \hat v for linear methods: \mathbb(E)[\bold w_{t+1}^T x(S_t) - v_{\pi}(S_t)] = \mathbb(E) { \bold w_t^T x(S_t) + \alpha [v_{\pi}(S_t) - \bold w_t^T x_(S_t)] x(S_t)^T x(S_t) - v_{\pi}(S_t}}
+
+then using (9.19) with \tau = 1, \alpha = \frac{1}{\mathbb{E}[x^T x]}
+
+so, on the right side, when we take the expacted value of x(S_t) ^ T x(S_t) and divide by alpha, we get 1.
+
+the v_{\pi} and the \bold w_t^T x_(S_t) simplify and we get 0, which means the error was reduces (on average) to zero in one update.
