@@ -669,3 +669,11 @@ then using (9.19) with \tau = 1, \alpha = \frac{1}{\mathbb{E}[x^T x]}
 so, on the right side, when we take the expacted value of x(S_t) ^ T x(S_t) and divide by alpha, we get 1.
 
 the v_{\pi} and the \bold w_t^T x_(S_t) simplify and we get 0, which means the error was reduces (on average) to zero in one update.
+
+### 9.7
+
+TODO: run derivations for simple neural net
+
+### 9.8
+
+TODO: run derivations for cross-entropy loss

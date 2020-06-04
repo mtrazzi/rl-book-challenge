@@ -33,7 +33,7 @@ FIG_9_5_G = FIG_9_1_G
 FIG_9_5_N_RUNS = 3
 
 FIG_9_10_ALP_ST_AGG = 1e-4
-FIG_9_10_TIL_L = [1, 50]
+FIG_9_10_TIL_L = [50, 1]
 FIG_9_10_ALP_TIL_L = [FIG_9_10_ALP_ST_AGG / n_til for n_til in FIG_9_10_TIL_L]
 FIG_9_10_TOT_ST = 1000
 FIG_9_10_ST_AGG = 200
@@ -233,6 +233,11 @@ def fig_9_10():
       for ep in range(FIG_9_10_N_EP):
         if ep % 100 == 0 and ep > 0:
           print(ep)
+          if ep % 1000 == 0:
+            for n in range(n_tiles):
+              min_idx = n * 6
+              plt.plot(grad_mc.w[min_idx:min_idx+6])
+            plt.show()
         grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_10_G)
         est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
         err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
