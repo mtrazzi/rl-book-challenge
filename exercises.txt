@@ -672,8 +672,10 @@ the v_{\pi} and the \bold w_t^T x_(S_t) simplify and we get 0, which means the e
 
 ### 9.7
 
-TODO: run derivations for simple neural net
+\hat v(s, w) = 1 / (1 + e^{-w^T x(s)})
+
+\nabla \hat v(s, w) = (e^{-w^T x(s)} / (1 + e^{-w^T x(s)})^2) x(s) = \hat v(s, w) (1 - \hat v(s)) x(s)
 
 ### 9.8
 
-TODO: run derivations for cross-entropy loss
+from deriving the cross-entropy loss i get the same update (i.e. w_{t+1} = w_t + (v_{\pi} - \hat v) \nabla \hat v) 

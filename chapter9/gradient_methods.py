@@ -29,9 +29,6 @@ class GradientMC(GradientAlg):
         print(f"ep #{ep}")
       for (s, G) in gen_traj_ret(self.env, pi, gamma):
         self.mu[s] += 1
-        #print(f"w={self.w}")
-        #print(G, vhat(s, self.w), nab_vhat(s, self.w))
-        #input()
         self.w += self.a * (G - vhat(s, self.w)) * nab_vhat(s, self.w)
     self.mu /= self.mu.sum()
 
