@@ -17,3 +17,21 @@ python figures 9.1
 ```bash
 python figures 9.2
 ```
+
+### Figure 9.5:
+
+![fig9.5.png](plots/fig9.5.png)
+
+
+```bash
+python figures 9.5
+```
+
+### Figure 9.10:
+
+![fig9.10.png](plots/fig9.10.png)
+
+
+```bash
+python figures 9.10
+```
