@@ -30,7 +30,7 @@ FIG_9_5_ALP_POL = 1e-4
 FIG_9_5_ALP_FOU = 5e-5
 FIG_9_5_N_EP = int(5e3)
 FIG_9_5_G = FIG_9_1_G
-FIG_9_5_N_RUNS = 3
+FIG_9_5_N_RUNS = 30
 
 FIG_9_10_ALP_ST_AGG = 1e-4
 FIG_9_10_TIL_L = [50, 1]
@@ -39,7 +39,7 @@ FIG_9_10_TOT_ST = 1000
 FIG_9_10_ST_AGG = 200
 FIG_9_10_N_EP = int(5e3)
 FIG_9_10_G = FIG_9_1_G
-FIG_9_10_N_RUNS = 3
+FIG_9_10_N_RUNS = 30
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -184,13 +184,13 @@ def fig_9_5():
             print(ep)
           grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_5_G)
           est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
-          err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
+          err_per_ep.append(np.sqrt(np.dot(grad_mc.mu[:-1], (est_vals-true_vals[:-1]) ** 2)))
         err_sum += err_per_ep
       plt.plot(err_sum / FIG_9_5_N_RUNS, label=f'{label}, n={base}')
   plt.legend()
   plot_figure(ax, 'Figure 9.5', [0, 5000], [0, 5000], "Episodes",
              [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'],
-             f"Root\nMean\nSquared\nValue\nError\n({FIG_9_5_N_RUNS} runs)",
+             f"Square-Root\nValue Error\n({FIG_9_5_N_RUNS} runs)",
              labelpad=30, font=MED_FONT, loc='lower left')
   fig.set_size_inches(20, 14)
   save_plot('fig9.5', dpi=100)
@@ -235,13 +235,14 @@ def fig_9_10():
           print(ep)
         grad_mc.pol_eva(pi, vhat, nab_vhat, n_ep=1, gamma=FIG_9_10_G)
         est_vals = [vhat(s, grad_mc.w) for s in env.states][:-1]
-        err_per_ep.append(np.sqrt(np.sum((est_vals-true_vals[:-1]) ** 2) / env.n_states))
+        err_per_ep.append(np.sqrt(np.dot(grad_mc.mu[:-1], (est_vals-true_vals[:-1]) ** 2)))
       err_sum += np.array(err_per_ep)
-    plt.plot(err_sum / FIG_9_10_N_RUNS, label=f'{n_tiles} tiles')
+    plt.plot(err_sum / FIG_9_10_N_RUNS, label=(('State Aggregation' if (n_tiles > 1) else 'Tile Coding') +
+                                              f' ({n_tiles} tile{"s" * (n_tiles > 1)})'))
   plt.legend()
   plot_figure(ax, 'Figure 9.10', [0, 5000], [0, 5000], "Episodes",
              [0, 0.1, 0.2, 0.3, 0.4], ['0', '0.1', '0.2', '0.3', '0.4'],
-             f"Root\nMean\nSquared\nValue\nError\n({FIG_9_10_N_RUNS} runs)",
+             f"Square-Root\nValue Error\n({FIG_9_10_N_RUNS} runs)",
              labelpad=30, font=MED_FONT, loc='lower left')
   fig.set_size_inches(20, 14)
   save_plot('fig9.10', dpi=100)
