@@ -8,6 +8,10 @@ class GradientAlg:
     self.eps = eps
     self.reset()
 
+  def gre(self, s):
+    q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
+    return self.env.moves[np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+
   def eps_gre(self, s):
     if np.random.random() < self.eps:
       return sample(self.env.moves_d[s])
@@ -19,7 +23,6 @@ class GradientAlg:
 
   def reset(self):
     self.w = np.zeros(self.d)
-    self.mu = np.zeros(len(self.env.states))
 
 class EpisodicSemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim, eps):
@@ -27,6 +30,7 @@ class EpisodicSemiGradientTD0(GradientAlg):
 
   def pol_eva(self, qhat, nab_qhat, n_ep, gamma):
     steps_per_ep = []
+    self.qhat, w = qhat, self.w
     for ep in range(n_ep):
       if ep > 0 and ep % 100 == 0:
         print(f"ep #{ep}")
