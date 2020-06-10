@@ -13,7 +13,10 @@ class GradientAlg:
 
   def gre(self, s):
     q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
-    best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
+    try:
+      best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
+    except:
+      import ipdb; ipdb.set_trace()
     return self.env.moves[best_move]
 
   def eps_gre(self, s):
@@ -37,12 +40,14 @@ class EpisodicSemiGradientTD0(GradientAlg):
     steps_per_ep = []
     self.qhat, w = qhat, self.w
     for ep in range(n_ep):
-      if ep > 0 and ep % 100 == 0:
+      if ep > 0 and ep % 10 == 0:
         print(f"ep #{ep}")
       s = self.env.reset()
       a = self.eps_gre(s)
       n_steps = 0
       while True:
+        print(self.env)
+        print(np.mean(self.w))
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
         if d:

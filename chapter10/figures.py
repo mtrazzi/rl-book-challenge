@@ -26,7 +26,10 @@ def fig_10_2():
     def qhat(s, a, w): return np.sum(w[idxs(s, a)])
 
     def nab_qhat(s, a, w):
-        return np.array([x in idxs(s, a) for x in range(len(w))])
+      res = np.zeros(len(w))
+      for idx in idxs(s, a):
+        res[idx] = True
+      return res
 
     for alp in FIG_10_2_ALP_L:
       print(alp)
