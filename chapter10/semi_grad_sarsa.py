@@ -1,4 +1,6 @@
 import numpy as np
+from utils import sample
+
 
 class GradientAlg:
   def __init__(self, env, alpha, w_dim, eps):
@@ -6,11 +8,13 @@ class GradientAlg:
     self.a = alpha
     self.d = w_dim
     self.eps = eps
+    self.qhat = None
     self.reset()
 
   def gre(self, s):
     q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
-    return self.env.moves[np.random.choice(np.flatnonzero(q_arr == q_arr.max()))]
+    best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
+    return self.env.moves[best_move]
 
   def eps_gre(self, s):
     if np.random.random() < self.eps:
@@ -23,6 +27,7 @@ class GradientAlg:
 
   def reset(self):
     self.w = np.zeros(self.d)
+
 
 class EpisodicSemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim, eps):
@@ -44,7 +49,8 @@ class EpisodicSemiGradientTD0(GradientAlg):
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break
         a_p = self.eps_gre(s_p)
-        self.w += self.a * (r + gamma * qhat(s_p, a_p, w) - qhat(s, a, w)) * nab_qhat(s, a, w)
+        self.w += self.a * (r + gamma * qhat(s_p, a_p, w) - (qhat(s, a, w)) *
+                            nab_qhat(s, a, w))
         s, a = s_p, a_p
-      steps_per_ep.append(n_steps) 
+      steps_per_ep.append(n_steps)
     return steps_per_ep

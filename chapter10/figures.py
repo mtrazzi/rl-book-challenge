@@ -12,29 +12,35 @@ FIG_10_2_ALP_L = [alpha / 8 for alpha in [0.1, 0.2, 0.5]]
 FIG_10_2_N_EP = 500
 FIG_10_2_G = 1
 
+
 def get_idxs(iht, x, xdot, a):
-  return tiles(iht, N_TILES, [N_TILES * x / (X_MAX - X_MIN), N_TILES * xdot / (V_MAX - V_MIN)], [a])
+  return tiles(iht, N_TILES, [N_TILES * x / (X_MAX - X_MIN),
+               N_TILES * xdot / (V_MAX - V_MIN)], [a])
+
 
 def fig_10_2():
-  env = MountainCar()
-  w_dim = TILE_SIZE * N_TILES
-  iht = IHT(TILE_SIZE)
-  def idxs(s, a): return get_idxs(iht, s[0], s[1], a)
-  def qhat(s, a, w):
-    return np.sum(w[idxs(s, a)])
-  def nab_qhat(s, a, w):
-    return np.array([x in idxs(s, a) for x in range(len(w))])
-  for alp in FIG_10_2_ALP_L:
-    print(alp)
-    alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
-    n_steps = alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP, FIG_10_2_G)
-    plt.plot(n_steps, label=f'alpha={alp}')
-  plt.legend()
-  plt.show()
+    env = MountainCar()
+    w_dim = TILE_SIZE * N_TILES
+    iht = IHT(TILE_SIZE)
+    def idxs(s, a): return get_idxs(iht, s[0], s[1], a)
+    def qhat(s, a, w): return np.sum(w[idxs(s, a)])
+
+    def nab_qhat(s, a, w):
+        return np.array([x in idxs(s, a) for x in range(len(w))])
+
+    for alp in FIG_10_2_ALP_L:
+      print(alp)
+      alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
+      n_steps = alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP, FIG_10_2_G)
+      plt.plot(n_steps, label=f'alpha={alp}')
+    plt.legend()
+    plt.show()
+
 
 PLOT_FUNCTION = {
   '10.2': fig_10_2,
 }
+
 
 def main():
   parser = argparse.ArgumentParser()
@@ -50,6 +56,7 @@ def main():
   else:
     print(f"[{args.figure}]")
     PLOT_FUNCTION[args.figure]()
+
 
 if __name__ == '__main__':
   main()

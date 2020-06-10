@@ -8,6 +8,7 @@ V_MIN = -V_MAX
 R_STEP = -1
 THR_FOR, THR_REV, ZER_THR = [1, -1, 0]
 
+
 class MountainCar:
   def __init__(self):
     self.reset()
@@ -20,7 +21,10 @@ class MountainCar:
     self.moves = [THR_FOR, THR_REV, ZER_THR]
 
   def step(self, a):
-    self.state[1] = self.bound(V_MIN, self.state[1] + 0.001 * a - 0.0025 * np.cos(3 * self.state[1]), V_MAX)
+    self.state[1] = self.bound(V_MIN,
+                               (self.state[1] +
+                                0.001 * a - 0.0025 * np.cos(3 * self.state[1])),
+                               V_MAX)
     self.state[0] = self.bound(X_MIN, self.state[0] + self.state[1], X_MAX)
     return self.state, R_STEP, self.state[0] == X_MAX, {}
 
