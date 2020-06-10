@@ -24,9 +24,9 @@
   <img src="/chapter7/plots/fig7.2_comparison.png" alt="fig7.2_comparison">
 </p>
 
-#### [Figure 9.5](https://github.com/mtrazzi/rl-book-challenge/tree/master/chapter7#figure-95)
+#### [Figure 9.5](https://github.com/mtrazzi/rl-book-challenge/tree/master/chapter9#figure-95)
 <p align="center">
-  <img src="/chapter7/plots/fig9.5_comparison.png" alt="fig9.5_comparison">
+  <img src="/chapter9/plots/fig9.5_comparison.png" alt="fig9.5_comparison">
 </p>
 
 ### 2. solve all the [exercises](https://github.com/mtrazzi/rl-book-challenge/tree/master/exercises.txt)
