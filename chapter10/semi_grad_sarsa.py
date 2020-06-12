@@ -13,10 +13,7 @@ class GradientAlg:
 
   def gre(self, s):
     q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
-    try:
-      best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
-    except:
-      import ipdb; ipdb.set_trace()
+    best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
     return self.env.moves[best_move]
 
   def eps_gre(self, s):
