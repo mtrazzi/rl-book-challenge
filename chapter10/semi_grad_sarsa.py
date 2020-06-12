@@ -37,21 +37,19 @@ class EpisodicSemiGradientTD0(GradientAlg):
     steps_per_ep = []
     self.qhat, w = qhat, self.w
     for ep in range(n_ep):
-      if ep > 0 and ep % 10 == 0:
+      if ep > 0 and ep % 1 == 0:
         print(f"ep #{ep}")
       s = self.env.reset()
       a = self.eps_gre(s)
       n_steps = 0
       while True:
-        print(self.env)
-        print(np.mean(self.w))
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
         if d:
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break
         a_p = self.eps_gre(s_p)
-        self.w += self.a * (r + gamma * qhat(s_p, a_p, w) - (qhat(s, a, w)) *
+        self.w += self.a * ((r + gamma * qhat(s_p, a_p, w) - qhat(s, a, w)) *
                             nab_qhat(s, a, w))
         s, a = s_p, a_p
       steps_per_ep.append(n_steps)

@@ -27,6 +27,7 @@ class MountainCar:
                                 0.001 * a - 0.0025 * np.cos(3 * self.state[0])),
                                V_MAX)
     self.state[0] = self.bound(X_MIN, self.state[0] + self.state[1], X_MAX)
+    print(f"{self.state[0]} + {self.state[1]}")
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
     return self.state, R_STEP, self.state[0] == X_MAX, {}
@@ -35,6 +36,9 @@ class MountainCar:
     x_0 = (X_0_MAX - X_0_MIN) * np.random.random() + X_0_MIN
     self.state = [x_0, V_0]
     return self.state
+
+  def seed(self, seed):
+    np.random.seed(seed)
 
   def __str__(self):
     return f"x = {self.state[0]}, vx = {self.state[1]}"
