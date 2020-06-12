@@ -9,11 +9,17 @@ V_NULL = 0
 R_STEP = -1
 THR_FOR, THR_REV, ZER_THR = [1, -1, 0]
 
+KEY_ACTION_DICT = {
+  's': THR_REV,
+  'd': ZER_THR,
+  'f': THR_FOR,
+}
+
 
 class MountainCar:
   def __init__(self):
-    self.reset()
     self.get_moves()
+    self.get_keys()
 
   def bound(self, y_min, y, y_max):
     return y_min if y < y_min else min(y, y_max)
@@ -31,6 +37,12 @@ class MountainCar:
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
     return self.state, R_STEP, self.state[0] == X_MAX, {}
+
+  def get_keys(self):
+    self.keys = KEY_ACTION_DICT.keys()
+
+  def step_via_key(self, key):
+    return self.step(KEY_ACTION_DICT[key])
 
   def reset(self):
     x_0 = (X_0_MAX - X_0_MIN) * np.random.random() + X_0_MIN

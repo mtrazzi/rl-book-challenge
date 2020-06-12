@@ -34,7 +34,7 @@ def fig_10_2():
     for alp in FIG_10_2_ALP_L:
       print(alp)
       alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
-      alg.seed(42)
+      alg.seed(0)
       n_steps = alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP, FIG_10_2_G)
       plt.plot(n_steps, label=f'alpha={alp}')
     plt.legend()
