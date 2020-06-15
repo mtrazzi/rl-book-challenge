@@ -1,5 +1,7 @@
 import numpy as np
 from utils import sample
+import matplotlib.pyplot as plt
+plt.switch_backend('Qt5Agg')
 
 
 class GradientAlg:
@@ -11,9 +13,13 @@ class GradientAlg:
     self.qhat = None
     self.reset()
 
-  def gre(self, s):
+  def gre(self, s, pt=False):
     q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
     best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
+    if pt:
+      print(q_arr)
+      print(best_move)
+      print(self.env.moves[best_move])
     return self.env.moves[best_move]
 
   def eps_gre(self, s):
@@ -47,9 +53,14 @@ class EpisodicSemiGradientTD0(GradientAlg):
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
         log_ac[a + 1] += 1
-        if n_steps % 10 == 9:
-          print(self.env)
-          self.env.show(200)
+        if n_steps > 0 and n_steps % 10000 == 0:
+          print(f"step  #{n_steps}: {self.env}")
+          print(f"{np.flatnonzero(self.w).shape[0]} non-zero weights")
+          self.gre(s, pt=True)
+          import ipdb; ipdb.set_trace()
+          #plt.show()
+          #plt.close()
+          #self.env.show()
         if d:
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break

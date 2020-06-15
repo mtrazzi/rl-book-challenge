@@ -26,7 +26,7 @@ class MountainCar:
     return y_min if y < y_min else min(y, y_max)
 
   def get_moves(self):
-    self.moves = [THR_FOR, THR_REV, ZER_THR]
+    self.moves = [THR_REV, ZER_THR, THR_FOR]
 
   def step(self, a):
     self.state[1] = self.bound(V_MIN,
@@ -70,7 +70,9 @@ class MountainCar:
     plt.plot(X[x_idx], V[x_idx], 'rx', label='vx')
     plt.plot(X, np.zeros(n_pts), '--k', label='v=0')
     plt.legend()
-    plt.show()
+    plt.draw()
+    plt.pause(1)
+    plt.close()
 
   def __str__(self):
     return f"x = {self.state[0]} {'<' if (self.state[0] < 0.70) else '>'} X_CRITIC, vx = {self.state[1]}"
