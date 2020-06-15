@@ -42,9 +42,16 @@ class EpisodicSemiGradientTD0(GradientAlg):
       s = self.env.reset()
       a = self.eps_gre(s)
       n_steps = 0
+      log_ac = np.zeros(3)
       while True:
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
+        log_ac[a + 1] += 1
+        if n_steps % 10 == 9:
+          print(self.env)
+          self.env.show(200)
+          #print(log_ac / np.sum(log_ac))
+          #print(self.env)
         if d:
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break

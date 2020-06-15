@@ -21,7 +21,10 @@ def play(env):
         key = input("press key\n$>")
         if key == "exit()":
           exit()
-      _, _, done, _ = env.step_via_key(key)
+        if (key == 'p'):
+          env.show(n_pts=10000)
+      for _ in range(10000):
+        _, _, done, _ = env.step_via_key(key)
     again = input("episode done, continue? (Y / n)")
     if again == 'n':
       break
