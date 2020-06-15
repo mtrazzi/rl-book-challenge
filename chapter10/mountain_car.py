@@ -29,13 +29,11 @@ class MountainCar:
     self.moves = [THR_FOR, THR_REV, ZER_THR]
 
   def step(self, a):
-    print(f"a = {a}")
     self.state[1] = self.bound(V_MIN,
                                (self.state[1] +
                                 0.001 * a - 0.0025 * np.cos(3 * self.state[0])),
                                V_MAX)
     self.state[0] = self.bound(X_MIN, self.state[0] + self.state[1], X_MAX)
-    #print(f"{self.state[0]} + {self.state[1]}")
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
     return self.state, R_STEP, self.state[0] == X_MAX, {}
@@ -57,19 +55,21 @@ class MountainCar:
   def show(self, n_pts=50):
     X = np.linspace(X_MIN, X_MAX, n_pts)
     Y = [-np.cos(3 * x) for x in X][::-1]
-    V_old = self.state[1] - np.array(Y[::-1])
-    x0, dx = 2000, 3000
-    v0 = np.argmin(np.abs(V_old[x0:x0 + dx])) + x0
+    V = -np.array(Y[::-1])
+    plt.plot(X, V, 'k', label='v')
+
+    x0, dx = n_pts // 5, n_pts // 5 + n_pts // 10
+    v0 = np.argmin(np.abs(V[x0:x0 + dx])) + x0
     y0 = np.argmin(Y)
     phi = X[v0] - X[y0]
     Y_phi = [-np.cos(3 * (x + phi)) for x in X][::-1]
-    V = self.state[1] - np.array(Y_phi[::-1])
-    x_idx = np.flatnonzero(X >= self.state[0])[0]
-    plt.plot(X[x_idx], Y_phi[x_idx], 'rx')
     plt.plot(X, Y_phi)
-    plt.plot(X, V, 'k')
-    plt.plot(X[x_idx], V[x_idx], 'rx')
-    plt.plot(X, np.zeros(n_pts), '--k')
+
+    x_idx = np.flatnonzero(X >= self.state[0])[0]
+    plt.plot(X[x_idx], Y_phi[x_idx], 'r+', label='car')
+    plt.plot(X[x_idx], V[x_idx], 'rx', label='vx')
+    plt.plot(X, np.zeros(n_pts), '--k', label='v=0')
+    plt.legend()
     plt.show()
 
   def __str__(self):

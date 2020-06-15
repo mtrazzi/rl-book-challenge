@@ -1,6 +1,7 @@
 import argparse
 import os
 from mountain_car import MountainCar
+import matplotlib.pyplot as plt
 
 ENV_DICT = {
   'mountain_car': MountainCar(),
@@ -14,6 +15,7 @@ def play(env):
   while True:
     env.reset()
     done = False
+    v = []
     while not done:
       key = ''
       while key not in env.keys:
@@ -23,8 +25,11 @@ def play(env):
           exit()
         if (key == 'p'):
           env.show(n_pts=10000)
-      for _ in range(10000):
+        if (key == 'v'):
+          plt.plot(v); plt.show()
+      for _ in range(100000):
         _, _, done, _ = env.step_via_key(key)
+        v.append(env.state[1])
     again = input("episode done, continue? (Y / n)")
     if again == 'n':
       break
