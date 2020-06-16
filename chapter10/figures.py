@@ -11,6 +11,7 @@ N_TILES = 8
 FIG_10_2_ALP_L = [alpha / 8 for alpha in [0.1, 0.2, 0.5]]
 FIG_10_2_N_EP = 500
 FIG_10_2_G = 1
+FIG_10_2_N_RUNS = 3
 
 
 def get_idxs(iht, x, xdot, a):
@@ -19,7 +20,7 @@ def get_idxs(iht, x, xdot, a):
 
 
 def fig_10_2():
-    env = MountainCar()
+    env = MountainCar(mnt=False)
     w_dim = TILE_SIZE * N_TILES
     iht = IHT(TILE_SIZE)
     def idxs(s, a): return get_idxs(iht, s[0], s[1], a)
@@ -31,12 +32,22 @@ def fig_10_2():
         res[idx] = True
       return res
 
+    def smooth_steps(arr, to_avg=5):
+      nb_rew = len(arr)
+      new_arr = np.zeros(nb_rew - to_avg + 1)
+      for i in range(nb_rew - to_avg + 1):
+        new_arr[i] = np.mean([arr[i + j] for j in range(to_avg)])
+      return new_arr
+
     for alp in FIG_10_2_ALP_L:
-      print(alp)
-      alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
-      alg.seed(0)
-      n_steps = alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP, FIG_10_2_G)
-      plt.plot(n_steps, label=f'alpha={alp}')
+      tot_n_steps = np.zeros(FIG_10_2_N_EP)
+      for _ in range(FIG_10_2_N_RUNS):
+        print(alp)
+        alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
+        alg.seed(0)
+        tot_n_steps += np.array(alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP,
+                                            FIG_10_2_G, max_steps=100))
+      plt.plot(smooth_steps(tot_n_steps, to_avg=10), label=f'alpha={alp}')
     plt.legend()
     plt.show()
 

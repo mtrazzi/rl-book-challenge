@@ -4,7 +4,7 @@ from mountain_car import MountainCar
 import matplotlib.pyplot as plt
 
 ENV_DICT = {
-  'mountain_car': MountainCar(),
+  'mountain_car': MountainCar(mnt=False),
 }
 
 
@@ -27,7 +27,7 @@ def play(env):
           env.show(n_pts=10000)
         if (key == 'v'):
           plt.plot(v); plt.show()
-      for _ in range(100000):
+      for _ in range(1):
         _, _, done, _ = env.step_via_key(key)
         v.append(env.state[1])
     again = input("episode done, continue? (Y / n)")

@@ -18,13 +18,11 @@ class GradientAlg:
     best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
     if pt:
       print(q_arr)
-      print(best_move)
-      print(self.env.moves[best_move])
     return self.env.moves[best_move]
 
   def eps_gre(self, s):
     if np.random.random() < self.eps:
-      return sample(self.env.moves_d[s])
+      return sample(self.env.moves)
     return self.gre(s)
 
   def seed(self, seed):
@@ -39,7 +37,7 @@ class EpisodicSemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim, eps):
     super().__init__(env, alpha, w_dim, eps)
 
-  def pol_eva(self, qhat, nab_qhat, n_ep, gamma):
+  def pol_eva(self, qhat, nab_qhat, n_ep, gamma, max_steps=np.inf):
     steps_per_ep = []
     self.qhat, w = qhat, self.w
     for ep in range(n_ep):
@@ -53,15 +51,13 @@ class EpisodicSemiGradientTD0(GradientAlg):
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
         log_ac[a + 1] += 1
-        if n_steps > 0 and n_steps % 10000 == 0:
+        if n_steps > 0 and n_steps % 1000 == 0:
           print(f"step  #{n_steps}: {self.env}")
           print(f"{np.flatnonzero(self.w).shape[0]} non-zero weights")
           self.gre(s, pt=True)
-          import ipdb; ipdb.set_trace()
-          #plt.show()
-          #plt.close()
-          #self.env.show()
-        if d:
+          print(self.env)
+          self.env.show()
+        if d:# or n_steps > max_steps:
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break
         a_p = self.eps_gre(s_p)

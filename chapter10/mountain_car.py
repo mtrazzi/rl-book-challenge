@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-X_0_MIN, X_0_MAX = [-0.6, -0.4]
-X_MIN, X_MAX = [-1.2, 0.5]
+# X_0_MIN, X_0_MAX = [-0.6, -0.4]
+# X_MIN, X_MAX = [-1.2, 0.5]
+X_0_MIN, X_0_MAX = [-0.55, -0.45]
+X_MIN, X_MAX = [-0.55, -0.45]
 V_0 = 0
 V_MAX = 0.07
 V_MIN = -V_MAX
@@ -18,9 +20,10 @@ KEY_ACTION_DICT = {
 
 
 class MountainCar:
-  def __init__(self):
+  def __init__(self, mnt=True):
     self.get_moves()
     self.get_keys()
+    self.mnt = mnt  # are we on a mountain
 
   def bound(self, y_min, y, y_max):
     return y_min if y < y_min else min(y, y_max)
@@ -31,11 +34,13 @@ class MountainCar:
   def step(self, a):
     self.state[1] = self.bound(V_MIN,
                                (self.state[1] +
-                                0.001 * a - 0.0025 * np.cos(3 * self.state[0])),
+                                0.001 * a -
+                                0.0025 * np.cos(3 * self.state[0]) * self.mnt),
                                V_MAX)
     self.state[0] = self.bound(X_MIN, self.state[0] + self.state[1], X_MAX)
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
+      self.state[0] = (1 - self.mnt) * (X_0_MIN + X_0_MAX) / 2
     return self.state, R_STEP, self.state[0] == X_MAX, {}
 
   def get_keys(self):
@@ -45,7 +50,8 @@ class MountainCar:
     return self.step(KEY_ACTION_DICT[key])
 
   def reset(self):
-    x_0 = (X_0_MAX - X_0_MIN) * np.random.random() + X_0_MIN
+    #x_0 = (X_0_MAX - X_0_MIN) * np.random.random() + X_0_MIN
+    x_0 = -0.5
     self.state = [x_0, V_0]
     return self.state
 
@@ -75,4 +81,4 @@ class MountainCar:
     plt.close()
 
   def __str__(self):
-    return f"x = {self.state[0]} {'<' if (self.state[0] < 0.70) else '>'} X_CRITIC, vx = {self.state[1]}"
+    return f"x = {self.state[0]} vx = {self.state[1]}"
