@@ -5,8 +5,8 @@ from tiles_sutton import IHT, tiles
 from mountain_car import MountainCar, X_MIN, X_MAX, V_MIN, V_MAX
 from semi_grad_sarsa import EpisodicSemiGradientTD0
 
-TILE_SIZE = 4096
-N_TILES = 8
+N_TILES = 4096
+N_TILINGS = 8
 
 FIG_10_2_ALP_L = [alpha / 8 for alpha in [0.1, 0.2, 0.5]]
 FIG_10_2_N_EP = 500
@@ -15,14 +15,14 @@ FIG_10_2_N_RUNS = 3
 
 
 def get_idxs(iht, x, xdot, a):
-  return tiles(iht, N_TILES, [N_TILES * x / (X_MAX - X_MIN),
-               N_TILES * xdot / (V_MAX - V_MIN)], [a])
+  return tiles(iht, N_TILINGS, [N_TILINGS * x / (X_MAX - X_MIN),
+               N_TILINGS * xdot / (V_MAX - V_MIN)], [a])
 
 
 def fig_10_2():
     env = MountainCar(mnt=False)
-    w_dim = TILE_SIZE * N_TILES
-    iht = IHT(TILE_SIZE)
+    w_dim = N_TILES * N_TILINGS
+    iht = IHT(N_TILES)
     def idxs(s, a): return get_idxs(iht, s[0], s[1], a)
     def qhat(s, a, w): return np.sum(w[idxs(s, a)])
 
