@@ -43,7 +43,7 @@ class MountainCar:
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
       # self.state[0] = (1 - self.mnt) * (X_0_MIN + X_0_MAX) / 2
-    return self.state, R_STEP, self.state[0] == X_MAX, {}
+    return tuple(self.state), R_STEP, self.state[0] == X_MAX, {}
 
   def get_keys(self):
     self.keys = KEY_ACTION_DICT.keys()
