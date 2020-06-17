@@ -4,6 +4,7 @@ import numpy as np
 from tiles_sutton import IHT, tiles
 from mountain_car import MountainCar, X_MIN, X_MAX, V_MIN, V_MAX
 from semi_grad_sarsa import EpisodicSemiGradientTD0
+from nstep_semi_grad_sarsa import nStepSemiGradSarsa
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -25,7 +26,12 @@ FIG_10_3_ALP_L = [alpha / 8 for alpha in [0.5, 0.3]]
 FIG_10_3_N_L = [1, 8]
 FIG_10_3_N_EP = 500
 FIG_10_3_G = FIG_10_1_G
-FIG_10_3_N_RUNS = 1#FIG_10_2_N_RUNS
+FIG_10_3_N_RUNS = 1
+
+FIG_10_4_MAX_N = 4
+FIG_10_4_N_EP = 50
+FIG_10_4_G = FIG_10_2_G
+FIG_10_4_N_RUNS = 1
 
 
 def save_plot(filename, dpi=None):
@@ -140,10 +146,10 @@ def fig_10_3():
     tot_n_steps = np.zeros(FIG_10_3_N_EP)
     for seed in range(FIG_10_3_N_RUNS):
       print(alp)
-      alg = EpisodicSemiGradientTD0(MountainCar(), alp, N_TIL * N_TLGS, eps=0)
+      alg = nStepSemiGradSarsa(MountainCar(), alp, N_TIL * N_TLGS, 0, n)
       alg.seed(seed)
-      tot_n_steps += np.array(alg.pol_eva(qhat, nab_qhat, FIG_10_3_N_EP,
-                                          FIG_10_3_G))
+      tot_n_steps += np.array(alg.pol_eva(None, qhat, nab_qhat, FIG_10_3_N_EP,
+                                          FIG_10_3_G, max_steps=1000))
     plt.plot(tot_n_steps, label=f'n={n}')
   plt.yscale('log')
   xticks, yticks = [0, 500], [100, 200, 4000, 1000]
@@ -159,7 +165,25 @@ def fig_10_4():
   fig, ax = plt.subplots()
   qhat, nab_qhat = get_qhats(N_TIL, N_TLGS)
 
-
+  n_l = [2 ** k for k in range(int(np.log(FIG_10_4_MAX_N) / np.log(2)) + 1)]
+  alg = nStepSemiGradSarsa(MountainCar(), 0, N_TIL * N_TLGS, 0, 0)
+  for n in n_l:
+    alg.n = n
+    print(f">> n={n}")
+    steps_l = []
+    alpha_max = 1 if n <= 16 else 1 / (np.log(n // 8) / np.log(2))
+    alpha_l = np.linspace(0, alpha_max, 31)
+    for alpha in alpha_l:
+      alg.a = alpha
+      print(f"alpha={alpha}")
+      tot_steps = 0
+      for seed in range(FIG_10_4_N_RUNS):
+        alg.reset()
+        alg.seed(seed)
+        for ep in range(FIG_10_4_N_EP):
+          tot_steps += alg.pol_eva(None, qhat, nab_qhat, 1, FIG_10_4_G)
+      steps_l.append(tot_steps / (FIG_10_4_N_RUNS * FIG_10_4_N_EP))
+    plt.plot(alpha_l, steps_l, label=f'n={n}')
 
 
 PLOT_FUNCTION = {
