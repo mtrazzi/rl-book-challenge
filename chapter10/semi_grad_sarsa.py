@@ -13,13 +13,9 @@ class GradientAlg:
     self.qhat = None
     self.reset()
 
-  def gre(self, s, pt=False):
+  def gre(self, s):
     q_arr = np.array([self.qhat(s, a, self.w) for a in self.env.moves])
     best_move = np.random.choice(np.flatnonzero(q_arr == q_arr.max()))
-    # print(f"{str(s)} {str(q_arr)} -- best_move is {self.env.moves[best_move]}")
-    # print(f"x(s, a): {[np.flatnonzero(self.nab_qhat(s, a, self.w)) for a in self.env.moves]}")
-    if pt:
-      print(q_arr)
     return self.env.moves[best_move]
 
   def eps_gre(self, s):
@@ -39,11 +35,9 @@ class EpisodicSemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim, eps):
     super().__init__(env, alpha, w_dim, eps)
 
-  def pol_eva(self, qhat, nab_qhat, n_ep, gamma, max_steps=np.inf,
-              play_ep=False):
+  def pol_eva(self, qhat, nab_qhat, n_ep, gamma, max_steps=np.inf):
     steps_per_ep = []
     self.qhat, w = qhat, self.w
-    self.nab_qhat = nab_qhat  # to delete
     for ep in range(n_ep):
       if ep > 0 and ep % 10 == 0:
         print(f"ep #{ep}")

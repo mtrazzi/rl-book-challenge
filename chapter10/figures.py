@@ -21,6 +21,12 @@ FIG_10_2_N_EP = 500
 FIG_10_2_G = FIG_10_1_G
 FIG_10_2_N_RUNS = 100
 
+FIG_10_3_ALP_L = [alpha / 8 for alpha in [0.5, 0.3]]
+FIG_10_3_N_L = [1, 8]
+FIG_10_3_N_EP = 500
+FIG_10_3_G = FIG_10_1_G
+FIG_10_3_N_RUNS = 1#FIG_10_2_N_RUNS
+
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -126,9 +132,41 @@ def fig_10_2():
   plt.show()
 
 
+def fig_10_3():
+  fig, ax = plt.subplots()
+  qhat, nab_qhat = get_qhats(N_TIL, N_TLGS)
+
+  for (n, alp) in zip(FIG_10_3_N_L, FIG_10_3_ALP_L):
+    tot_n_steps = np.zeros(FIG_10_3_N_EP)
+    for seed in range(FIG_10_3_N_RUNS):
+      print(alp)
+      alg = EpisodicSemiGradientTD0(MountainCar(), alp, N_TIL * N_TLGS, eps=0)
+      alg.seed(seed)
+      tot_n_steps += np.array(alg.pol_eva(qhat, nab_qhat, FIG_10_3_N_EP,
+                                          FIG_10_3_G))
+    plt.plot(tot_n_steps, label=f'n={n}')
+  plt.yscale('log')
+  xticks, yticks = [0, 500], [100, 200, 4000, 1000]
+  plot_figure(ax, 'Figure 10.3', xticks, xticks, 'Episode', yticks, yticks,
+              'Steps\nper episode\n(log scale)')
+  fig.set_size_inches(20, 14)
+  plt.legend()
+  save_plot('fig10.3', dpi=100)
+  plt.show()
+
+
+def fig_10_4():
+  fig, ax = plt.subplots()
+  qhat, nab_qhat = get_qhats(N_TIL, N_TLGS)
+
+
+
+
 PLOT_FUNCTION = {
   '10.1': fig_10_1,
   '10.2': fig_10_2,
+  '10.3': fig_10_3,
+  '10.4': fig_10_4,
 }
 
 
