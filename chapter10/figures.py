@@ -5,6 +5,7 @@ from tiles_sutton import IHT, tiles
 from mountain_car import MountainCar, X_MIN, X_MAX, V_MIN, V_MAX
 from semi_grad_sarsa import EpisodicSemiGradientTD0
 
+BIG_FONT = 20
 MED_FONT = 15
 
 N_TIL = 4096
@@ -13,7 +14,7 @@ N_TLGS = 8
 FIG_10_1_G = 1
 FIG_10_1_STEPS = 428
 FIG_10_1_EP_L = [12, 104, 1000, 9000]
-FIG_10_1_ALP = [0.5 / 8]
+FIG_10_1_ALP = 0.5 / 8
 
 FIG_10_2_ALP_L = [alpha / 8 for alpha in [0.1, 0.2, 0.5]]
 FIG_10_2_N_EP = 500
@@ -44,7 +45,9 @@ def get_idxs(iht, x, xdot, a):
                N_TLGS * xdot / (V_MAX - V_MIN)], [a])
 
 
-def print_qhat_mc(alg, ax, n_pts=50, act=None):
+def print_qhat_mc(alg, fig, fig_id, title, n_pts=50, act=None):
+  ax = fig.add_subplot(fig_id, projection='3d')
+  ax.set_title(title, fontsize=BIG_FONT)
   qhat, w = alg.qhat, alg.w
   X = np.linspace(X_MIN, X_MAX, n_pts)
   V = np.linspace(V_MIN, V_MAX, n_pts)
@@ -78,12 +81,27 @@ def get_qhats(n_til, n_tlgs):
 
 
 def fig_10_1():
-  fig, ax = plt.subplots()
+  def plot_and_save(filename, title, alg, n_ep, max_steps=np.inf):
+    fig = plt.figure()
+    alg.pol_eva(qhat, nab_qhat, n_ep, FIG_10_1_G, max_steps=max_steps)
+    print_qhat_mc(alg, fig, '111', title)
+    fig.set_size_inches(20, 14)
+    save_plot(filename, dpi=100)
+    plt.show()
+
   qhat, nab_qhat = get_qhats(N_TIL, N_TLGS)
   env = MountainCar()
-  alg = EpisodicSemiGradientTD0(MountainCar(), FIG_10_1_ALP, N_TIL * N_TLGS,
-                                eps=0)
-  alg.pol_eva(qhat, nab_qhat, 1, FIG_10_2_G)
+  alg = EpisodicSemiGradientTD0(env, FIG_10_1_ALP, N_TIL * N_TLGS, eps=0)
+  alg.seed(0)
+  plot_and_save(f'fig10.1_{FIG_10_1_STEPS}_steps', f'Step {FIG_10_1_STEPS}',
+                alg, 1, FIG_10_1_STEPS)
+
+  tot_ep = 1
+  for ep in FIG_10_1_EP_L:
+    alg.pol_eva(qhat, nab_qhat, ep - tot_ep, FIG_10_2_G)
+    plot_and_save(f'fig10.1_{ep}_episodes', f'Episode {ep}', alg, ep - tot_ep)
+    tot_ep += (ep - tot_ep)
+
 
 def fig_10_2():
   fig, ax = plt.subplots()
