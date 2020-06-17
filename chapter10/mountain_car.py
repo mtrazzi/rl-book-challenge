@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 
 # X_0_MIN, X_0_MAX = [-0.6, -0.4]
 # X_MIN, X_MAX = [-1.2, 0.5]
-X_0_MIN, X_0_MAX = [-0.55, -0.45]
-X_MIN, X_MAX = [-0.55, -0.45]
+# X_0_MIN, X_0_MAX = [-0.55, -0.45]
+# X_MIN, X_MAX = [-0.55, -0.45]
+X_0_MIN, X_0_MAX = [-0.51, -0.49]
+X_MIN, X_MAX = [-0.51, -0.49]
 V_0 = 0
 V_MAX = 0.07
 V_MIN = -V_MAX
@@ -40,7 +42,7 @@ class MountainCar:
     self.state[0] = self.bound(X_MIN, self.state[0] + self.state[1], X_MAX)
     if self.state[0] == X_MIN:
       self.state[1] = V_NULL
-      self.state[0] = (1 - self.mnt) * (X_0_MIN + X_0_MAX) / 2
+      # self.state[0] = (1 - self.mnt) * (X_0_MIN + X_0_MAX) / 2
     return self.state, R_STEP, self.state[0] == X_MAX, {}
 
   def get_keys(self):
@@ -77,7 +79,7 @@ class MountainCar:
     plt.plot(X, np.zeros(n_pts), '--k', label='v=0')
     plt.legend()
     plt.draw()
-    plt.pause(1)
+    plt.pause(0.5)
     plt.close()
 
   def __str__(self):

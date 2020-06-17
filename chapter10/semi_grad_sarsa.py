@@ -37,7 +37,8 @@ class EpisodicSemiGradientTD0(GradientAlg):
   def __init__(self, env, alpha, w_dim, eps):
     super().__init__(env, alpha, w_dim, eps)
 
-  def pol_eva(self, qhat, nab_qhat, n_ep, gamma, max_steps=np.inf):
+  def pol_eva(self, qhat, nab_qhat, n_ep, gamma, max_steps=np.inf,
+              play_ep=False):
     steps_per_ep = []
     self.qhat, w = qhat, self.w
     for ep in range(n_ep):
@@ -46,18 +47,12 @@ class EpisodicSemiGradientTD0(GradientAlg):
       s = self.env.reset()
       a = self.eps_gre(s)
       n_steps = 0
-      log_ac = np.zeros(3)
       while True:
         s_p, r, d, _ = self.env.step(a)
         n_steps += 1
-        log_ac[a + 1] += 1
-        if n_steps > 0 and n_steps % 1000 == 0:
-          print(f"step  #{n_steps}: {self.env}")
-          print(f"{np.flatnonzero(self.w).shape[0]} non-zero weights")
-          self.gre(s, pt=True)
-          print(self.env)
+        if play_ep and ep % 10 == 0:
           self.env.show()
-        if d:# or n_steps > max_steps:
+        if d or n_steps > max_steps:
           self.w += self.a * (r - qhat(s, a, w)) * nab_qhat(s, a, w)
           break
         a_p = self.eps_gre(s_p)

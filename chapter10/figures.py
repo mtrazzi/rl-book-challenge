@@ -35,8 +35,18 @@ def print_qhat_mc(alg, ax, n_pts=50, act=None):
   ax.set_xticks([X.min(), X.max()])
   ax.set_yticks([V.min(), V.max()])
   ax.set_zticks([qvals.min(), qvals.max()])
-  COLOR_DICT = {-1: 'r', 0: 'k', 1: 'b'}
+  COLOR_DICT = {-1: 'r', 0: 'g', 1: 'b'}
   ax.plot_surface(X, Y, Z, color=COLOR_DICT[act] if act is not None else None, antialiased=False)
+
+
+def print_actions(alg):
+  for a in alg.env.moves:
+    fig = plt.figure()
+    ax = fig.add_subplot('111', projection='3d')
+    print_qhat_mc(alg, ax, act=a)
+    fig.set_size_inches(20, 14)
+    plt.show()
+
 
 def fig_10_2():
   env = MountainCar(mnt=False)
@@ -58,23 +68,28 @@ def fig_10_2():
       new_arr[i] = np.mean([arr[i + j] for j in range(to_avg)])
     return new_arr
 
-  for alp in FIG_10_2_ALP_L:
+  def w_avg(arr, alp=0.99):
+    new_arr = np.zeros_like(arr)
+    new_arr[0] = arr[0]
+    for (i, x) in enumerate(arr[1:]):
+      new_arr[i + 1] = (1 - alp) * x + alp * new_arr[i]
+    return new_arr
+
+  for alp in FIG_10_2_ALP_L[:1]:
     tot_n_steps = np.zeros(FIG_10_2_N_EP)
     for _ in range(FIG_10_2_N_RUNS):
       print(alp)
       alg = EpisodicSemiGradientTD0(env, alp, w_dim, eps=0)
       alg.seed(0)
-      for _ in range(10):
-        tot_n_steps += np.array(alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP,
-                                            FIG_10_2_G, max_steps=100))
-        fig = plt.figure()
-        ax = fig.add_subplot('111', projection='3d')
-        for a in alg.env.moves:
-          print_qhat_mc(alg, ax, act=a)
-        fig.set_size_inches(20, 14)
-        plt.show()
-
-    # plt.plot(smooth_steps(tot_n_steps, to_avg=10), label=f'alpha={alp}')
+      tot_n_steps += np.array(alg.pol_eva(qhat, nab_qhat, FIG_10_2_N_EP,
+                                            FIG_10_2_G, play_ep=True))
+      # alg.pol_eva(qhat, nab_qhat, 1, FIG_10_2_G, max_steps=1000, play_ep=True)
+      # print_actions(alg)
+    plt.yscale('log')
+    plt.plot(w_avg(tot_n_steps, alp=0.9), label=f'alpha={alp}')
+    import ipdb; ipdb.set_trace()
+    # plt.plot(smooth_steps(tot_n_steps, to_avg=100), label=f'alpha={alp}')
+    # plt.plot(tot_n_steps, label=f'alpha={alp}')
   plt.legend()
   plt.show()
 
