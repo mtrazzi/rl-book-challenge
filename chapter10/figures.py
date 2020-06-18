@@ -5,6 +5,9 @@ from tiles_sutton import IHT, tiles
 from mountain_car import MountainCar, X_MIN, X_MAX, V_MIN, V_MAX
 from semi_grad_sarsa import EpisodicSemiGradientTD0
 from nstep_semi_grad_sarsa import nStepSemiGradSarsa
+from access_control import AccessControlQueuingTask
+from diff_semi_grad_sarsa import DiffSemiGradientSarsa
+import seaborn as sns
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -30,15 +33,22 @@ FIG_10_3_N_RUNS = 100
 
 FIG_10_4_N_EP = 50
 FIG_10_4_G = FIG_10_2_G
-FIG_10_4_N_RUNS = 100
-FIG_10_4_ALP_PTS = 30
+FIG_10_4_N_RUNS = 20
+FIG_10_4_ALP_PTS = 10
 FIG_10_4_ALP_BND = {
   1: [0.4, 1.7],
   2: [0.3, 1.7],
   4: [0.2, 1.5],
-  8: [0.2, 0.9],
-  16: [0.2, 0.6],
+  8: [0.1, 1.0],
+  16: [0.1, 0.8],
 }
+
+FIG_10_5_ALP = 0.01
+FIG_10_5_BET = 0.01
+FIG_10_5_EPS = 0.1
+FIG_10_5_QUE_SIZE = 4
+FIG_10_5_N_SERV = 10
+FIG_10_5_N_STEPS = 10
 
 
 def save_plot(filename, dpi=None):
@@ -204,11 +214,37 @@ def fig_10_4():
   plt.show()
 
 
+def print_pol_acc_contr(alg):
+  n_prio, n_serv = alg.env.queue.shape[0], alg.env.n_serv
+  pol = np.zeros((n_prio, n_serv))
+  for rank in range(n_prio):
+    for free_serv in range(1, n_serv + 1):
+      pol[rank, free_serv - 1] = alg.eps_gre(alg.env.encode_state(rank, n_serv,
+                                                              free_serv))
+  sns.heatmap(pol)
+  plt.show()
+
+
+def fig_10_5():
+  env = AccessControlQueuingTask(FIG_10_5_N_SERV, FIG_10_5_QUE_SIZE)
+  n_act = len(env.moves)
+  w_dim = (env.n_serv + 1) * env.queue.shape[0] * n_act
+  alg = DiffSemiGradientSarsa(env, FIG_10_5_ALP, FIG_10_5_BET, w_dim,
+                              FIG_10_5_EPS)
+  mat = np.eye(w_dim)
+  nab_l = [mat[i] for i in range(w_dim)]
+  def qhat(s, a, w): return w[s * n_act + a]
+  def nab_qhat(s, a, w): return nab_l[s * n_act + a]
+  alg.seed(0)
+  alg.pol_eva(qhat, nab_qhat, FIG_10_5_N_STEPS)
+  print_pol_acc_contr(alg)
+
 PLOT_FUNCTION = {
   '10.1': fig_10_1,
   '10.2': fig_10_2,
   '10.3': fig_10_3,
   '10.4': fig_10_4,
+  '10.5': fig_10_5,
 }
 
 

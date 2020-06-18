@@ -1,29 +1,35 @@
 import numpy as np
 
 ACCEPT, REJECT = 1, 0
-QUE_SIZE = 4
 P_FREE = 0.06
 R_REJ = 0
 
 
 class AccessControlQueuingTask:
-  def __init__(self, n_serv=10):
+  def __init__(self, n_serv, que_size):
     self.get_moves()
     self.n_serv = n_serv
-    self.queue = np.random.randn(QUE_SIZE)
+    self.queue = np.random.randn(que_size)
     self.reset()
 
+  def get_rank(self):
+    return len(np.flatnonzero(self.queue < self.queue[0]))
+
   def get_priority(self):
-    return 2 ** len(np.flatnonzero(self.queue < self.queue[0]))
+    return 2 ** self.get_rank()
+
+  def encode_state(self, rank, n_serv, n_free_serv):
+    return rank * (n_serv + 1) + n_free_serv
 
   def get_state(self):
-    return self.get_priority() * self.n_free_serv
+    return self.encode_state(self.get_rank(), self.n_serv,
+                             self.n_free_serv)
 
   def get_moves(self):
     self.moves = [REJECT, ACCEPT]
 
   def update_queue(self):
-    self.queue[0:3] = self.queue[1:]
+    self.queue[:-1] = self.queue[1:]
     self.queue[-1] = np.random.randn()
 
   def update_servers(self):
@@ -49,3 +55,4 @@ class AccessControlQueuingTask:
   def reset(self):
     self.n_free_serv = self.n_serv
     self.state = self.get_state()
+    return self.state
