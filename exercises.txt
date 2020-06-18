@@ -679,3 +679,19 @@ the v_{\pi} and the \bold w_t^T x_(S_t) simplify and we get 0, which means the e
 ### 9.8
 
 from deriving the cross-entropy loss i get the same update (i.e. w_{t+1} = w_t + (v_{\pi} - \hat v) \nabla \hat v) 
+
+### 10.1
+
+For MonteCarlo methods we would have U_t = G as target where G is the full return.
+
+It's reasonable not to give pseudo-code as it wouldn't be so different from the Gradient Monte Carlo algorithm (or MonteCarlo Exploring Starts as it's a control problem).
+
+For Mountain Car my intuition tells me that it would take many exploration steps to reach the top, and if it does reach the top it would be hard to know why exactly it reached it. In short, it would perform really poorly, and my first guess would be that it wouldn't even terminate on the first episode.
+
+### 10.2
+
+same as the sarsa one, but with an expected values over the possible actions a, i.e. \hat q(S_p, a, \bold w), where the expected value could be on, let's say, the epsilon greedy policy.
+
+### 10.3
+
+because we're on Mountain car with a constant reward per step of -1, so G = -n, and then with a large n we have a large return, so the weights vary more in the update.
