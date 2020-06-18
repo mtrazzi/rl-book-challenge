@@ -20,17 +20,17 @@ FIG_10_1_ALP = 0.5 / 8
 FIG_10_2_ALP_L = [alpha / 8 for alpha in [0.1, 0.2, 0.5]]
 FIG_10_2_N_EP = 500
 FIG_10_2_G = FIG_10_1_G
-FIG_10_2_N_RUNS = 2
+FIG_10_2_N_RUNS = 100
 
 FIG_10_3_ALP_L = [alpha / 8 for alpha in [0.5, 0.3]]
 FIG_10_3_N_L = [1, 8]
 FIG_10_3_N_EP = 500
 FIG_10_3_G = FIG_10_1_G
-FIG_10_3_N_RUNS = 2
+FIG_10_3_N_RUNS = 100
 
 FIG_10_4_N_EP = 50
 FIG_10_4_G = FIG_10_2_G
-FIG_10_4_N_RUNS = 5
+FIG_10_4_N_RUNS = 100
 FIG_10_4_ALP_PTS = 30
 FIG_10_4_ALP_BND = {
   1: [0.4, 1.7],
@@ -137,7 +137,7 @@ def fig_10_2():
                                           FIG_10_2_G))
     plt.plot(tot_n_steps / FIG_10_2_N_RUNS, label=f'alpha={alp}')
   plt.yscale('log')
-  xticks, yticks = [0, 500], [100, 200, 4000, 1000]
+  xticks, yticks = [0, 500], [100, 200, 400, 1000]
   plot_figure(ax, 'Figure 10.2', xticks, xticks, 'Episode', yticks, yticks,
               'Steps\nper episode\n(log scale)')
   fig.set_size_inches(20, 14)
@@ -161,7 +161,7 @@ def fig_10_3():
                                           FIG_10_3_G))
     plt.plot(tot_n_steps / FIG_10_3_N_RUNS, label=f'n={n}')
   plt.yscale('log')
-  xticks, yticks = [0, 500], [100, 200, 4000, 1000]
+  xticks, yticks = [0, 500], [100, 200, 400, 1000]
   plot_figure(ax, 'Figure 10.3', xticks, xticks, 'Episode', yticks, yticks,
               'Steps\nper episode\n(log scale)')
   fig.set_size_inches(20, 14)
@@ -183,14 +183,13 @@ def fig_10_4():
     for alpha in alpha_l:
       alg.a = alpha / N_TLGS
       print(f"[alpha={alg.a}]")
+      tot_steps = 0
       for seed in range(FIG_10_4_N_RUNS):
         print(f"[RUN #{seed}]")
         alg.reset()
         alg.seed(seed)
-        tot_steps = 0
         for ep in range(FIG_10_4_N_EP):
           tot_steps += alg.pol_eva(None, qhat, nab_qhat, 1, FIG_10_4_G)[0]
-          print(tot_steps, "steps")
       steps_l.append(tot_steps / (FIG_10_4_N_RUNS * FIG_10_4_N_EP))
     plt.plot(alpha_l, steps_l, label=f'n={n}')
   xticks, yticks = np.linspace(0, 1.5, 4), np.linspace(220, 300, 5)
