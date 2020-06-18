@@ -695,3 +695,37 @@ same as the sarsa one, but with an expected values over the possible actions a, 
 ### 10.3
 
 because we're on Mountain car with a constant reward per step of -1, so G = -n, and then with a large n we have a large return, so the weights vary more in the update.
+
+### 10.4
+
+just remove the part where you choose A_p in diff. semi gradient sarsa, and in your td error have a max_{a_p} term instead of the one of the s_p, a_p one
+
+### 10.5
+
+how to update the weights (which is essentially (10.12) with v instead of q)
+
+### 10.6
+
+average reward is 0.5.
+
+for A: lim for \gamma close to 1 of {lim for h going to infinity of \sum_t (-\gamma)^t / 2} = (0.5 / (1 + \gamma)), so 1/4.
+
+for B: same but the opposite sign, so -1/4.
+
+### 10.7
+
+so if we separate the r(\pi) part, we get for the expected valuesinside the paranthesis you have (0, 0, 1, ...) for A, (0, 1, 0, ...) for B and (1, 0, 0, ...) for C.
+
+so the sum for C is a sum of \gamma^3t - sum \gamma^t * (1 / 3), so (1 / (1 - \gamma^3)) - (1 / 3) * (1 / (1 - \gamma)), which according to wolframalpha gives 1/3 to the limit.
+
+for B you get \gamma times the same thing so same limit, and for A \gamma^2 so same limit of 1/3.
+
+### 10.8
+
+R_{t+1} - \bar R_t: ..., -1/3, -1/3, 2/3, -1/3, -1/3, 2/3, ...
+
+\delta_t: -1/3 + \hat v(B) - \hat v(A), 2/3 + \hat v(C) - \hat v(B), -1/3 + \hat v(A) - \hat v(C)
+
+for the first delta error (on the state A), if the value of A is too low then the difference of v(b) - v(a) will be positive (because they're supposed to converge to the same value 1/3), so the weights will correct (more) in the direction of the gradient, aka moving in the direction that will give higher estimate value for state a.
+
+if we were using only the sequence of R_{t+1} - \bar R_t we would get something that doesn't change, so the second approach seems to converge in a more stable way whereas using only R_{t+1} - \bar R_t might not converge (and maybe do something periodic?)
