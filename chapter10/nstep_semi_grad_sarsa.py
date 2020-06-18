@@ -34,6 +34,7 @@ class nStepSemiGradSarsa(GradientAlg):
     self.g_l = [gamma ** k for k in range(self.n + 1)]
     self.qhat = qhat
     n, R, S, A, w = self.n, self.R, self.S, self.A, self.w
+    steps_per_ep = []
     for ep in range(n_ep):
       if ep > 0 and ep % 1 == 0:
         print(f"ep #{ep}")
@@ -47,6 +48,9 @@ class nStepSemiGradSarsa(GradientAlg):
           S[tp1m], R[tp1m], d, _ = self.env.step(act(S[tm]))
           if d:
             T = t + 1
+            steps_per_ep.append(T)
+          else:
+            A[tp1m] = act(S[tp1m])
         tau = t - n + 1
         if tau >= 0:
           taum = tau % (n + 1)
@@ -56,7 +60,7 @@ class nStepSemiGradSarsa(GradientAlg):
         if tau == (T - 1):
           break
         t += 1
-    return t
+    return steps_per_ep
 
   def reset(self):
     self.S = [None for _ in range(self.n + 1)]
