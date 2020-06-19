@@ -48,7 +48,6 @@ class nStepSemiGradSarsa(GradientAlg):
           S[tp1m], R[tp1m], d, _ = self.env.step(act(S[tm]))
           if d:
             T = t + 1
-            steps_per_ep.append(T)
           else:
             A[tp1m] = act(S[tp1m])
         tau = t - n + 1
@@ -60,6 +59,7 @@ class nStepSemiGradSarsa(GradientAlg):
         if tau == (T - 1):
           break
         t += 1
+      steps_per_ep.append(t + 1)
     return steps_per_ep
 
   def reset(self):

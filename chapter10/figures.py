@@ -33,7 +33,7 @@ FIG_10_3_N_RUNS = 100
 
 FIG_10_4_N_EP = 50
 FIG_10_4_G = FIG_10_2_G
-FIG_10_4_N_RUNS = 5
+FIG_10_4_N_RUNS = 25
 FIG_10_4_ALP_PTS = 10
 FIG_10_4_ALP_BND = {
   1: [0.4, 1.7],
@@ -200,7 +200,7 @@ def fig_10_4():
         alg.seed(seed)
         for ep in range(FIG_10_4_N_EP):
           tot_steps += alg.pol_eva(None, qhat, nab_qhat, 1, FIG_10_4_G,
-                                   max_steps=10000)[0]
+                                   max_steps=1000)[0]
       steps_l.append(tot_steps / (FIG_10_4_N_RUNS * FIG_10_4_N_EP))
     plt.plot(alpha_l, steps_l, label=f'n={n}')
   xticks, yticks = np.linspace(0, 1.5, 4), np.linspace(220, 300, 5)
@@ -213,7 +213,6 @@ def fig_10_4():
   plt.legend()
   save_plot('fig10.4', dpi=100)
   plt.show()
-  import ipdb; ipdb.set_trace()
 
 
 def print_pol_acc_contr(ax, alg):
