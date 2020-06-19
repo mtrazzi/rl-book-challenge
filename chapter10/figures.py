@@ -5,7 +5,7 @@ from tiles_sutton import IHT, tiles
 from mountain_car import MountainCar, X_MIN, X_MAX, V_MIN, V_MAX
 from semi_grad_sarsa import EpisodicSemiGradientTD0
 from nstep_semi_grad_sarsa import nStepSemiGradSarsa
-from access_control import AccessControlQueuingTask
+from access_control import AccessControlQueuingTask, ACCEPT, REJECT
 from diff_semi_grad_sarsa import DiffSemiGradientSarsa
 import seaborn as sns
 
@@ -33,7 +33,7 @@ FIG_10_3_N_RUNS = 100
 
 FIG_10_4_N_EP = 50
 FIG_10_4_G = FIG_10_2_G
-FIG_10_4_N_RUNS = 20
+FIG_10_4_N_RUNS = 5
 FIG_10_4_ALP_PTS = 10
 FIG_10_4_ALP_BND = {
   1: [0.4, 1.7],
@@ -48,7 +48,7 @@ FIG_10_5_BET = 0.01
 FIG_10_5_EPS = 0.1
 FIG_10_5_QUE_SIZE = 4
 FIG_10_5_N_SERV = 10
-FIG_10_5_N_STEPS = 10
+FIG_10_5_N_STEPS = int(2e6)
 
 
 def save_plot(filename, dpi=None):
@@ -199,7 +199,8 @@ def fig_10_4():
         alg.reset()
         alg.seed(seed)
         for ep in range(FIG_10_4_N_EP):
-          tot_steps += alg.pol_eva(None, qhat, nab_qhat, 1, FIG_10_4_G)[0]
+          tot_steps += alg.pol_eva(None, qhat, nab_qhat, 1, FIG_10_4_G,
+                                   max_steps=10000)[0]
       steps_l.append(tot_steps / (FIG_10_4_N_RUNS * FIG_10_4_N_EP))
     plt.plot(alpha_l, steps_l, label=f'n={n}')
   xticks, yticks = np.linspace(0, 1.5, 4), np.linspace(220, 300, 5)
@@ -212,20 +213,42 @@ def fig_10_4():
   plt.legend()
   save_plot('fig10.4', dpi=100)
   plt.show()
+  import ipdb; ipdb.set_trace()
 
 
-def print_pol_acc_contr(alg):
+def print_pol_acc_contr(ax, alg):
   n_prio, n_serv = alg.env.queue.shape[0], alg.env.n_serv
   pol = np.zeros((n_prio, n_serv))
   for rank in range(n_prio):
     for free_serv in range(1, n_serv + 1):
       pol[rank, free_serv - 1] = alg.eps_gre(alg.env.encode_state(rank, n_serv,
-                                                              free_serv))
-  sns.heatmap(pol)
-  plt.show()
+                                                                  free_serv))
+  yticks, xticks = np.arange(4), np.arange(10)
+  ynames, xnames = [2 ** y for y in yticks], xticks + 1
+  ax.set_title('Policy')
+  sns.heatmap(pol, xticklabels=xnames, yticklabels=ynames,
+              cbar_kws={'label': f'{REJECT} = REJECT, {ACCEPT} = ACCEPT'})
+
+
+def print_val_acc_contr(ax, alg):
+  n_prio, n_serv = alg.env.queue.shape[0], alg.env.n_serv
+  for rank in range(n_prio):
+    val = []
+    for free_serv in range(n_serv + 1):
+      s = alg.env.encode_state(rank, n_serv, free_serv)
+      a_max = alg.eps_gre(s)
+      val.append(alg.qhat(s, a_max, alg.w))
+    plt.plot(val, label=f'priority {2 ** rank}')
+  xticks, yticks = np.arange(n_serv + 1), np.linspace(-10, 10, 6)
+  plot_figure(ax, 'Value Function', xticks, xticks,
+              'Number of free servers', list(yticks) + [12], yticks,
+              'Differential\nvalue of\n best action', labelpad=30)
 
 
 def fig_10_5():
+  fig = plt.figure()
+  fig.set_size_inches(20, 28)
+  fig.suptitle('Figure 10.5')
   env = AccessControlQueuingTask(FIG_10_5_N_SERV, FIG_10_5_QUE_SIZE)
   n_act = len(env.moves)
   w_dim = (env.n_serv + 1) * env.queue.shape[0] * n_act
@@ -237,7 +260,13 @@ def fig_10_5():
   def nab_qhat(s, a, w): return nab_l[s * n_act + a]
   alg.seed(0)
   alg.pol_eva(qhat, nab_qhat, FIG_10_5_N_STEPS)
-  print_pol_acc_contr(alg)
+  alg.eps = 0
+  print_pol_acc_contr(fig.add_subplot('211'), alg)
+  print_val_acc_contr(fig.add_subplot('212'), alg)
+  plt.legend()
+  save_plot('fig10.5', dpi=100)
+  plt.show()
+
 
 PLOT_FUNCTION = {
   '10.1': fig_10_1,
