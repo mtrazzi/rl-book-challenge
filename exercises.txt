@@ -729,3 +729,24 @@ R_{t+1} - \bar R_t: ..., -1/3, -1/3, 2/3, -1/3, -1/3, 2/3, ...
 for the first delta error (on the state A), if the value of A is too low then the difference of v(b) - v(a) will be positive (because they're supposed to converge to the same value 1/3), so the weights will correct (more) in the direction of the gradient, aka moving in the direction that will give higher estimate value for state a.
 
 if we were using only the sequence of R_{t+1} - \bar R_t we would get something that doesn't change, so the second approach seems to converge in a more stable way whereas using only R_{t+1} - \bar R_t might not converge (and maybe do something periodic?)
+
+### 10.9
+
+just add a variable o initialized at 0 and change its value using the recurrence from ex2.7 at the end of the loop.
+
+then use \beta / o as the parameter to multiply \delta (in the \bar R_t line)
+
+### 11.1
+
+G_{t:t+n} = same as the def. for semi-grad sarsa (n-step version) but replacing q with v. same for w_{t+n}
+
+### 11.2
+
+weights update: like (11.7)
+
+G update:
+- replace the \bar V by a mean of \hat v
+- replace Q by \hat q
+- in the continuing case: replace R_{t + 1} by R_{t + 1} - \bar R_{t + 1}
+
+then, what's eft for a "semi-gradient version" is to convert the recursive definition in 7.17 to a closed form.
