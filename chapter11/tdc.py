@@ -34,7 +34,7 @@ class TDC:
     xt, xtp1 = self.feat(s), self.feat(s_p)
     vx = np.dot(self.v, xt)
     comm_args = (is_r, td_err, xt, vx)
-    self.v, self.w = self.lms_rule(*comm_args), self.w_update(*comm_args, xtp1)
+    return self.lms_rule(*comm_args), self.w_update(*comm_args, xtp1)
 
   def pol_eva(self, n_steps):
     s = self.env.reset()
@@ -42,8 +42,9 @@ class TDC:
       self.mu[self.env.states.index(s)] += 1
       a = self.sample_action(self.b, s)
       s_p, r, d, _ = self.env.step(a)
-      self.tdc_update(s, a, r, s_p)
+      self.v, self.w = self.tdc_update(s, a, r, s_p)
       s = s_p if not d else self.env.reset()
+    self.mu /= self.mu.sum()
 
   def munorm(self, arr):
     return np.dot(self.mu, np.square(arr))
@@ -82,3 +83,20 @@ class TDC:
     self.w = np.zeros(self.w_dim)
     self.v = np.zeros(self.w_dim)
     self.mu = np.zeros(len(self.env.states))
+
+
+class ExpectedTDC(TDC):
+  def __init__(self, env, pi, b, w_dim, alpha, beta, gamma, vhat, feat):
+    super().__init__(env, pi, b, w_dim, alpha, beta, gamma, vhat, feat)
+
+  def pol_eva(self, n_sweeps):
+    S, R, A = self.env.states, self.env.r, self.env.moves
+    for sweep in range(n_sweeps):
+      if sweep > 0 and sweep % 10 == 0:
+        print(sweep)
+      self.mu += 1
+      pair_arr = [self.tdc_update(s, a, r, s_p)
+                  for s in S for r in R for a in A for s_p in S]
+      self.w = np.mean([w for (w, _) in pair_arr], axis=0)
+      self.v = np.mean([v for (_, v) in pair_arr], axis=0)
+    self.mu /= self.mu.sum()

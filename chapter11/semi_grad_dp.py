@@ -14,11 +14,6 @@ class SemiGradDP:
     self.n_st = len(self.env.states)
     self.reset()
 
-  def sample_action(self, pi, s):
-    pi_dist = [pi[(a, s)] for a in self.env.moves]
-    return self.env.moves[np.random.choice(np.arange(len(self.env.moves)),
-                                           p=pi_dist)]
-
   def exp_val_s_a(self, s, a):
     return np.sum([self.env.p[(s_p, r, s, a)] * (r + self.g *
                                                  self.vhat(s_p, self.w))
