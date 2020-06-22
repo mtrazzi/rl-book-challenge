@@ -35,6 +35,15 @@ python figures 10.2
 python figures 10.3
 ```
 
+### Figure 10.4:
+
+![fig10.4.png](plots/fig10.4.png)
+
+
+```bash
+python figures 10.4
+```
+
 ### Figure 10.5:
 
 ![fig10.5.png](plots/fig10.5.png)
