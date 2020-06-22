@@ -21,6 +21,20 @@ def nab_vhat_baird(s, w):
   return feat_baird(s, w)
 
 
+def qhat_baird(s, a, w):
+  if a == SOLID:
+    return vhat_baird(N_ST, w)
+  else:
+    return np.mean([vhat_baird(s_p, w) for s_p in range(1, N_ST)])
+
+
+def nab_qhat_baird(s, a, w):
+  if a == SOLID:
+    return feat_baird(s, w)
+  else:
+    return np.mean([nab_vhat_baird(s_p, w) for s_p in range(1, N_ST)])
+
+
 def pi_baird(a, s):
   return a == SOLID
 

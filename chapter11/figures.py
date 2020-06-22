@@ -1,10 +1,12 @@
 import argparse
 
 from baird import BairdMDP
-from baird_utils import b_baird, nab_vhat_baird, pi_baird, vhat_baird
+from baird_utils import (b_baird, nab_vhat_baird, pi_baird, vhat_baird,
+                         nab_qhat_baird, qhat_baird)
 import matplotlib.pyplot as plt
 import numpy as np
 from semi_grad_dp import SemiGradDP
+from semi_grad_qlearning import SemiGradQLearning
 from semi_grad_off_pol_td import SemiGradOffPolTD
 
 plt.switch_backend('Qt5Agg')
@@ -59,9 +61,9 @@ def run_alg_on_baird(ax, alg, n_runs, title):
     for (j, w_j) in enumerate(w_log):
       ax.plot(batch_ticks, w_j / n_runs, label=f'w_{j + 1}')
     xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
-    ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
-    plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
-                yticks, yticks, '', labelpad=30)
+    # ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
+    # plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
+                # yticks, yticks, '', labelpad=30)
     ax.legend()
 
 
@@ -84,7 +86,19 @@ def fig_11_2():
 
 
 def ex_11_3():
-  pass
+  fig = plt.figure()
+  fig.set_size_inches(20, 14)
+  fig.suptitle('Exercise 11.3', fontsize=BIG_FONT)
+  env = BairdMDP()
+  b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
+           for f in [b_baird, pi_baird]]
+  baird_params = (len(FIG_11_2_W_0), FIG_11_2_ALP, FIG_11_2_G, qhat_baird,
+                  nab_qhat_baird)
+  alg = SemiGradQLearning(env, pi, b, *baird_params)
+  run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_2_N_RUNS_L[0],
+                   'Semi-Gradient Q-learning')
+  save_plot('ex11.3', dpi=100)
+  plt.show()
 
 
 PLOT_FUNCTION = {
