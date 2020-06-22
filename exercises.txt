@@ -750,3 +750,17 @@ G update:
 - in the continuing case: replace R_{t + 1} by R_{t + 1} - \bar R_{t + 1}
 
 then, what's eft for a "semi-gradient version" is to convert the recursive definition in 7.17 to a closed form.
+
+### 11.3
+
+cf. plots/ex11.3 and ex_11_3 in figures.py
+
+### 11.4
+
+\bar RE(\bold w)
+= \mathbb{E}[(G_t - \hat v(S_t, \bold w))^2]
+= \sum_s \mu(s) \mathbb{E}[(G_t - \hat v(S_t, \bold w))^2 | S_t = s]
+= \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s) + v_{\pi}(s) - \hat v(S_t, \bold w))^2 | S_t = s]
+= \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s))^2 | S_t = s] + \sum_s \mu(s) \mathbb{E}[(\hat v(S_t, \bold w) - v_{\pi}(s))^2 | S_t = s] + 2 * \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s)) * (\hat v(S_t, \bold w) - v_{\pi}(s))]
+= \mathbb{E}[(G_t - v_{\pi}(s))^2] + \bar VE(\bol w) + \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s)) | S_t = s] * \mathbb{E}[(\hat v(S_t, \bold w) - v_{\pi}(s)) | S_t = s] # because given S_t = s the right term doesn't contain any random variable and is thus independent of the let term of the product
+= \mathbb{E}[(G_t - v_{\pi}(s))^2] + \bar VE(\bol w) # because \mathbb{E}[(G_t - v_{\pi}(s)) | S_t = s] = \mathbb{E}[G_t | S_t = s] - v_{\pi}(s)) = 0
