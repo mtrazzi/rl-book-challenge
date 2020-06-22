@@ -21,9 +21,6 @@ class SemiGradOffPolTD:
   def td_error(self, s, r, s_p):
     return r + self.g * self.vhat(s_p, self.w) - self.vhat(s, self.w)
 
-  def generate_episode(self):
-    return self.generate_traj(self.b, log_act=True)
-
   def off_policy_td_update(self, s, a, r, s_p):
     is_ratio = self.pi[(a, s)] / self.b[(a, s)] if self.pi[(a, s)] > 0 else 0
     td_err = self.td_error(s, r, s_p)
