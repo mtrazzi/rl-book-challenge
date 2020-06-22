@@ -2,13 +2,11 @@
 
 ### Figure 10.1:
 
-![fig10.1_428_steps.png](plots/fig10.1.png)
+![fig10.1_428_steps.png](plots/fig10.1_428_steps.png)
 
 ![fig10.1_12_episodes.png](plots/fig10.1_12_episodes.png)
 
 ![fig10.1_104_episodes.png](plots/fig10.1_104_episodes.png)
-
-![fig10.1_428_episodes.png](plots/fig10.1_428_episodes.png)
 
 ![fig10.1_1000_episodes.png](plots/fig10.1_1000_episodes.png)
 
