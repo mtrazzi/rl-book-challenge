@@ -103,7 +103,7 @@ def ex_11_3():
   alg = SemiGradQLearning(env, pi, b, *baird_params)
   run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_2_N_RUNS_L[0],
                    'Semi-Gradient Q-learning', EX_11_3_N_STEPS, EX_11_3_BATCH,
-                   [0, 10000], [1, 10, 100, 200, 1000], w_init=EX_11_3_W_0)
+                   [0, 1000], [1, 10, 100, 200, 300], w_init=EX_11_3_W_0)
   save_plot('ex11.3', dpi=100)
   plt.show()
 

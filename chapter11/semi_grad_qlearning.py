@@ -34,8 +34,7 @@ class SemiGradQLearning:
     return r + self.g * q_max - self.qhat(s, a, self.w)
 
   def qlearn_update(self, s, a, r, s_p):
-    # is_ratio = self.pi[(a, s)] / self.b[(a, s)] if self.pi[(a, s)] > 0 else 0
-    is_ratio = 1
+    is_ratio = self.pi[(a, s)] / self.b[(a, s)] if self.pi[(a, s)] > 0 else 0
     ql_err = self.qlearn_error(s, a, r, s_p)
     self.w = self.w + self.a * ql_err * is_ratio * self.nab_qhat(s, a, self.w)
 
