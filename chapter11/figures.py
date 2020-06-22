@@ -24,6 +24,10 @@ FIG_11_2_N_STEPS = 1000
 FIG_11_2_BATCH = 10
 FIG_11_2_N_RUNS_L = [10, 1]
 
+EX_11_3_W_0 = FIG_11_2_W_0 + FIG_11_2_W_0
+EX_11_3_N_STEPS = FIG_11_2_N_STEPS * 10
+EX_11_3_BATCH = FIG_11_2_BATCH * 10
+
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -43,12 +47,13 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
   plt.legend(loc=loc)
 
 
-def run_alg_on_baird(ax, alg, n_runs, title):
-    n_batches = FIG_11_2_N_STEPS // FIG_11_2_BATCH
-    batch_ticks = FIG_11_2_BATCH * (np.arange(n_batches) + 1)
-    w_log = np.zeros((len(alg.env.states) + 1, n_batches))
+def run_alg_on_baird(ax, alg, n_runs, title, n_steps, batch_size, xticks,
+                     yticks, w_init):
+    n_batches = n_steps // batch_size
+    batch_ticks = batch_size * (np.arange(n_batches) + 1)
+    w_log = np.zeros((len(w_init), n_batches))
     is_DP = isinstance(alg, SemiGradDP)
-    w_0 = np.array(FIG_11_2_W_0)
+    w_0 = np.array(w_init)
     for seed in range(n_runs):
       if seed > 0 and seed % 10 == 0:
         print(f"[RUN #{seed}]")
@@ -56,14 +61,13 @@ def run_alg_on_baird(ax, alg, n_runs, title):
       if not is_DP:
         alg.seed(seed)
       for n_iter in range(n_batches):
-        alg.pol_eva(FIG_11_2_BATCH)
+        alg.pol_eva(batch_size)
         w_log[:, n_iter] = w_log[:, n_iter] + alg.w
     for (j, w_j) in enumerate(w_log):
       ax.plot(batch_ticks, w_j / n_runs, label=f'w_{j + 1}')
-    xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
-    # ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
-    # plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
-                # yticks, yticks, '', labelpad=30)
+    ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
+    plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
+                yticks, yticks, '', labelpad=30)
     ax.legend()
 
 
@@ -80,7 +84,9 @@ def fig_11_2():
   alg2 = SemiGradDP(env, pi, b, *baird_params)
   for (i, alg) in enumerate([alg1, alg2]):
     run_alg_on_baird(fig.add_subplot(f'12{i+1}'), alg, FIG_11_2_N_RUNS_L[i],
-                     'Semi-Gradient DP' if i else 'Semi-gradient Off-Policy TD')
+                     'Semi-Gradient DP' if i else 'Semi-gradient Off-Policy TD',
+                     FIG_11_2_N_STEPS, FIG_11_2_BATCH, [0, 1000],
+                     [1, 10, 100, 200, 300], w_init=FIG_11_2_W_0)
   save_plot('fig11.2', dpi=100)
   plt.show()
 
@@ -92,11 +98,12 @@ def ex_11_3():
   env = BairdMDP()
   b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
            for f in [b_baird, pi_baird]]
-  baird_params = (len(FIG_11_2_W_0), FIG_11_2_ALP, FIG_11_2_G, qhat_baird,
+  baird_params = (len(FIG_11_2_W_0) * 2, FIG_11_2_ALP, FIG_11_2_G, qhat_baird,
                   nab_qhat_baird)
   alg = SemiGradQLearning(env, pi, b, *baird_params)
   run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_2_N_RUNS_L[0],
-                   'Semi-Gradient Q-learning')
+                   'Semi-Gradient Q-learning', EX_11_3_N_STEPS, EX_11_3_BATCH,
+                   [0, 10000], [1, 10, 100, 200, 1000], w_init=EX_11_3_W_0)
   save_plot('ex11.3', dpi=100)
   plt.show()
 
