@@ -20,7 +20,7 @@ FIG_11_2_ALP = 0.01
 FIG_11_2_W_0 = [1, 1, 1, 1, 1, 1, 10, 1]
 FIG_11_2_N_STEPS = 1000
 FIG_11_2_BATCH = 10
-FIG_11_2_N_RUNS_L = [1, 1]
+FIG_11_2_N_RUNS_L = [10, 1]
 
 
 def save_plot(filename, dpi=None):
@@ -43,8 +43,8 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
 
 def fig_11_2():
   fig = plt.figure()
-  fig.set_size_inches(20, 28)
-  fig.suptitle('Figure 11.2')
+  fig.set_size_inches(20, 14)
+  fig.suptitle('Figure 11.2', fontsize=BIG_FONT)
   env = BairdMDP()
   b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
            for f in [b_baird, pi_baird]]
@@ -52,7 +52,7 @@ def fig_11_2():
   baird_params = (w_0.shape[0], FIG_11_2_ALP, FIG_11_2_G, vhat_baird,
                   nab_vhat_baird)
   alg1 = SemiGradOffPolTD(env, pi, b, *baird_params)
-  alg2 = SemiGradDP(env, pi, *baird_params)
+  alg2 = SemiGradDP(env, pi, b, *baird_params)
   n_batches = FIG_11_2_N_STEPS // FIG_11_2_BATCH
   batch_ticks = FIG_11_2_BATCH * (np.arange(n_batches) + 1)
   for (i, alg) in enumerate([alg1, alg2]):
@@ -62,7 +62,7 @@ def fig_11_2():
       if seed > 0 and seed % 10 == 0:
         print(f"[RUN #{seed}]")
       alg.w = w_0
-      if i == 0:
+      if not isinstance(alg, SemiGradDP):
         alg.seed(seed)
       for n_iter in range(n_batches):
         alg.pol_eva(FIG_11_2_BATCH)

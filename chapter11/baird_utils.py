@@ -6,11 +6,11 @@ MAT = np.eye(N_ST + 1)
 ONE_HOT = [MAT[i] for i in range(N_ST + 1)]
 TWO_HOT = [2 * row for row in ONE_HOT]
 MOST_ST = [2 * ONE_HOT[i] + ONE_HOT[N_ST] for i in range(N_ST + 1)]
-LAST_ST = ONE_HOT[N_ST] + 2 * ONE_HOT[N_ST]
+LAST_ST = ONE_HOT[N_ST - 1] + 2 * ONE_HOT[N_ST]
 
 
 def feat_baird(s, w):
-  return LAST_ST if s == N_ST else MOST_ST[s]
+  return LAST_ST if s == N_ST else MOST_ST[s - 1]
 
 
 def vhat_baird(s, w):

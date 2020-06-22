@@ -2,9 +2,10 @@ import numpy as np
 
 
 class SemiGradDP:
-  def __init__(self, env, pi, w_dim, alpha, gamma, vhat, nab_vhat):
+  def __init__(self, env, pi, b, w_dim, alpha, gamma, vhat, nab_vhat):
     self.env = env
     self.pi = pi
+    self.b = b
     self.a = alpha
     self.g = gamma
     self.w_dim = w_dim
@@ -30,10 +31,10 @@ class SemiGradDP:
   def pol_eva(self, n_sweeps):
     for _ in range(n_sweeps):
       self.w = self.w + ((self.a / self.n_st) *
-                          np.sum([(self.exp_val_s(s) -
-                                  self.vhat(s, self.w)) *
-                                  self.nab_vhat(s, self.w)
-                                  for s in self.env.states]))
+                         np.sum([(self.exp_val_s(s) -
+                                self.vhat(s, self.w)) *
+                                self.nab_vhat(s, self.w)
+                                for s in self.env.states], axis=0))
 
   def reset(self):
     self.w = np.zeros(self.w_dim)
