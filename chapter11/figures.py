@@ -32,6 +32,7 @@ EX_11_3_BATCH = FIG_11_2_BATCH * 10
 FIG_11_5_W_0 = [1, 1, 1, 1, 1, 1, 4, -2]
 FIG_11_5_ALP = 5e-3
 FIG_11_5_BET = 5e-2
+FIG_11_5_N_RUNS_L = [10, 1]
 
 
 def save_plot(filename, dpi=None):
@@ -53,14 +54,14 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
 
 
 def run_alg_on_baird(ax, alg, n_runs, title, n_steps, batch_size, xticks,
-                     yticks, w_init, log_ve=False):
+                     yticks, w_init, log_ve_pbe=False):
     n_batches = n_steps // batch_size
     batch_ticks = batch_size * (np.arange(n_batches) + 1)
     w_log = np.zeros((len(w_init), n_batches))
     is_DP = isinstance(alg, SemiGradDP)
     w_0 = np.array(w_init)
-    if log_ve:
-      ve, vpi = np.zeros(n_batches), lambda x: 0
+    if log_ve_pbe:
+      ve, pbe, vpi = np.zeros(n_batches), np.zeros(n_batches), lambda x: 0
     for seed in range(n_runs):
       if seed > 0 and seed % 10 == 0:
         print(f"[RUN #{seed}]")
@@ -70,12 +71,14 @@ def run_alg_on_baird(ax, alg, n_runs, title, n_steps, batch_size, xticks,
       for n_iter in range(n_batches):
         alg.pol_eva(batch_size)
         w_log[:, n_iter] = w_log[:, n_iter] + alg.w
-        if log_ve:
-          ve[n_iter] = alg.ve(vpi)
+        if log_ve_pbe:
+          ve[n_iter], pbe[n_iter] = alg.ve(vpi), alg.pbe()
     for (j, w_j) in enumerate(w_log):
       ax.plot(batch_ticks, w_j / n_runs, label=f'w_{j + 1}')
-    if log_ve:
+    if log_ve_pbe:
       plt.plot(batch_ticks, np.sqrt(ve) / n_runs, label='sqrt(VE)')
+      plt.plot(batch_ticks, np.sqrt(pbe) / n_runs, label='sqrt(PBE)')
+      plt.plot(batch_ticks, np.zeros_like(batch_ticks), '--')
     ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
     plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
                 yticks, yticks, '', labelpad=30)
@@ -128,10 +131,10 @@ def fig_11_5():
            for f in [b_baird, pi_baird]]
   alg = TDC(env, pi, b, len(FIG_11_2_W_0), FIG_11_5_ALP, FIG_11_5_BET,
             FIG_11_2_G, vhat_baird, feat_baird)
-  run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_2_N_RUNS_L[-1],
+  run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_5_N_RUNS_L[0],
                    'TDC', FIG_11_2_N_STEPS, FIG_11_2_BATCH,
                    [0, 1000], [-2.5, 0, 2, 5, 10], w_init=FIG_11_2_W_0,
-                   log_ve=True)
+                   log_ve_pbe=True)
   save_plot('fig11.5', dpi=100)
   plt.show()
 

@@ -39,15 +39,40 @@ class TDC:
   def pol_eva(self, n_steps):
     s = self.env.reset()
     for _ in range(n_steps):
-      self.mu[s - 1] += 1
+      self.mu[self.env.states.index(s)] += 1
       a = self.sample_action(self.b, s)
       s_p, r, d, _ = self.env.step(a)
       self.tdc_update(s, a, r, s_p)
       s = s_p if not d else self.env.reset()
 
+  def munorm(self, arr):
+    return np.dot(self.mu, np.square(arr))
+
   def ve(self, vpi):
-    sq_err = [(vpi(s) - self.vhat(s, self.w)) ** 2 for s in self.env.states]
-    return np.dot(self.mu, sq_err)
+    return self.munorm([vpi(s) - self.vhat(s, self.w) for s in self.env.states])
+
+  def proj_mat(self):
+    S, d = len(self.env.states), self.w_dim
+    X = np.zeros((S, d))
+    for (idx, s) in enumerate(self.env.states):
+      X[idx, :] = self.feat(s)
+    D = np.diag(self.mu)
+    return X @ np.linalg.pinv(X.T @ D @ X) @ X.T @ D
+
+  def exp_val_s_a(self, s, a):
+    return np.sum([self.env.p[(s_p, r, s, a)] * (r + self.g *
+                                                 self.vhat(s_p, self.w))
+                   for s_p in self.env.states for r in self.env.r])
+
+  def bell_op(self, s):
+    return np.sum([self.pi[(a, s)] * self.exp_val_s_a(s, a)
+                  for a in self.env.moves])
+
+  def delta_vec(self):
+    return [self.bell_op(s) - self.vhat(s, self.w) for s in self.env.states]
+
+  def pbe(self):
+    return self.munorm(self.proj_mat() @ self.delta_vec())
 
   def seed(self, seed):
     self.env.seed(seed)
