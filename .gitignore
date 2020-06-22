@@ -141,6 +141,7 @@ numpy/6/*.png
 bin/
 lib/
 pyvenv.cfg
+share/
 
 # workflow
 poms.txt
