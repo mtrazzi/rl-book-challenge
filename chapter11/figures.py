@@ -1,10 +1,13 @@
 import argparse
-import matplotlib.pyplot as plt
-plt.switch_backend('Qt5Agg')
+
 from baird import BairdMDP
-from baird_utils import vhat_baird, nab_vhat_baird, pi_baird, b_baird
-from semi_grad_off_pol_td import SemiGradOffPolTD
+from baird_utils import b_baird, nab_vhat_baird, pi_baird, vhat_baird
+import matplotlib.pyplot as plt
 import numpy as np
+from semi_grad_dp import SemiGradDP
+from semi_grad_off_pol_td import SemiGradOffPolTD
+
+plt.switch_backend('Qt5Agg')
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -17,7 +20,7 @@ FIG_11_2_ALP = 0.01
 FIG_11_2_W_0 = [1, 1, 1, 1, 1, 1, 10, 1]
 FIG_11_2_N_STEPS = 1000
 FIG_11_2_BATCH = 10
-FIG_11_2_N_RUNS = 10
+FIG_11_2_N_RUNS_L = [1, 1]
 
 
 def save_plot(filename, dpi=None):
@@ -42,30 +45,36 @@ def fig_11_2():
   fig = plt.figure()
   fig.set_size_inches(20, 28)
   fig.suptitle('Figure 11.2')
-  ax1, ax2 = fig.add_subplot('121'), fig.add_subplot('122')
   env = BairdMDP()
   b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
            for f in [b_baird, pi_baird]]
   w_0 = np.array(FIG_11_2_W_0)
-  alg1 = SemiGradOffPolTD(env, pi, b, w_0.shape[0], FIG_11_2_ALP, FIG_11_2_G,
-                          vhat_baird, nab_vhat_baird)
+  baird_params = (w_0.shape[0], FIG_11_2_ALP, FIG_11_2_G, vhat_baird,
+                  nab_vhat_baird)
+  alg1 = SemiGradOffPolTD(env, pi, b, *baird_params)
+  alg2 = SemiGradDP(env, pi, *baird_params)
   n_batches = FIG_11_2_N_STEPS // FIG_11_2_BATCH
   batch_ticks = FIG_11_2_BATCH * (np.arange(n_batches) + 1)
-  w_log = np.zeros((len(env.states) + 1, n_batches))
-  for seed in range(FIG_11_2_N_RUNS):
-    if seed > 0 and seed % 10 == 0:
-      print(f"[RUN #{seed}]")
-    alg1.w = w_0
-    alg1.seed(seed)
-    for n_iter in range(n_batches):
-      alg1.pol_eva(FIG_11_2_BATCH)
-      w_log[:, n_iter] = w_log[:, n_iter] + alg1.w
-  for (i, w_i) in enumerate(w_log):
-    ax1.plot(batch_ticks, w_i / FIG_11_2_N_RUNS, label=f'w_{i + 1}')
-  xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
-  plot_figure(ax1, f'Semi-gradient Off-Policy TD ({FIG_11_2_N_RUNS} runs)',
-              xticks, xticks, 'Steps', yticks, yticks, '', labelpad=30)
-  ax1.legend()
+  for (i, alg) in enumerate([alg1, alg2]):
+    ax = fig.add_subplot(f'12{i+1}')
+    w_log = np.zeros((len(env.states) + 1, n_batches))
+    for seed in range(FIG_11_2_N_RUNS_L[i]):
+      if seed > 0 and seed % 10 == 0:
+        print(f"[RUN #{seed}]")
+      alg.w = w_0
+      if i == 0:
+        alg.seed(seed)
+      for n_iter in range(n_batches):
+        alg.pol_eva(FIG_11_2_BATCH)
+        w_log[:, n_iter] = w_log[:, n_iter] + alg.w
+    for (j, w_j) in enumerate(w_log):
+      ax.plot(batch_ticks, w_j / FIG_11_2_N_RUNS_L[i], label=f'w_{j + 1}')
+    xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
+    ax_title = (f'Semi-gradient Off-Policy TD ({FIG_11_2_N_RUNS_L[i]} runs)'
+                if i == 0 else 'Semi-Gradient DP')
+    plot_figure(ax, ax_title, xticks, xticks, 'Steps' if i == 0 else 'Sweeps',
+                yticks, yticks, '', labelpad=30)
+    ax.legend()
   save_plot('fig11.2', dpi=100)
   plt.show()
 

@@ -1,5 +1,5 @@
-import numpy as np
 from baird import SOLID
+import numpy as np
 
 N_ST = 7
 MAT = np.eye(N_ST + 1)
