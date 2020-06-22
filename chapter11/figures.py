@@ -41,6 +41,30 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
   plt.legend(loc=loc)
 
 
+def run_alg_on_baird(ax, alg, n_runs, title):
+    n_batches = FIG_11_2_N_STEPS // FIG_11_2_BATCH
+    batch_ticks = FIG_11_2_BATCH * (np.arange(n_batches) + 1)
+    w_log = np.zeros((len(alg.env.states) + 1, n_batches))
+    is_DP = isinstance(alg, SemiGradDP)
+    w_0 = np.array(FIG_11_2_W_0)
+    for seed in range(n_runs):
+      if seed > 0 and seed % 10 == 0:
+        print(f"[RUN #{seed}]")
+      alg.w = w_0
+      if not is_DP:
+        alg.seed(seed)
+      for n_iter in range(n_batches):
+        alg.pol_eva(FIG_11_2_BATCH)
+        w_log[:, n_iter] = w_log[:, n_iter] + alg.w
+    for (j, w_j) in enumerate(w_log):
+      ax.plot(batch_ticks, w_j / n_runs, label=f'w_{j + 1}')
+    xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
+    ax_title = f'{title}' + (f' ({n_runs} runs)' if not is_DP else '')
+    plot_figure(ax, ax_title, xticks, xticks, 'Sweeps' if is_DP else 'Steps',
+                yticks, yticks, '', labelpad=30)
+    ax.legend()
+
+
 def fig_11_2():
   fig = plt.figure()
   fig.set_size_inches(20, 14)
@@ -48,39 +72,24 @@ def fig_11_2():
   env = BairdMDP()
   b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
            for f in [b_baird, pi_baird]]
-  w_0 = np.array(FIG_11_2_W_0)
-  baird_params = (w_0.shape[0], FIG_11_2_ALP, FIG_11_2_G, vhat_baird,
+  baird_params = (len(FIG_11_2_W_0), FIG_11_2_ALP, FIG_11_2_G, vhat_baird,
                   nab_vhat_baird)
   alg1 = SemiGradOffPolTD(env, pi, b, *baird_params)
   alg2 = SemiGradDP(env, pi, b, *baird_params)
-  n_batches = FIG_11_2_N_STEPS // FIG_11_2_BATCH
-  batch_ticks = FIG_11_2_BATCH * (np.arange(n_batches) + 1)
   for (i, alg) in enumerate([alg1, alg2]):
-    ax = fig.add_subplot(f'12{i+1}')
-    w_log = np.zeros((len(env.states) + 1, n_batches))
-    for seed in range(FIG_11_2_N_RUNS_L[i]):
-      if seed > 0 and seed % 10 == 0:
-        print(f"[RUN #{seed}]")
-      alg.w = w_0
-      if not isinstance(alg, SemiGradDP):
-        alg.seed(seed)
-      for n_iter in range(n_batches):
-        alg.pol_eva(FIG_11_2_BATCH)
-        w_log[:, n_iter] = w_log[:, n_iter] + alg.w
-    for (j, w_j) in enumerate(w_log):
-      ax.plot(batch_ticks, w_j / FIG_11_2_N_RUNS_L[i], label=f'w_{j + 1}')
-    xticks, yticks = [0, 1000], [1, 10, 100, 200, 300]
-    ax_title = (f'Semi-gradient Off-Policy TD ({FIG_11_2_N_RUNS_L[i]} runs)'
-                if i == 0 else 'Semi-Gradient DP')
-    plot_figure(ax, ax_title, xticks, xticks, 'Steps' if i == 0 else 'Sweeps',
-                yticks, yticks, '', labelpad=30)
-    ax.legend()
+    run_alg_on_baird(fig.add_subplot(f'12{i+1}'), alg, FIG_11_2_N_RUNS_L[i],
+                     'Semi-Gradient DP' if i else 'Semi-gradient Off-Policy TD')
   save_plot('fig11.2', dpi=100)
   plt.show()
 
 
+def ex_11_3():
+  pass
+
+
 PLOT_FUNCTION = {
   '11.2': fig_11_2,
+  'ex11.3': ex_11_3,
 }
 
 
