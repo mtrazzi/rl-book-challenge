@@ -788,3 +788,5 @@ i.e. (p+1) (ln(\lambda)) \le -ln(2)
 i.e. p \ge ln(2) / ln(\lambda)
 
 so \tau = integer above ln(2) / ln(\lambda)
+
+### 17.1
