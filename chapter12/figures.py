@@ -9,8 +9,9 @@ plt.switch_backend('Qt5Agg')
 
 BIG_FONT = 20
 MED_FONT = 15
+SMA_FONT = 13
 
-FIG_12_3_LAM_L = [0, .4, .8, .9, .95, .975, .99, 1][:1]
+FIG_12_3_LAM_L = [0, .4, .8, .9, .95, .975, .99, 1]
 FIG_12_3_N_EP = 10
 FIG_12_3_N_ST = 19
 FIG_12_3_N_RUNS = 1
@@ -22,7 +23,7 @@ def save_plot(filename, dpi=None):
 
 
 def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
-                labelpad=15, font=MED_FONT, loc='upper left'):
+                labelpad=15, font=SMA_FONT, loc='upper left'):
   ax.set_title(title, fontsize=font)
   ax.set_xticks(xticks)
   ax.set_xticklabels(xnames)
@@ -52,6 +53,7 @@ def run_random_walks(ax, alg, lam_l, n_ep, n_runs):
         alg.reset()
         alg.seed(seed)
         for ep in range(n_ep):
+          print(f"[EPISODE #{ep}]")
           alg.pol_eva(pi, n_ep=1)
           v_arr = np.array(alg.get_value_list()[:-1])
           err_sum += np.sqrt(np.sum((v_arr-true_vals) ** 2) / alg.env.n_states)
@@ -61,16 +63,20 @@ def run_random_walks(ax, alg, lam_l, n_ep, n_runs):
 
 def fig_12_3():
   fig, ax = plt.subplots()
+  fig.suptitle('Figure 12.3', fontsize=BIG_FONT)
   fig.set_size_inches(20, 14)
   def vhat(s, w): return vhat_st_agg(s, w, FIG_12_3_N_ST)
   def nab_vhat(s, w): return nab_vhat_st_agg(s, w, FIG_12_3_N_ST)
   alg = OffLamRet(RandomWalk(), None, FIG_12_3_N_ST, None, vhat, nab_vhat,
                   FIG_12_3_G)
+  xticks, yticks = np.linspace(0, 1, 6), np.linspace(0.25, 0.55, 7)
+  def short_str(x): return str(x)[:3]
+  xnames, ynames = map(short_str, xticks), map(short_str, yticks)
   run_random_walks(ax, alg, FIG_12_3_LAM_L, FIG_12_3_N_EP, FIG_12_3_N_RUNS)
-  # xticks, yticks = np.linspace(0, 1, 6), np.linspace(0.25, 0.55, 6)
-  # plot_figure(ax, 'Figure 12.3', xticks, xticks, 'alpha', yticks, yticks,
-  #             (f'Average\nRMS error\n({FIG_12_3_N_ST} states\nFirst' +
-  #              f'{FIG_12_3_N_EP}episodes'))
+  plot_figure(ax, '', xticks, xnames, 'alpha', yticks, ynames,
+              (f'Average\nRMS error\n({FIG_12_3_N_ST} states,\n ' +
+               f'{FIG_12_3_N_EP} episodes)'), font=MED_FONT, labelpad=35,
+               loc='upper right')
   save_plot('fig12.3', dpi=100)
   plt.show()
 

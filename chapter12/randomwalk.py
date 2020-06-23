@@ -3,7 +3,6 @@ import numpy as np
 N_STATES = 19
 EMPTY_MOVE = 0
 P_LEFT = 0.5
-P_LEFT_L = [0.9, 0.1]
 R_STEP = 0
 ABSORBING_STATE = N_STATES
 LEFT = 0
