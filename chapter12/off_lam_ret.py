@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class OffLamRet:
   def __init__(self, env, alpha, w_dim, lam, vhat, nab_vhat, gamma):
     self.env = env
@@ -28,14 +29,11 @@ class OffLamRet:
     self.g_l = [self.g ** k for k in range(n_steps + 2)]
     G, lam_fac = 0, 1
     for n in range(1, n_steps + 1):
-      # print(f"[t={t}, n={n}]")
       self.n = n
       G += lam_fac * self.n_step_return(t, T)
-      # print(f"nstep return was: {self.n_step_return(t, T)}")
       lam_fac *= self.lam
     self.n = n_steps + 1
     to_ret = (1 - self.lam) * G + lam_fac * self.n_step_return(t, T)
-    # print(f"lambda return is then {to_ret}")
     return to_ret
 
   def pol_eva(self, pi, n_ep, max_steps=np.inf):
@@ -54,12 +52,7 @@ class OffLamRet:
           T = t + 1
           break
         t += 1
-      # w_sum = np.zeros_like(self.w, dtype=np.float64)
-      # print(f"R={R} (len(R)={len(self.R)})")
-      # np.set_printoptions(1)
       for (t, s) in enumerate(self.S[:-1]):
-        # import ipdb; ipdb.set_trace()
-        # print(f"w={self.w}")
         self.w += (self.a * (self.lam_ret(t, T) - self.vhat(s, self.w))
                           * self.nab_vhat(s, self.w))
 
