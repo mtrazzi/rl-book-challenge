@@ -764,3 +764,27 @@ cf. plots/ex11.3 and ex_11_3 in figures.py
 = \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s))^2 | S_t = s] + \sum_s \mu(s) \mathbb{E}[(\hat v(S_t, \bold w) - v_{\pi}(s))^2 | S_t = s] + 2 * \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s)) * (\hat v(S_t, \bold w) - v_{\pi}(s))]
 = \mathbb{E}[(G_t - v_{\pi}(s))^2] + \bar VE(\bol w) + \sum_s \mu(s) \mathbb{E}[(G_t - v_{\pi}(s)) | S_t = s] * \mathbb{E}[(\hat v(S_t, \bold w) - v_{\pi}(s)) | S_t = s] # because given S_t = s the right term doesn't contain any random variable and is thus independent of the let term of the product
 = \mathbb{E}[(G_t - v_{\pi}(s))^2] + \bar VE(\bol w) # because \mathbb{E}[(G_t - v_{\pi}(s)) | S_t = s] = \mathbb{E}[G_t | S_t = s] - v_{\pi}(s)) = 0
+
+### 12.1
+
+G_t^{\lambda}
+= (1 - \lambda) \sum_{n=1}^{\inf} \lambda^{n-1} G_{t:t+n}
+= (1 - \lambda) \sum_{n=1}^{\inf} \lambda^{n-1} (R_{t+1} + \gamma G_{t+1:t+n})
+where we define G_{t+1:t+1} = \hat v(S_{t+1}, \bold w_t)
+= R_{t+1} + \gamma \hat v(S_{t+1}, \bold w_t) + (1 - \lambda) \sum_{n=2}^{\inf} \lambda^{n-1} G_{t+1:t+n} \right
+= G_{t:t+1} + (1 - \lambda) \lambda \sum_{p=1}^{\inf} \lambda^{p-1} G_{t+1:t+p+1}
+= G_{t:t+1} + \lambda G_{t+1}^{\lambda}
+
+### 12.2
+
+let's assume T > \tau_{\lambda}, \lambda in (0, 1), and let's abbreviate \tau_{\lambda} by \tau
+
+the weight sum (divided by (1 - \lambda)) should be separated in two, so that \tau is the first p to satisfy:
+
+\sum_{n=0}^p \lambda^n \ge \sum_{n=p+1}^{\inf} \lambda^n
+i.e. \frac{1 - \lambda^{p+1}}{1 - \lambda} \le \frace{\lambda^{p+1}}{1 - \lambda}
+i.e. \lambda^{p+1} \le 1/2
+i.e. (p+1) (ln(\lambda)) \le -ln(2)
+i.e. p \ge ln(2) / ln(\lambda)
+
+so \tau = integer above ln(2) / ln(\lambda)
