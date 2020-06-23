@@ -38,7 +38,8 @@ FIG_11_6_M_0 = 0
 FIG_11_6_I_0 = 1
 
 FIG_11_6_N_RUNS = 1
-FIG_11_6_ALP = 3e-3
+FIG_11_6_ALP = 3e-2
+
 
 def save_plot(filename, dpi=None):
   plt.savefig('plots/' + filename + '.png', dpi=dpi)
@@ -64,7 +65,7 @@ def run_alg_on_baird(ax, alg, n_runs, title, n_steps, batch_size, xticks,
     batch_ticks = batch_size * (np.arange(n_batches) + 1)
     w_log = np.zeros((len(w_init), n_batches))
     is_DP = isinstance(alg, (SemiGradDP, ExpectedTDC, EmphaticTD))
-    w_0 = np.array(w_init)
+    w_0 = np.array(w_init, dtype=np.float64)
     if log_ve_pbe:
       ve, pbe, vpi = np.zeros(n_batches), np.zeros(n_batches), lambda x: 0
     for seed in range(n_runs):
@@ -154,7 +155,8 @@ def fig_11_6():
   b, pi = [{(a, s): f(a, s) for a in env.moves for s in env.states}
            for f in [b_baird, pi_baird]]
   args = (env, pi, b, len(FIG_11_2_W_0), FIG_11_6_ALP,
-          FIG_11_2_G, vhat_baird, nab_vhat_baird, FIG_11_6_M_0, FIG_11_6_I_0)
+          FIG_11_2_G, vhat_baird, nab_vhat_baird, FIG_11_6_M_0, FIG_11_6_I_0,
+          feat_baird)
   alg = EmphaticTD(*args)
   run_alg_on_baird(fig.add_subplot(f'111'), alg, FIG_11_6_N_RUNS,
                    'One Step Emphatic TD', FIG_11_2_N_STEPS,

@@ -9,6 +9,7 @@ class EmphaticTD(TDC):
     self.M = M_0
     self.int = I_0
     self.nab_vhat = nab_vhat
+    self.n_st = len(self.env.states)
     self.reset()
 
   def exp_val_s_a(self, s, a):
@@ -21,16 +22,18 @@ class EmphaticTD(TDC):
                   for a in self.env.moves])
 
   def pol_eva(self, n_sweeps):
+    S, A = self.env.states, self.env.moves
     for _ in range(n_sweeps):
       self.mu += 1
-      self.w = (self.w + self.M * self.a *
-                                np.mean([(self.exp_val_s(s) -
-                                self.vhat(s, self.w)) *
-                                self.nab_vhat(s, self.w)
-                                for s in self.env.states], axis=0))
+      w_delta = np.zeros_like(self.w).astype(np.float64)
+      for s in S:
+        td_err = np.sum([self.b[(a, s)] * self.exp_val_s_a(s, a)
+                         for a in A]) - self.vhat(s, self.w)
+        w_delta += self.M * td_err * self.nab_vhat(s, self.w)
       self.M = self.g * self.M + self.int
+      self.w += (self.a / (len(S) * len(A))) * w_delta
     self.mu /= self.mu.sum()
 
   def reset(self):
-    self.w = np.zeros(self.w_dim)
+    self.w = np.zeros(self.w_dim, dtype=np.float64)
     self.mu = np.zeros(len(self.env.states))
