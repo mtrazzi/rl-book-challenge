@@ -48,8 +48,6 @@ class OnLamRet:
         s_p, r, d, _ = self.env.step(self.S[t])
         self.S.append(s_p)
         self.R.append(r)
-        if d:
-          break
         t += 1
         self.w_l.append(np.zeros(self.d))
         for (k, s) in enumerate(self.S[:-1]):
@@ -57,6 +55,9 @@ class OnLamRet:
                              self.a * (self.lam_ret(k, t, k)
                                        - self.vhat(s, self.w_l[k]))
                                     * self.nab_vhat(s, self.w_l[k]))
+        if d:
+          # print(self.w_l)
+          break
 
   def get_value_list(self):
     return [self.vhat(s, self.w_l[-1]) for s in self.env.states]
@@ -66,7 +67,7 @@ class OnLamRet:
     np.random.seed(seed)
 
   def reset_weight_tab(self):
-    self.w_l = [np.zeros(self.d) if self.w_l is None else [self.w_l[-1]]]
+    self.w_l = [np.zeros(self.d) if self.w_l is None else self.w_l[-1]]
 
   def reset(self):
     self.w_l = None
