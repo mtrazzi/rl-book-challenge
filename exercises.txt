@@ -381,6 +381,10 @@ my intuition: because we stop when \pi(S_t) is not A_t, and ties are broken cons
 
 ### 5.12
 
+cf. chapter5/racetrack.py and figures.py ex5.14 (somehow it's called ex5.14 instead of ex5.12)
+
+### 5.13
+
 left term is equal to sum_s sum_a b(a|s) \sum_{s',r} p(s', r | s, a) \sum_a' b(a' | s') ... \sum_a^(T-1) x (product \frac{\pi(a^(i)|s^(i))}{b(a^(i)|s^(i))}) x r
 
 all of the below b can be simplified one by one with the b from taking the expected value. and then what's left at each step is the sum over pi(a^(i)|s^(i)) (equal to 1) and then the sum over the transitions (p(s^(i+1), r^(i) | s^(i), a^(i))) is also 1.
@@ -391,7 +395,7 @@ or equivently, \sum_s sum_a b(a|s) \sum_{s', r} \frac{\pi(a|s)}{b(a|s)}
 
 i.e. the right term.
 
-### 5.13
+### 5.14
 
 the formula for V(s) is the same as for Q(s,a), just need to change T(s) as T(s,a) or time of visits to pair (s,a).
 
@@ -767,13 +771,13 @@ cf. plots/ex11.3 and ex_11_3 in figures.py
 
 ### 12.1
 
-G_t^{\lambda}
-= (1 - \lambda) \sum_{n=1}^{\inf} \lambda^{n-1} G_{t:t+n}
-= (1 - \lambda) \sum_{n=1}^{\inf} \lambda^{n-1} (R_{t+1} + \gamma G_{t+1:t+n})
-where we define G_{t+1:t+1} = \hat v(S_{t+1}, \bold w_t)
-= R_{t+1} + \gamma \hat v(S_{t+1}, \bold w_t) + (1 - \lambda) \sum_{n=2}^{\inf} \lambda^{n-1} G_{t+1:t+n} \right
-= G_{t:t+1} + (1 - \lambda) \lambda \sum_{p=1}^{\inf} \lambda^{p-1} G_{t+1:t+p+1}
-= G_{t:t+1} + \lambda G_{t+1}^{\lambda}
+G_t^{\lambda}\\
+= (1 - \lambda) \sum_{n=1}^{\infty} \lambda^{n-1} G_{t:t+n}\\
+= (1 - \lambda) G_{t:t+1} + (1 - \lambda) \sum_{n=2}^{\infty} \lambda^{n-1} G_{t:t+n}\\
+= (1 - \lambda) G_{t:t+1} + (1 - \lambda) \lambda \sum_{n=2}^{\infty} \lambda^{n-2} (R_{t+1} + \gamma G_{t+1:t+n})\\
+= (1 - \lambda) G_{t:t+1} + (1 - \lambda) \lambda \sum_{p=1}^{\infty} \lambda^{p-1} (R_{t+1} + \gamma G_{t+1:t+p+1})\\
+= (1 - \lambda) (R_{t + 1} + \gamma \hat v(S_{t + 1}, \bold w_t)) + (1 - \lambda) \lambda [\sum_{p=1}^{\infty} \lambda^{p-1} R_{t+1} + \sum_{p=1}^{\inf} \lambda^{p-1} \gamma G_{t+1:t+p+1}]\\
+= R_{t + 1} + \gamma (1 - \lambda) \hat v(S_{t + 1}, \bold w_t)) + \gamma \lambda G_{t + 1}^{\lambda})\\
 
 ### 12.2
 
@@ -788,5 +792,35 @@ i.e. (p+1) (ln(\lambda)) \le -ln(2)
 i.e. p \ge ln(2) / ln(\lambda)
 
 so \tau = integer above ln(2) / ln(\lambda)
+
+### 12.3
+
+>Some insight into how TD(0) can closely approximate the online \lambda-return >algorithm can be gained by seeing that the latter’s error term (in brackets in >(12.4)) can be written as the sum of TD errors (12.6) for a single fixed w. >Show this, following the pattern of (6.6), and using the recursive >relationship for the \lambda-return you obtained in Exercise 12.1.
+
+With a fixed \bold w we have:
+
+G_t^{\lambda} - \hat v(S_t, \bold w)\\
+= R_{t + 1} + \gamma (1 - \lambda) \hat v(S_{t + 1}, \bold w) + \gamma \lambda G_{t + 1}^{\lambda} - \hat v(S_t, \bold w)\\
+= \delta_t + \gamma \lambda (G_{t + 1}^{\lambda} - \hat v(S_{t + 1}, \bold w))\\
+= \delta_t + \gamma \lambda (\delta_{t+1} + \gamma \lambda (G_{t + 2}^{\lambda} - \hat v(S_{t + 2}, \bold w)))\\
+= \sum_{k=0}^{T-t-1} (\gamma \lambda)^k \delta_{t+k}\\
+
+because G_T = \hat v(S_T, \bold w) = 0 so G_{t + T - t - 1} - \hat v(S_{t + T - t - 1}, \bold w) is the last term
+
+### 12.4
+
+= (1 / \alpha) \sum_{t=0}^{T-1} (\bold w' - \bold w)  \text{ (for TD($\lambda)$)}\\
+= \sum_{t=0}^{T-1} \delta_t z_t\\
+= \delta_0 z_0 + \sum_{t=1}^{T-1} \delta_t (\gamma \lambda z_{t-1} + \nabla \hat v(S_t, \bold w))\\
+= \delta_0 \nabla \hat v(S_0, \bold w) + \gamma \lambda \sum_{t=1}^{T-1} \delta_t z_{t-1} + \sum_{t=1}^{T-1} \delta_t \nabla \hat v(S_t, \bold w))\\
+= (\gamma \lambda)^0 \sum_{t=0}^{T-0-1} \delta_{t+0} \nabla \hat v(S_t, \bold w) + \gamma \lambda \sum_{t=1}^{T-1} \delta_t z_{t-1}\\
+= (\gamma \lambda)^0 T_0 + \gamma \lambda \sum_{t'=0}^{T-2} \delta_{t'+1} z_{t'}\\
+= (\gamma \lambda)^0 T_0 + \gamma \lambda \sum_{t=0}^{T-2} \delta_{t+1} (\gamma \lambda z_{t-1} + \nabla \hat v(S_t, \bold w))\\
+= \cdots\\
+= \sum_{k=0}^{T-1} (\gamma \lambda)^k T_k\\
+= \sum_{k=0}^{T-1} (\gamma \lambda)^k \sum_{t=0}^{T-k-1} \delta_{t+k} \nabla \hat v(S_t, \bold w)\\
+= \sum_{t=0}^{T-1} \nabla \hat v(S_t, \bold w) [\sum_{k=0}^{T-t-1} (\gamma \lambda)^k \delta_{t+k}]\\
+= \sum_{t=0}^{T-1} [G_t^{\lambda} - \hat v(S_t, \bold w)] \nabla \hat v(S_t, \bold w)\\
+(1 / \alpha) \sum_{t=0}^{T-1} (\bold w' - \bold w) \text{ (for $\lambda$-offline return)}\\
 
 ### 17.1
