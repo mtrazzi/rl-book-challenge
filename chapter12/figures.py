@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from randomwalk import RandomWalk
 from utils import vhat_st_agg, nab_vhat_st_agg
 from off_lam_ret import OffLamRet
+from on_lam_ret import OnLamRet
 from semi_grad_td_lam import SemiGradTDLam
 
 plt.switch_backend('Qt5Agg')
@@ -12,10 +13,10 @@ BIG_FONT = 20
 MED_FONT = 15
 SMA_FONT = 13
 
-FIG_12_3_LAM_L = [0, .4, .8, .9, .95, .975, .99, 1]
+FIG_12_3_LAM_L = [0, .4, .8, .9, .95, .975, .99, 1][:1]
 FIG_12_3_N_EP = 10
 FIG_12_3_N_ST = 19
-FIG_12_3_N_RUNS = 10
+FIG_12_3_N_RUNS = 1
 FIG_12_3_G = 1
 
 FIG_12_6_LAM_L = FIG_12_3_LAM_L
@@ -43,7 +44,7 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
   plt.legend(loc=loc)
 
 
-def run_random_walks(ax, alg, lam_l, n_ep, n_runs):
+def run_random_walks(ax, alg, lam_l, n_ep, n_runs, max_steps=np.inf):
   pi = {(a, s): 1.0 for s in alg.env.states for a in alg.env.moves_d[s]}
   true_vals = np.linspace(-1, 1, alg.env.n_states + 2)[1:-1]
   for (k, lam) in enumerate(lam_l):
@@ -51,7 +52,7 @@ def run_random_walks(ax, alg, lam_l, n_ep, n_runs):
     print(f"[LAMBDA={lam}]")
     err_l = []
     alpha_max = 1 if (lam <= 0.95) else 1 / (2 * (k - 3))
-    alpha_l = np.linspace(0, alpha_max, 31)
+    alpha_l = np.linspace(0, alpha_max, 11)
     for alpha in alpha_l:
       alg.a = alpha
       print(f"[ALPHA={alpha}]")
@@ -60,14 +61,15 @@ def run_random_walks(ax, alg, lam_l, n_ep, n_runs):
         alg.reset()
         alg.seed(seed)
         for ep in range(n_ep):
-          alg.pol_eva(pi, n_ep=1)
+          # print(f"[EPISODE #{ep}]")
+          alg.pol_eva(pi, n_ep=1, max_steps=max_steps)
           v_arr = np.array(alg.get_value_list()[:-1])
           err_sum += np.sqrt(np.sum((v_arr-true_vals) ** 2) / alg.env.n_states)
       err_l.append(err_sum / (n_runs * n_ep))
     plt.plot(alpha_l, err_l, label=f'lam={lam}')
 
 
-def benchmark(alg_class, title, fn):
+def benchmark(alg_class, title, fn, max_steps=np.inf):
   fig, ax = plt.subplots()
   fig.suptitle(title, fontsize=BIG_FONT)
   fig.set_size_inches(20, 14)
@@ -78,11 +80,12 @@ def benchmark(alg_class, title, fn):
   xticks, yticks = np.linspace(0, 1, 6), np.linspace(0.25, 0.55, 7)
   def short_str(x): return str(x)[:3]
   xnames, ynames = map(short_str, xticks), map(short_str, yticks)
-  run_random_walks(ax, alg, FIG_12_3_LAM_L, FIG_12_3_N_EP, FIG_12_3_N_RUNS)
-  plot_figure(ax, '', xticks, xnames, 'alpha', yticks, ynames,
-              (f'Average\nRMS error\n({FIG_12_3_N_ST} states,\n ' +
-               f'{FIG_12_3_N_EP} episodes)'), font=MED_FONT, labelpad=35,
-              loc='upper right')
+  run_random_walks(ax, alg, FIG_12_3_LAM_L, FIG_12_3_N_EP, FIG_12_3_N_RUNS,
+                   max_steps)
+  # plot_figure(ax, '', xticks, xnames, 'alpha', yticks, ynames,
+  #             (f'Average\nRMS error\n({FIG_12_3_N_ST} states,\n ' +
+  #              f'{FIG_12_3_N_EP} episodes)'), font=MED_FONT, labelpad=35,
+  #             loc='upper right')
   save_plot(fn, dpi=100)
   plt.show()
 
@@ -95,9 +98,14 @@ def fig_12_6():
   benchmark(SemiGradTDLam, 'Figure 12.6', 'fig12.6')
 
 
+def fig_12_8():
+  benchmark(OnLamRet, 'Figure 12.8', 'fig12.8', max_steps=50)
+
+
 PLOT_FUNCTION = {
   '12.3': fig_12_3,
   '12.6': fig_12_6,
+  '12.8': fig_12_8,
 }
 
 
