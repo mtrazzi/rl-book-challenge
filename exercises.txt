@@ -823,4 +823,22 @@ because G_T = \hat v(S_T, \bold w) = 0 so G_{t + T - t - 1} - \hat v(S_{t + T - 
 = \sum_{t=0}^{T-1} [G_t^{\lambda} - \hat v(S_t, \bold w)] \nabla \hat v(S_t, \bold w)\\
 (1 / \alpha) \sum_{t=0}^{T-1} (\bold w' - \bold w) \text{ (for $\lambda$-offline return)}\\
 
+### 12.5
+
+using the same recurrence relationship as from 12.1,
+
+G_{t:t+k}^{\lambda} - \hat v(S_t, \bold w_{t-1})
+= R_{t + 1} + \gamma (1 - \lambda) \hat v(S_{t + 1}, \bold w_t)) + \gamma \lambda G_{t + 1:k}^{\lambda} - \hat v(S_t, \bold w_{t-1})
+= \delta_t' + \gamma \lambda (G_{t + 1:k}^{\lambda} - \hat v(S_{t + 1}, \bold w_t))
+
+now, the last term in the brackets is:
+
+G_{t+k-1:t+k}^{\lambda} - \hat v(S_{t + k - 1}, \bold w_{t + k - 2})
+=  G_{t+k-1:t+k} - \hat v(S_{t + k - 1}, \bold w_{t + k - 2}) (only the right term of 12.9 is non-zero)
+= R_{t+k} + \gamma \hat v(S_{t + k}, \bold w_t) - \hat v(S_{t + k - 1}, \bold w_{t + k - 2})
+= \delta_{t+k-1}
+
+thus we get (12.10)
+
+
 ### 17.1
