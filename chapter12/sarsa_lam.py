@@ -29,7 +29,7 @@ class SarsaLam:
     return self.env.moves[np.random.choice(np.arange(len(self.env.moves)),
                                            p=pi_dist)]
 
-  def pol_eva(self, pi, n_ep, acc=True):
+  def pol_eva(self, pi, n_ep, acc=False, max_steps=np.inf):
     def act(s): return (self.eps_gre(s) if pi is None else
                         self.sample_action(pi, s))
     w, dim, alp, g, lam = self.w, self.d, self.a, self.g, self.lam
@@ -40,27 +40,24 @@ class SarsaLam:
       a = act(s)
       z = np.zeros(dim, dtype=np.float32)
       n_steps = 0
-      while True:
-        print(np.mean(self.w))
+      while True and n_steps < max_steps:
         s_p, r, d, _ = env.step(a)
         n_steps += 1
         delt = r
         for i in F(s, a):
-          delt += w[i]
+          delt -= w[i]
           z[i] = (z[i] + 1) if acc else 1
         if d:
           w += alp * delt * z
           break
         a_p = act(s_p)
         for i in F(s_p, a_p):
-          w += alp * delt * z
-          z = g * lam * z
-          s, a = s_p, a_p
+          delt += g * w[i]
+        w += alp * delt * z
+        z = g * lam * z
+        s, a = s_p, a_p
       step_list.append(n_steps)
     return step_list
-
-  def get_value_list(self):
-    return [self.vhat(s, self.w) for s in self.env.states]
 
   def seed(self, seed):
     self.env.seed(seed)

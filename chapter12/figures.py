@@ -35,10 +35,23 @@ N_TLGS = 8
 FIG_12_10_G = 1
 FIG_12_10_EPS = 0
 FIG_12_10_LAM_L = [0, .68, .84, .92, .96, .98, .99]
-FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX = 0.5, 1.6
-FIG_12_10_N_PTS = 5
-FIG_12_10_N_RUNS = 1
+FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX = 0.4, 1.5
+FIG_12_10_N_PTS = 10
+FIG_12_10_N_RUNS = 10
 FIG_12_10_N_EP = 50
+FIG_12_10_MAX_STEPS = 1000
+
+FIG_12_11_G = FIG_12_10_G
+FIG_12_11_EPS = FIG_12_10_EPS
+FIG_12_11_N_PTS = FIG_12_10_N_PTS
+FIG_12_11_N_RUNS = FIG_12_10_N_RUNS
+FIG_12_11_N_EP = 20
+FIG_12_11_MAX_STEPS = 1000
+FIG_12_11_LAM = 0.92
+FIG_12_11_ALP_BND = {
+  SarsaLam: [.2, 2],
+  # [.2, .45], [.2, 2], [.2, 2]
+}
 
 
 def get_idxs(iht, x, xdot, a):
@@ -130,35 +143,66 @@ def fig_12_8():
 
 def fig_12_10():
   fig, ax = plt.subplots()
-  F, qhat = get_fn_mc(N_TIL, N_TLGS)
-  alg = SarsaLam(MountainCar(), 0, N_TIL * N_TLGS, 0, F, qhat, FIG_12_10_EPS,
-                 FIG_12_10_G)
   for lam in FIG_12_10_LAM_L:
-    alg.lam = lam
     print(f"[LAM={lam}]")
     steps_l = []
     alpha_l = np.linspace(FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX, FIG_12_10_N_PTS)
     for alpha in alpha_l:
-      alg.a = alpha / N_TLGS
+      F, qhat = get_fn_mc(N_TIL, N_TLGS)
+      alg = SarsaLam(MountainCar(), alpha / N_TLGS, N_TIL * N_TLGS, lam, F,
+                     qhat, FIG_12_10_EPS, FIG_12_10_G)
       print(f"[ALPHA={alg.a}]")
       tot_steps = 0
       for seed in range(FIG_12_10_N_RUNS):
         print(f"[RUN #{seed}]")
         alg.reset()
         alg.seed(seed)
-        for _ in range(FIG_12_10_N_EP):
-          tot_steps += alg.pol_eva(None, 1)[0]
+        for ep in range(FIG_12_10_N_EP):
+          print(f"[EP #{ep}]")
+          tot_steps += alg.pol_eva(None, 1, max_steps=FIG_12_10_MAX_STEPS)[0]
       steps_l.append(tot_steps / (FIG_12_10_N_RUNS * FIG_12_10_N_EP))
     plt.plot(alpha_l, steps_l, label=f'lam={lam}')
-  xticks, yticks = np.linspace(0, 1.5, 4), np.linspace(180, 300, 7)
+  xticks, yticks = np.linspace(0.5, 1.5, 5), np.linspace(180, 300, 7)
   left_title = (f'Mountain Car\nSteps per\nepisode\n(averaged \nover ' +
-                f'first\n{FIG_12_10_N_EP} episodes\n{FIG_12_10_N_RUNS}runs')
-  plot_figure(ax, 'Figure 10.4', list(xticks) + [1.8], xticks,
+                f'first\n{FIG_12_10_N_EP} episodes\n{FIG_12_10_N_RUNS} runs)')
+  plot_figure(ax, 'Figure 12.10', list(xticks) + [1.6], xticks,
               f'alpha * number of tilings ({N_TLGS})',
               yticks, yticks, left_title, labelpad=20)
   fig.set_size_inches(20, 14)
   plt.legend()
-  save_plot('fig10.4', dpi=100)
+  save_plot('fig12.10', dpi=100)
+  plt.show()
+
+
+def fig_12_11():
+  fig, ax = plt.subplots()
+  steps_l = []
+  F, qhat = get_fn_mc(N_TIL, N_TLGS)
+  for alg_name in [SarsaLam]:
+    alpha_l = np.linspace(*FIG_12_11_ALP_BND[alg_name], FIG_12_11_N_PTS)
+    for alpha in alpha_l:
+      alg = alg_name(MountainCar(), alpha / N_TLGS, N_TIL * N_TLGS,
+                     FIG_12_11_LAM, F, qhat, FIG_12_11_EPS, FIG_12_11_G)
+      print(f"[ALPHA={alg.a}]")
+      tot_steps = 0
+      for seed in range(FIG_12_11_N_RUNS):
+        print(f"[RUN #{seed}]")
+        alg.reset()
+        alg.seed(seed)
+        for ep in range(FIG_12_11_N_EP):
+          print(f"[EP #{ep}]")
+          tot_steps += alg.pol_eva(None, 1, max_steps=FIG_12_11_MAX_STEPS)[0]
+      steps_l.append(tot_steps / (FIG_12_11_N_RUNS * FIG_12_11_N_EP))
+    plt.plot(alpha_l, -np.array(steps_l), label=f'lam={FIG_12_11_LAM}')
+  xticks, yticks = np.linspace(0.5, 1.5, 5), np.linspace(180, 300, 7)
+  left_title = (f'Mountain Car\nReward per\nepisode\n(averaged \nover ' +
+                f'first\n{FIG_12_11_N_EP} episodes\n{FIG_12_11_N_RUNS} runs)')
+  plot_figure(ax, 'Figure 12.11', list(xticks) + [1.6], xticks,
+              f'alpha * number of tilings ({N_TLGS})',
+              yticks, yticks, left_title, labelpad=20)
+  fig.set_size_inches(20, 14)
+  plt.legend()
+  save_plot('fig12.11', dpi=100)
   plt.show()
 
 
@@ -167,6 +211,7 @@ PLOT_FUNCTION = {
   '12.6': fig_12_6,
   '12.8': fig_12_8,
   '12.10': fig_12_10,
+  '12.11': fig_12_11,
 }
 
 

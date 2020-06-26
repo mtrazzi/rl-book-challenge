@@ -840,5 +840,8 @@ G_{t+k-1:t+k}^{\lambda} - \hat v(S_{t + k - 1}, \bold w_{t + k - 2})
 
 thus we get (12.10)
 
+### 12.6
+
+somehting like replacing the trace (cf. "accumulating traces" or "replaceing traces" line) with z_i \leftarrow (1 - \alpha \gamma \lambda z_T x) x_i should work
 
 ### 17.1
