@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 from randomwalk import RandomWalk
 from utils import vhat_st_agg, nab_vhat_st_agg
 from off_lam_ret import OffLamRet
-from on_lam_ret import OnLamRet
+# from on_lam_ret import OnLamRet
 from semi_grad_td_lam import SemiGradTDLam
 from true_online_td import TrueOnlineTD
+from mountain_car import MountainCar, X_MAX, X_MIN, V_MAX, V_MIN
+from tiles_sutton import IHT, tiles
+from sarsa_lam import SarsaLam
 
 plt.switch_backend('Qt5Agg')
 
@@ -25,6 +28,29 @@ FIG_12_6_N_EP = FIG_12_3_N_EP
 FIG_12_6_N_ST = FIG_12_3_N_ST
 FIG_12_6_N_RUNS = FIG_12_3_N_RUNS
 FIG_12_6_G = FIG_12_3_G
+
+N_TIL = 4096
+N_TLGS = 8
+
+FIG_12_10_G = 1
+FIG_12_10_EPS = 0
+FIG_12_10_LAM_L = [0, .68, .84, .92, .96, .98, .99]
+FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX = 0.5, 1.6
+FIG_12_10_N_PTS = 5
+FIG_12_10_N_RUNS = 1
+FIG_12_10_N_EP = 50
+
+
+def get_idxs(iht, x, xdot, a):
+  return tiles(iht, N_TLGS, [N_TLGS * x / (X_MAX - X_MIN),
+               N_TLGS * xdot / (V_MAX - V_MIN)], [a])
+
+
+def get_fn_mc(n_til, n_tlgs):
+  iht = IHT(N_TIL)
+  def idxs(s, a): return get_idxs(iht, s[0], s[1], a)
+  def qhat(s, a, w): return np.sum(w[idxs(s, a)])
+  return idxs, qhat
 
 
 def save_plot(filename, dpi=None):
@@ -98,14 +124,49 @@ def fig_12_6():
 
 
 def fig_12_8():
-  #benchmark(OnLamRet, 'Figure 12.8', 'fig12.8')
+  # benchmark(OnLamRet, 'Figure 12.8', 'fig12.8')
   benchmark(TrueOnlineTD, 'Figure 12.8', 'fig12.8', sub=4)
+
+
+def fig_12_10():
+  fig, ax = plt.subplots()
+  F, qhat = get_fn_mc(N_TIL, N_TLGS)
+  alg = SarsaLam(MountainCar(), 0, N_TIL * N_TLGS, 0, F, qhat, FIG_12_10_EPS,
+                 FIG_12_10_G)
+  for lam in FIG_12_10_LAM_L:
+    alg.lam = lam
+    print(f"[LAM={lam}]")
+    steps_l = []
+    alpha_l = np.linspace(FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX, FIG_12_10_N_PTS)
+    for alpha in alpha_l:
+      alg.a = alpha / N_TLGS
+      print(f"[ALPHA={alg.a}]")
+      tot_steps = 0
+      for seed in range(FIG_12_10_N_RUNS):
+        print(f"[RUN #{seed}]")
+        alg.reset()
+        alg.seed(seed)
+        for _ in range(FIG_12_10_N_EP):
+          tot_steps += alg.pol_eva(None, 1)[0]
+      steps_l.append(tot_steps / (FIG_12_10_N_RUNS * FIG_12_10_N_EP))
+    plt.plot(alpha_l, steps_l, label=f'lam={lam}')
+  xticks, yticks = np.linspace(0, 1.5, 4), np.linspace(180, 300, 7)
+  left_title = (f'Mountain Car\nSteps per\nepisode\n(averaged \nover ' +
+                f'first\n{FIG_12_10_N_EP} episodes\n{FIG_12_10_N_RUNS}runs')
+  plot_figure(ax, 'Figure 10.4', list(xticks) + [1.8], xticks,
+              f'alpha * number of tilings ({N_TLGS})',
+              yticks, yticks, left_title, labelpad=20)
+  fig.set_size_inches(20, 14)
+  plt.legend()
+  save_plot('fig10.4', dpi=100)
+  plt.show()
 
 
 PLOT_FUNCTION = {
   '12.3': fig_12_3,
   '12.6': fig_12_6,
   '12.8': fig_12_8,
+  '12.10': fig_12_10,
 }
 
 
