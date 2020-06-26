@@ -10,6 +10,7 @@ from true_online_td import TrueOnlineTD
 from mountain_car import MountainCar, X_MAX, X_MIN, V_MAX, V_MIN
 from tiles_sutton import IHT, tiles
 from sarsa_lam import SarsaLam
+from true_online_sarsa import TrueOnlineSarsa
 
 plt.switch_backend('Qt5Agg')
 
@@ -37,20 +38,24 @@ FIG_12_10_EPS = 0
 FIG_12_10_LAM_L = [0, .68, .84, .92, .96, .98, .99]
 FIG_12_10_ALP_MIN, FIG_12_10_ALP_MAX = 0.4, 1.5
 FIG_12_10_N_PTS = 10
-FIG_12_10_N_RUNS = 10
+FIG_12_10_N_RUNS = 20
 FIG_12_10_N_EP = 50
 FIG_12_10_MAX_STEPS = 1000
 
 FIG_12_11_G = FIG_12_10_G
 FIG_12_11_EPS = FIG_12_10_EPS
 FIG_12_11_N_PTS = FIG_12_10_N_PTS
-FIG_12_11_N_RUNS = FIG_12_10_N_RUNS
-FIG_12_11_N_EP = 20
-FIG_12_11_MAX_STEPS = 1000
-FIG_12_11_LAM = 0.92
+FIG_12_11_N_RUNS = 1#FIG_12_10_N_RUNS
+FIG_12_11_N_EP = 1
+FIG_12_11_MAX_STEPS = 5000
+FIG_12_11_LAM = 0
 FIG_12_11_ALP_BND = {
   SarsaLam: [.2, 2],
-  # [.2, .45], [.2, 2], [.2, 2]
+  TrueOnlineSarsa: [.4, 2],
+}
+FIG_12_11_ALG_STR = {
+  SarsaLam: "Sarsa(Lambda)",
+  TrueOnlineSarsa: "True Online Sarsa(Lambda)",
 }
 
 
@@ -167,7 +172,7 @@ def fig_12_10():
                 f'first\n{FIG_12_10_N_EP} episodes\n{FIG_12_10_N_RUNS} runs)')
   plot_figure(ax, 'Figure 12.10', list(xticks) + [1.6], xticks,
               f'alpha * number of tilings ({N_TLGS})',
-              yticks, yticks, left_title, labelpad=20)
+              [160] + list(yticks), yticks, left_title, labelpad=35)
   fig.set_size_inches(20, 14)
   plt.legend()
   save_plot('fig12.10', dpi=100)
@@ -176,9 +181,9 @@ def fig_12_10():
 
 def fig_12_11():
   fig, ax = plt.subplots()
-  steps_l = []
   F, qhat = get_fn_mc(N_TIL, N_TLGS)
-  for alg_name in [SarsaLam]:
+  for alg_name in [TrueOnlineSarsa, SarsaLam]:
+    steps_l = []
     alpha_l = np.linspace(*FIG_12_11_ALP_BND[alg_name], FIG_12_11_N_PTS)
     for alpha in alpha_l:
       alg = alg_name(MountainCar(), alpha / N_TLGS, N_TIL * N_TLGS,
@@ -193,13 +198,13 @@ def fig_12_11():
           print(f"[EP #{ep}]")
           tot_steps += alg.pol_eva(None, 1, max_steps=FIG_12_11_MAX_STEPS)[0]
       steps_l.append(tot_steps / (FIG_12_11_N_RUNS * FIG_12_11_N_EP))
-    plt.plot(alpha_l, -np.array(steps_l), label=f'lam={FIG_12_11_LAM}')
+    plt.plot(alpha_l, -np.array(steps_l), label=FIG_12_11_ALG_STR[alg_name])
   xticks, yticks = np.linspace(0.5, 1.5, 5), np.linspace(180, 300, 7)
   left_title = (f'Mountain Car\nReward per\nepisode\n(averaged \nover ' +
                 f'first\n{FIG_12_11_N_EP} episodes\n{FIG_12_11_N_RUNS} runs)')
-  plot_figure(ax, 'Figure 12.11', list(xticks) + [1.6], xticks,
-              f'alpha * number of tilings ({N_TLGS})',
-              yticks, yticks, left_title, labelpad=20)
+  # plot_figure(ax, 'Figure 12.11', list(xticks) + [1.6], xticks,
+              # f'alpha * number of tilings ({N_TLGS})',
+              # yticks, yticks, left_title, labelpad=35)
   fig.set_size_inches(20, 14)
   plt.legend()
   save_plot('fig12.11', dpi=100)
