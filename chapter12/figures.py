@@ -44,15 +44,15 @@ FIG_12_10_MAX_STEPS = 1000
 
 FIG_12_11_G = FIG_12_10_G
 FIG_12_11_EPS = FIG_12_10_EPS
-FIG_12_11_N_PTS = 5  # FIG_12_10_N_PTS
-FIG_12_11_N_RUNS = 1  # FIG_12_10_N_RUNS
+FIG_12_11_N_PTS = FIG_12_10_N_PTS
+FIG_12_11_N_RUNS = 5
 FIG_12_11_N_EP = 20
 FIG_12_11_MAX_STEPS = 5000
 FIG_12_11_LAM = 0.92
 FIG_12_11_ALP_BND = {
   SarsaLamClr: [.2, 2],
   SarsaLam: [.2, 2],
-  TrueOnlineSarsa: [.2, 2],
+  TrueOnlineSarsa: [.2, 1.8],
   SarsaLamAcc: [.2, .5],
 }
 FIG_12_11_ALG_STR = {
@@ -199,7 +199,6 @@ def fig_12_11():
         alg.reset()
         alg.seed(seed)
         for ep in range(FIG_12_11_N_EP):
-          print(f"[EP #{ep}]")
           tot_steps += alg.pol_eva(None, 1, max_steps=FIG_12_11_MAX_STEPS)[0]
       steps_l.append(tot_steps / (FIG_12_11_N_RUNS * FIG_12_11_N_EP))
     plt.plot(alpha_l, -np.array(steps_l), label=FIG_12_11_ALG_STR[alg_name])

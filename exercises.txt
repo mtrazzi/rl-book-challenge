@@ -878,13 +878,37 @@ Based on ex12.8 and 12.7, it's equation (12.24) but with
 
 ### 12.10
 
+G_0^{\lambda_a} - Q_0\\
+= R_1 + \gamma_1 \left(\bar V_1 + \lambda_1 \rho_1 (G_1^{\lambda_a} - Q_1)\right) - Q_0\\
+= \delta_0 + \lambda_1 \rho_1 \gamma_1 (G_1^{\lambda_a} - Q_1)
+
 ### 12.11
+
+equation (12.27) but with
+
+(\delta_t^s)' = R_{t+1} + \gamma_{t+1} \bar V_t(S_{t+1}) - \hat q(S_t, A_t, \bold w_{t-1})
 
 ### 12.12
 
+wih the abstraction of (12.27), the steps are literally the same (as we don't use anything specific to \hat v)
+
+just replace:
+- \hat v by \hat q
+- S_t by S_t, A_t
+
+we get a result without multiplying by \rho_t (because it's not in (12.27)!)
+
 ### 12.13
 
+for dutch trace, replace \gamma \lambda by \gamma_t \lambda_t, and multiply the whole update by rho_t
+
+for replacing trace, we get rho_t if x_{i,t} = 1, \gamma_t \lambda_t \rho_t z_{i, t-1} otherwise
+
 ### 12.14
+
+intuitively, we would need to alternate between using two approximate q functions, using updates similar to the ones from TB(\lambda)
+
+it seems like the most straightforward way would be to alternate between using \nabla \hat q_1 and \nabla \hat q_2 when updating z_t (and the weights?)
 
 ### 13.1
 
