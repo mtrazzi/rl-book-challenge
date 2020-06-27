@@ -3,7 +3,8 @@ from utils import sample
 
 
 class SarsaLam:
-  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma, acc=False, clr=False):
+  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma, acc=False,
+               clr=False):
     self.env = env
     self.a = alpha
     self.lam = lam
@@ -37,6 +38,7 @@ class SarsaLam:
     w, dim, alp, g, lam = self.w, self.d, self.a, self.g, self.lam
     F, env = self.F, self.env
     step_list = []
+    past_idxs = set()
     for _ in range(n_ep):
       s = self.env.reset()
       a = act(s)
@@ -49,6 +51,7 @@ class SarsaLam:
         for i in F(s, a):
           delt -= w[i]
           z[i] = (z[i] + 1) if self.acc else 1
+        past_idxs = past_idxs.union(set(F(s, a)))
         if d:
           w += alp * delt * z
           break
@@ -59,7 +62,7 @@ class SarsaLam:
         z = g * lam * z
         s, a = s_p, a_p
         if self.clr:
-          for j in (set(range(dim)) - set(F(s_p, a_p))):
+          for j in (past_idxs - set(F(s_p, a_p))):
             z[j] = 0
       step_list.append(n_steps)
     return step_list

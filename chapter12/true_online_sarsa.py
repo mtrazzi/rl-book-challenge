@@ -16,9 +16,9 @@ class TrueOnlineSarsa:
     self.reset()
 
   def feat_from_F(self, F):
-    z = np.zeros(self.d)
 
     def feat(s, a):
+      z = np.zeros(self.d)
       for idx in F(s, a):
         z[idx] = 1
       return z

@@ -12,7 +12,7 @@ from tiles_sutton import IHT, tiles
 from sarsa_lam import SarsaLam, SarsaLamAcc, SarsaLamClr
 from true_online_sarsa import TrueOnlineSarsa
 
-#plt.switch_backend('Qt5Agg')
+plt.switch_backend('Qt5Agg')
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -44,11 +44,11 @@ FIG_12_10_MAX_STEPS = 1000
 
 FIG_12_11_G = FIG_12_10_G
 FIG_12_11_EPS = FIG_12_10_EPS
-FIG_12_11_N_PTS = FIG_12_10_N_PTS
-FIG_12_11_N_RUNS = 1#FIG_12_10_N_RUNS
-FIG_12_11_N_EP = 10
+FIG_12_11_N_PTS = 5  # FIG_12_10_N_PTS
+FIG_12_11_N_RUNS = 1  # FIG_12_10_N_RUNS
+FIG_12_11_N_EP = 20
 FIG_12_11_MAX_STEPS = 5000
-FIG_12_11_LAM = 0
+FIG_12_11_LAM = 0.92
 FIG_12_11_ALP_BND = {
   SarsaLamClr: [.2, 2],
   SarsaLam: [.2, 2],
@@ -58,8 +58,8 @@ FIG_12_11_ALP_BND = {
 FIG_12_11_ALG_STR = {
   SarsaLamClr: "Sarsa(Lambda) w/ replacing/clearing traces",
   SarsaLam: "Sarsa(Lambda) w/ replacing traces",
-  TrueOnlineSarsa: "True Online Sarsa(Lambda)",
   SarsaLamAcc: "Sarsa(Lambda) w/ accumulating traces",
+  TrueOnlineSarsa: "True Online Sarsa(Lambda)",
 }
 
 
@@ -131,7 +131,7 @@ def benchmark(alg_class, title, fn, sub=3):
   run_random_walks(ax, alg, FIG_12_3_LAM_L, FIG_12_3_N_EP, FIG_12_3_N_RUNS, sub)
   plot_figure(ax, '', xticks, xnames, 'alpha', yticks, ynames,
               (f'Average\nRMS error\n({FIG_12_3_N_ST} states,\n ' +
-               f'{FIG_12_3_N_EP} episodes)'), font=MED_FONT, labelpad=35,
+               f'{FIG_12_3_N_EP} episodes)'), font=MED_FONT, labelpad=40,
               loc='upper right')
   save_plot(fn, dpi=100)
   plt.show()
@@ -182,6 +182,7 @@ def fig_12_10():
   save_plot('fig12.10', dpi=100)
   plt.show()
 
+
 def fig_12_11():
   fig, ax = plt.subplots()
   F, qhat = get_fn_mc(N_TIL, N_TLGS)
@@ -202,12 +203,13 @@ def fig_12_11():
           tot_steps += alg.pol_eva(None, 1, max_steps=FIG_12_11_MAX_STEPS)[0]
       steps_l.append(tot_steps / (FIG_12_11_N_RUNS * FIG_12_11_N_EP))
     plt.plot(alpha_l, -np.array(steps_l), label=FIG_12_11_ALG_STR[alg_name])
-  xticks, yticks = np.linspace(0.5, 1.5, 5), np.linspace(180, 300, 7)
+  xticks, yticks = np.linspace(0.2, 2, 10), np.linspace(-550, -150, 9)
+  xnames = map(lambda x: str(x)[:3], xticks)
   left_title = (f'Mountain Car\nReward per\nepisode\n(averaged \nover ' +
                 f'first\n{FIG_12_11_N_EP} episodes\n{FIG_12_11_N_RUNS} runs)')
-  # plot_figure(ax, 'Figure 12.11', list(xticks) + [1.6], xticks,
-              # f'alpha * number of tilings ({N_TLGS})',
-              # yticks, yticks, left_title, labelpad=35)
+  plot_figure(ax, 'Figure 12.11', xticks, xnames,
+              f'alpha * number of tilings ({N_TLGS})',
+              yticks, yticks, left_title, labelpad=45)
   fig.set_size_inches(20, 14)
   plt.legend()
   save_plot('fig12.11', dpi=100)
