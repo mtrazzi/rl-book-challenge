@@ -785,7 +785,7 @@ let's assume T > \tau_{\lambda}, \lambda in (0, 1), and let's abbreviate \tau_{\
 
 the weight sum (divided by (1 - \lambda)) should be separated in two, so that \tau is the first p to satisfy:
 
-\sum_{n=0}^p \lambda^n \ge \sum_{n=p+1}^{\inf} \lambda^n
+\sum_{n=0}^p \lambda^n \ge \sum_{n=p+1}^{\infty} \lambda^n
 i.e. \frac{1 - \lambda^{p+1}}{1 - \lambda} \le \frace{\lambda^{p+1}}{1 - \lambda}
 i.e. \lambda^{p+1} \le 1/2
 i.e. (p+1) (ln(\lambda)) \le -ln(2)
@@ -794,8 +794,6 @@ i.e. p \ge ln(2) / ln(\lambda)
 so \tau = integer above ln(2) / ln(\lambda)
 
 ### 12.3
-
->Some insight into how TD(0) can closely approximate the online \lambda-return >algorithm can be gained by seeing that the latter’s error term (in brackets in >(12.4)) can be written as the sum of TD errors (12.6) for a single fixed w. >Show this, following the pattern of (6.6), and using the recursive >relationship for the \lambda-return you obtained in Exercise 12.1.
 
 With a fixed \bold w we have:
 
@@ -846,9 +844,37 @@ somehting like replacing the trace (cf. "accumulating traces" or "replaceing tra
 
 ### 12.7
 
+
+G_t^{\lambda_s}
+= R_{t+1} + \gamma_{t+1} ((1 - \lambda_{t+1}) \hat v(S_{t+1}, \bold w_t) + \lambda_{t+1} G_{t+1}^{\lambda_s})\\
+= R_{t+1} + \gamma_{t+1}(1 - \lambda_{t+1}) \hat v(S_{t+1}, \bold w_t) + \gamma_{t+1} \lambda_{t+1} R_{t+2} + \gamma_{t+1} \gamma_{t+2} \lambda_{t+1} ((1 - \lambda_{t+2}) \hat v(S_{t+1}, \bold w_{t+1}) + \lambda_{t+2} G_{t+2}^{\lambda_s})\\
+= \sum_{k=1}^{\infty} (\Pi_{j=1}^{k-1} \gamma_{t+j} \lambda_{t+j}) (R_{t+k} + \gamma_{t+k} (1 - \lambda_{t+k}) \hat v(S_{t+k}, \bold w_{t+k-1}))
+
+G_{t:h}^{\lambda_s}\\
+= \sum_{k=1}^{h - t} (\Pi_{j=1}^{k-1} \gamma_{t+j} \lambda_{t+j}) (R_{t+k} + \gamma_{t+k} (1 - \lambda_{t+k}) \hat v(S_{t+k}, \bold w_{t+k-1}))
+
+G_{t:h}^{\lambda_a}\\
+= \sum_{k=1}^{h - t} (\Pi_{j=1}^{k-1} \gamma_{t+j} \lambda_{t+j}) (R_{t+k} + \gamma_{t+k} (1 - \lambda_{t+k}) \hat q(S_{t+k}, A_{t+k}, \bold w_{t+k-1}))
+
+and for Expected Sarsa
+
+G_{t:h}^{\lambda_a}\\
+= \sum_{k=1}^{h - t} (\Pi_{j=1}^{k-1} \gamma_{t+j} \lambda_{t+j}) (R_{t+k} + \gamma_{t+k} (1 - \lambda_{t+k}) \bar V(S_{t+k}))
+
 ### 12.8
 
+G_0^{\lambda_s}\\
+= \rho_0 \left(R_1 + \gamma_1 \left(\left(1 - \lambda_1\right) V_1 + \lambda_1 G_1^{\lambda_s}\right) \right) + (1 - \rho_0) V_0\\
+= V_0 + \rho_0\left(R_1 + \gamma_1 V_1 - V_0 + \gamma_1 \lambda_1 (G_1^{\lambda_s} - V_1)\right)\\
+= V_0 + \rho_0\left(\delta_0^s + (\gamma_1 \lambda_1) \left(G_1^{\lambda_s} - V_1\right)\right)\\
+= V_0 + \rho_0\left(\delta_0^s + (\gamma_1 \lambda_1) \left[\rho_1\left(\delta_1^s + (\gamma_2 \lambda_2) (G_2^{\lambda_s} - V_2)\right)\right]\right)\\
+= V_0 + \rho_0 \sum_{k=0}^{\infty} \delta_{k}^s \Pi_{i=1}^k \gamma_i \lambda_i \rho_i
+
 ### 12.9
+
+Based on ex12.8 and 12.7, it's equation (12.24) but with
+
+(\delta_t^s)' = R_{t+1} + \gamma_{t+1} \hat v(S_{t+1}, \bold w_t) - \hat v(S_t, \bold w_{t-1})
 
 ### 12.10
 
