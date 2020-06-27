@@ -3,7 +3,7 @@ from utils import sample
 
 
 class SarsaLam:
-  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma):
+  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma, acc=False, clr=False):
     self.env = env
     self.a = alpha
     self.lam = lam
@@ -12,6 +12,8 @@ class SarsaLam:
     self.qhat = qhat
     self.g = gamma
     self.eps = eps
+    self.acc = acc
+    self.clr = clr
     self.reset()
 
   def gre(self, s):
@@ -29,7 +31,7 @@ class SarsaLam:
     return self.env.moves[np.random.choice(np.arange(len(self.env.moves)),
                                            p=pi_dist)]
 
-  def pol_eva(self, pi, n_ep, acc=False, max_steps=np.inf):
+  def pol_eva(self, pi, n_ep, max_steps=np.inf):
     def act(s): return (self.eps_gre(s) if pi is None else
                         self.sample_action(pi, s))
     w, dim, alp, g, lam = self.w, self.d, self.a, self.g, self.lam
@@ -46,7 +48,7 @@ class SarsaLam:
         delt = r
         for i in F(s, a):
           delt -= w[i]
-          z[i] = (z[i] + 1) if acc else 1
+          z[i] = (z[i] + 1) if self.acc else 1
         if d:
           w += alp * delt * z
           break
@@ -56,6 +58,9 @@ class SarsaLam:
         w += alp * delt * z
         z = g * lam * z
         s, a = s_p, a_p
+        if self.clr:
+          for j in (set(range(dim)) - set(F(s_p, a_p))):
+            z[j] = 0
       step_list.append(n_steps)
     return step_list
 
@@ -65,3 +70,13 @@ class SarsaLam:
 
   def reset(self):
     self.w = np.zeros(self.d)
+
+
+class SarsaLamAcc(SarsaLam):
+  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma):
+    super().__init__(env, alpha, w_dim, lam, F, qhat, eps, gamma, acc=True)
+
+
+class SarsaLamClr(SarsaLam):
+  def __init__(self, env, alpha, w_dim, lam, F, qhat, eps, gamma):
+    super().__init__(env, alpha, w_dim, lam, F, qhat, eps, gamma, clr=True)

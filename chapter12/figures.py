@@ -9,10 +9,10 @@ from semi_grad_td_lam import SemiGradTDLam
 from true_online_td import TrueOnlineTD
 from mountain_car import MountainCar, X_MAX, X_MIN, V_MAX, V_MIN
 from tiles_sutton import IHT, tiles
-from sarsa_lam import SarsaLam
+from sarsa_lam import SarsaLam, SarsaLamAcc, SarsaLamClr
 from true_online_sarsa import TrueOnlineSarsa
 
-plt.switch_backend('Qt5Agg')
+#plt.switch_backend('Qt5Agg')
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -46,16 +46,20 @@ FIG_12_11_G = FIG_12_10_G
 FIG_12_11_EPS = FIG_12_10_EPS
 FIG_12_11_N_PTS = FIG_12_10_N_PTS
 FIG_12_11_N_RUNS = 1#FIG_12_10_N_RUNS
-FIG_12_11_N_EP = 1
+FIG_12_11_N_EP = 10
 FIG_12_11_MAX_STEPS = 5000
 FIG_12_11_LAM = 0
 FIG_12_11_ALP_BND = {
+  SarsaLamClr: [.2, 2],
   SarsaLam: [.2, 2],
-  TrueOnlineSarsa: [.4, 2],
+  TrueOnlineSarsa: [.2, 2],
+  SarsaLamAcc: [.2, .5],
 }
 FIG_12_11_ALG_STR = {
-  SarsaLam: "Sarsa(Lambda)",
+  SarsaLamClr: "Sarsa(Lambda) w/ replacing/clearing traces",
+  SarsaLam: "Sarsa(Lambda) w/ replacing traces",
   TrueOnlineSarsa: "True Online Sarsa(Lambda)",
+  SarsaLamAcc: "Sarsa(Lambda) w/ accumulating traces",
 }
 
 
@@ -178,11 +182,10 @@ def fig_12_10():
   save_plot('fig12.10', dpi=100)
   plt.show()
 
-
 def fig_12_11():
   fig, ax = plt.subplots()
   F, qhat = get_fn_mc(N_TIL, N_TLGS)
-  for alg_name in [TrueOnlineSarsa, SarsaLam]:
+  for alg_name in FIG_12_11_ALG_STR.keys():
     steps_l = []
     alpha_l = np.linspace(*FIG_12_11_ALP_BND[alg_name], FIG_12_11_N_PTS)
     for alpha in alpha_l:

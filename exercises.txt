@@ -844,4 +844,30 @@ thus we get (12.10)
 
 somehting like replacing the trace (cf. "accumulating traces" or "replaceing traces" line) with z_i \leftarrow (1 - \alpha \gamma \lambda z_T x) x_i should work
 
+### 12.7
+
+### 12.8
+
+### 12.9
+
+### 12.10
+
+### 12.11
+
+### 12.12
+
+### 12.13
+
+### 12.14
+
+### 13.1
+
+### 13.2
+
+### 13.3
+
+### 13.4
+
+### 13.5
+
 ### 17.1
