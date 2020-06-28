@@ -2,8 +2,9 @@
 
 >reading the [rl book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way
 
-### 1. replicate all the figures
+## 1. replicate all the figures
 
+### Chapter 2
 2. [Figure 2.2: Average performance of epsilon-greedy action-value methods on the 10-armed testbed](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.2.png)
 3. [Figure 2.3: Optimistic initial action-value estimates](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.3.png)
 4. [Figure 2.4: Average performance of UCB action selection on the 10-armed testbed](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.4.png)
@@ -18,13 +19,13 @@
 1. [Figure 5.1: Approximate state-value functions for the blackjack policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.1.png)
 2. [Figure 5.3: Weighted importance sampling](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.3.png)
 3. [Figure 5.4: Ordinary importance sampling with surprisingly unstable estimates](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.4.png)
-4. [Figure 5.5: A couple of right turns for the racetrack task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5.png)
+4. [Figure 5.5: A couple of right turns for the racetrack task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_left.png)
 
 ### Chapter 6
-1. [Example 6.2: Random walk](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example.6.2.png)
+1. [Example 6.2: Random walk](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.2_comparison.png)
 2. [Figure 6.2: Batch updating](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.2.png)
 3. [Figure 6.3: Sarsa applied to windy grid world](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.3_comparison.png)
-4. [Example 6.4: The cliff-walking task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.4.png)
+4. [Example 6.6: The cliff-walking task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.6.png)
 5. [Figure 6.6: Interim and asymptotic performance of TD control methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.6.png)
 6. [Figure 6.7: Comparison of Q-learning and Double Q-learning](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.7.png)
 
@@ -71,5 +72,41 @@
 3. [Figure 13.2: REINFORCE with baseline on the short-corridor grid-world](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter13/plots/fig13.2.png)
 
 ### 2. solve all the [exercises](https://github.com/mtrazzi/rl-book-challenge/tree/master/exercises.txt)
+
+### Chapter 1
+Exercise2.5
+Exercise2.11
+
+### Chapter 4
+Exercise4.7
+Exercise4.7_policy
+Exercise4.9_ph_025
+Exercise4.9_ph_025_policy
+Exercise4.9_ph_055
+Exercise4.9_ph_055_policy
+
+### Chapter 14
+Exercise5.14_right_1
+Exercise5.14_right_2
+
+### Chapter 6
+Exercise6.4
+Exercise6.5
+Exercise6.9
+Exercise6.10
+Exercise6.13
+
+### Chapter 7
+Exercise7.10
+Exercise7.2
+Exercise7.3
+Exercise7.7
+
+### Chapter 8
+Exercise8.1
+Exercise8.4
+
+### Chapter 11
+Exercise11.3
 
 ### 3. insert knowledge into  [long-term memory](http://augmentingcognition.com/ltm.html) using [anki](https://apps.ankiweb.net/) [flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4)
