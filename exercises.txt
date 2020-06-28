@@ -916,6 +916,14 @@ from writing down the equations for v_{\pi} it turns out that d(v_{\pi}(s_1)) / 
 
 ### 13.2
 
+in box page 199, the right term should be multiplied by a \gamma
+
+then, in the proof of the Policy Gradient theorem, we don't actually get \eta(s) when summing over the probabilities. we need to multiply those by \gamma^k to get the correct thing.
+
+so that's why, actually we're multiplying by gamma^k all the terms that are far from the start state by k steps in the updates.
+
+and for the steps that lead to (13.8), the additional steps is that we need to consider one episode, sum over all the steps, and then conclud on a length of episode that can vary.
+
 ### 13.3
 
 \nabla \ln \pi (a|s, \theta)\\
