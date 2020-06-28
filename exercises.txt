@@ -912,6 +912,8 @@ it seems like the most straightforward way would be to alternate between using \
 
 ### 13.1
 
+from writing down the equations for v_{\pi} it turns out that d(v_{\pi}(s_1)) / dp_{right} is of the same sign as -(p^2 - 4p + 2) whose only roots in [0, 1] is 2 - sqrt(2) ~= 0.58. v_{\pi}(s_1) = - (2 / p) * ((2 - p) / (1 - p)) is about -11.66 for this p.
+
 ### 13.2
 
 ### 13.3
