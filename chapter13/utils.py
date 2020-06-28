@@ -10,16 +10,18 @@ def sample_action(env, pi, s):
   return env.moves[np.random.choice(np.arange(len(moves)), p=pi_dist)]
 
 
-def gen_traj(env, pi, s_0=None):
+def gen_traj(env, pi, s_0=None, max_steps=100):
   if s_0 is None:
     s = env.reset()
   else:
     s = s_0
     env.force_state(s_0)
   traj, d = [], False
-  while not d:
+  n_steps = 0
+  while not d and n_steps < max_steps:
     a = sample_action(env, pi, s)
-    s_p, r, d, _ = env.step(sample_action(env, pi, s))
+    s_p, r, d, _ = env.step(a)
+    n_steps += 1
     traj.append((s, a, r))
     s = s_p
   return traj
@@ -49,5 +51,7 @@ def logpi_wrap_corr(env, feat):
     vec_sum = np.zeros_like(ft_as, dtype='float64')
     for b in env.moves:
       vec_sum += pi[(b, s)] * feat(s, b)
+    #print(f"in log_pi with pi={pi}")
+    #print(f"{ft_as} - {vec_sum}")
     return ft_as - vec_sum
   return logpi

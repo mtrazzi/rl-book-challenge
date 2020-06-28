@@ -15,8 +15,9 @@ class Reinforce:
 
   def train(self, n_ep):
     env, alp, the, g = self.env, self.a, self.the, self.g
-    logpi, pi_gen = self.log_pi, self.pi_gen
+    log_pi, pi_gen = self.log_pi, self.pi_gen
     tot_rew_l = []
+    to_plot = []
     for _ in range(n_ep):
       pi = pi_gen(env, the)
       S, A, R = zip(*gen_traj(env, pi))
@@ -24,12 +25,14 @@ class Reinforce:
       g_l = [g ** k for k in range(T)]
       for t in range(T):
         G = np.dot(g_l[:T-t], R[:T-t])
-        the += alp * g_l[t] * G * logpi(A[t], S[t], pi)
+        right_term = log_pi(A[t], S[t], pi)
+        the += alp * g_l[t] * G * log_pi(A[t], S[t], pi)
       tot_rew_l.append(np.sum(R))
+      to_plot.append(the[0]) 
     return tot_rew_l
 
   def reset(self):
-    self.the = np.zeros(self.the_d) if self.the_0 is None else self.the_0
+    self.the = np.random.randn(self.the_d) if self.the_0 is None else self.the_0
 
   def seed(self, seed):
     self.env.seed(seed)

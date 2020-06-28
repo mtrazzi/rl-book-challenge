@@ -1,4 +1,4 @@
-S_0, S_1, S_2, S_G = 0, 1, 2, 3
+S_0, S_1, S_2, S_G, = 0, 1, 2, 3
 L, R = -1, 1
 R_STEP = -1
 
@@ -24,11 +24,10 @@ class Corridor:
     self.keys = KEY_ACTION_DICT.keys()
 
   def step(self, a):
-    d = (self.state == S_2) and (a == R)
     if self.state == S_1:
       a = L if a == R else R
     self.state = max(0, self.state + a)
-    return self.state, R_STEP, d, {}
+    return self.state, R_STEP, self.state == S_G, {}
 
   def step_via_key(self, key):
     return self.step(KEY_ACTION_DICT[key])

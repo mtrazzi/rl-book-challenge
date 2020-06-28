@@ -5,7 +5,7 @@ from corridor import Corridor
 from reinforce import Reinforce
 from utils import feat_corr, pi_gen_corr, logpi_wrap_corr
 
-plt.switch_backend('Qt5Agg')
+#plt.switch_backend('Qt5Agg')
 
 BIG_FONT = 20
 MED_FONT = 15
@@ -13,7 +13,7 @@ SMA_FONT = 13
 
 FIG_13_1_ALP_L = [2 ** (-k) for k in range(12, 15)]
 FIG_13_1_N_EP = 1000
-FIG_13_1_N_RUNS = 1
+FIG_13_1_N_RUNS = 100
 FIG_13_1_G = 1
 FIG_13_1_THE_DIM = 2
 FIG_13_1_OPT_REW = -11.6
@@ -38,7 +38,7 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
 
 
 def run(ax, alg, alp_l, n_ep, n_runs):
-  for alp in alp_l[:1]:
+  for alp in alp_l:
     alg.a = alp
     print(f"[ALPHA={alp}]")
     tot_rew = np.zeros(n_ep)
