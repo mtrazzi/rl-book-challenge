@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from corridor import Corridor
 from reinforce import Reinforce
+from reinforce_baseline import ReinforceBaseline
 from utils import feat_corr, pi_gen_corr, logpi_wrap_corr
 
 #plt.switch_backend('Qt5Agg')
@@ -17,6 +18,16 @@ FIG_13_1_N_RUNS = 100
 FIG_13_1_G = 1
 FIG_13_1_THE_DIM = 2
 FIG_13_1_OPT_REW = -11.6
+
+FIG_13_2_ALP_BAS_T = 2 ** (-9)
+FIG_13_2_ALP_BAS_W = 2 ** (-6)
+FIG_13_2_ALP = 2 ** (-13)
+FIG_13_2_W_DIM = 1
+FIG_13_2_N_EP = FIG_13_1_N_EP 
+FIG_13_2_N_RUNS = FIG_13_1_N_RUNS 
+FIG_13_2_G = FIG_13_1_G
+FIG_13_2_THE_DIM = FIG_13_1_THE_DIM
+FIG_13_2_OPT_REW = FIG_13_1_OPT_REW
 
 
 def save_plot(filename, dpi=None):
@@ -76,8 +87,35 @@ def fig_13_1():
   benchmark(alg, 'Figure 13.1', 'fig13.1')
 
 
+def fig_13_2():
+  env = Corridor()
+  def vhat(s, w): return w[0]
+  def nab_vhat(s, w): return np.eyes(1)
+  fig, ax = plt.subplots()
+  fig.suptitle('Figure 13.2', fontsize=BIG_FONT)
+  fig.set_size_inches(20, 14)
+  xticks, yticks = np.linspace(0, 1000, 6), np.linspace(-90, -10, 9)
+  def short_str(x): return str(x)[:3]
+  xnames, ynames = map(short_str, xticks), map(short_str, yticks)
+  alg1 = Reinforce(env, None, FIG_13_2_G, FIG_13_2_THE_DIM, pi_gen_corr,
+                  logpi_wrap_corr(env, feat_corr))
+  alg2 = ReinforceBaseline(env, FIG_13_2_ALP_BAS_W, FIG_13_2_ALP_BAS_T, 
+                          FIG_13_2_G, FIG_13_2_THE_DIM, pi_gen_corr,
+                          logpi_wrap_corr(env, feat_corr),
+                          vhat, nab_vhat, FIG_13_2_W_DIM)
+  run(ax, alg1, [FIG_13_2_ALP], FIG_13_2_N_EP, FIG_13_2_N_RUNS)
+  run(ax, alg1, [0], FIG_13_2_N_EP, FIG_13_2_N_RUNS)
+  plot_figure(ax, '', xticks, xnames, 'Episode', list(yticks) + [0], ynames,
+              (f'Total\nReward\non episode\n(Averaged over\n' +
+               f'{FIG_13_1_N_RUNS} runs)'), font=MED_FONT, labelpad=40,
+              loc='upper right')
+  save_plot('figure 13.2', dpi=100)
+  plt.show()
+
+
 PLOT_FUNCTION = {
   '13.1': fig_13_1,
+  '13.2': fig_13_2,
 }
 
 

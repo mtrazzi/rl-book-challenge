@@ -51,7 +51,5 @@ def logpi_wrap_corr(env, feat):
     vec_sum = np.zeros_like(ft_as, dtype='float64')
     for b in env.moves:
       vec_sum += pi[(b, s)] * feat(s, b)
-    #print(f"in log_pi with pi={pi}")
-    #print(f"{ft_as} - {vec_sum}")
     return ft_as - vec_sum
   return logpi
