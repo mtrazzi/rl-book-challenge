@@ -916,6 +916,14 @@ it seems like the most straightforward way would be to alternate between using \
 
 ### 13.3
 
+\nabla \ln \pi (a|s, \theta)\\
+= \nabla \left[\ln \frac{e^{h(s, a, \theta)}}{\sum_b e^{h(s, b, \theta)}} \right]\\
+= \nabla h(s, a, \theta) - \nabla ln \left(\sum_b e^{h(s, b, \theta)}\right)\\
+= \nabla \theta^T x(s, a) - \frac{\sum_b \nabla e^{\theta^T x(s, b)}}{\sum_u e^{h(s, u, \theta)}}\\
+= x(s, a) - \sum_b \sum_k \frac{e^{\theta^T x(s, b)}}{\sum_u e^{h(s, u, \theta)}} x(s, b)_k e_k\\
+= x(s, a) - \sum_b \pi(b|s, \theta) \sum_k x(s, b)_k e_k\\
+= x(s, a) - \sum_b \pi(b|s, \theta) x(s, b)\\
+
 ### 13.4
 
 ### 13.5
