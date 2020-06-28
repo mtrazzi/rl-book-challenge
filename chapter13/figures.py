@@ -1,8 +1,9 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from corridor import Corridor, L, R
+from corridor import Corridor
 from reinforce import Reinforce
+from utils import feat_corr, pi_gen_corr, logpi_wrap_corr
 
 plt.switch_backend('Qt5Agg')
 
@@ -12,10 +13,10 @@ SMA_FONT = 13
 
 FIG_13_1_ALP_L = [2 ** (-k) for k in range(12, 15)]
 FIG_13_1_N_EP = 1000
-FIG_13_1_N_RUNS = 10
+FIG_13_1_N_RUNS = 1
 FIG_13_1_G = 1
-R_FT, L_FT = np.array([1, 0]), np.array([0, 1])
-FIG_13_1_THE_DIM = R_FT.shape[0]
+FIG_13_1_THE_DIM = 2
+FIG_13_1_OPT_REW = -11.6
 
 
 def save_plot(filename, dpi=None):
@@ -37,7 +38,7 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
 
 
 def run(ax, alg, alp_l, n_ep, n_runs):
-  for alp in alp_l:
+  for alp in alp_l[:1]:
     alg.a = alp
     print(f"[ALPHA={alp}]")
     tot_rew = np.zeros(n_ep)
@@ -46,8 +47,8 @@ def run(ax, alg, alp_l, n_ep, n_runs):
       alg.reset()
       alg.seed(seed)
       tot_rew += np.array(alg.train(n_ep))
-    plt.plot(tot_rew / n_runs, label=f'alpha={alp}')
-  plt.plot(np.zeros(n_ep), '--', label='v*(s_0)')
+    plt.plot(tot_rew / n_runs, label=f'alpha=2 ** {np.log(alp) / np.log(2)}')
+  plt.plot(np.zeros(n_ep) + FIG_13_1_OPT_REW, '--', label='v*(s_0)')
 
 
 def benchmark(alg, title, fn):
@@ -59,7 +60,7 @@ def benchmark(alg, title, fn):
   def short_str(x): return str(x)[:3]
   xnames, ynames = map(short_str, xticks), map(short_str, yticks)
   run(ax, alg, FIG_13_1_ALP_L, FIG_13_1_N_EP, FIG_13_1_N_RUNS)
-  plot_figure(ax, '', xticks, xnames, 'Episode', yticks, ynames,
+  plot_figure(ax, '', xticks, xnames, 'Episode', list(yticks) + [0], ynames,
               (f'Total\nReward\non episode\n(Averaged over\n' +
                f'{FIG_13_1_N_RUNS} runs)'), font=MED_FONT, labelpad=40,
               loc='upper right')
@@ -67,30 +68,11 @@ def benchmark(alg, title, fn):
   plt.show()
 
 
-def logpi_wrap_corr(env, feat):
-  def logpi(a, s, pi):
-    ft_as = feat(s, a)
-    vec_sum = np.zeros_like(ft_as, dtype='float64')
-    for b in env.moves:
-      vec_sum += pi[(b, s)] * feat(s, b)
-    return ft_as - vec_sum
-  return logpi
-
-
-def feat_corr(s, a):
-  return L_FT if a == L else R_FT
-
-
-def pi_gen_corr(env, the):
-  return {(a, s): the[0] if a == R else (1 - the[0])
-          for a in env.moves for s in env.states}
-
-
 def fig_13_1():
   env = Corridor()
 
   alg = Reinforce(env, None, FIG_13_1_G, FIG_13_1_THE_DIM, pi_gen_corr,
-                  logpi_wrap_corr(env, feat_corr), the_0=np.array([0.5, 0.5]))
+                  logpi_wrap_corr(env, feat_corr), the_0=None)
   benchmark(alg, 'Figure 13.1', 'fig13.1')
 
 

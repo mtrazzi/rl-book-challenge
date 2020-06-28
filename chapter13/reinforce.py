@@ -17,7 +17,7 @@ class Reinforce:
     env, alp, the, g = self.env, self.a, self.the, self.g
     logpi, pi_gen = self.log_pi, self.pi_gen
     tot_rew_l = []
-    for ep in range(n_ep):
+    for _ in range(n_ep):
       pi = pi_gen(env, the)
       S, A, R = zip(*gen_traj(env, pi))
       T = len(S)
