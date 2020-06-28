@@ -936,6 +936,52 @@ and for the steps that lead to (13.8), the additional steps is that we need to c
 
 ### 13.4
 
+note that \nabla \mu = x_{\mu} and \nabla \sigma = \sigma x_{\sigma}
+
+\nabla ln \pi(a | s, \theta_{\mu})
+= (- 1 / (2 * \sigma^2)) \nabla (a - \mu(s, \theta))^2
+= (1 / \sigma^2) (a - \mu(s, \theta)) x_{\sigma}(s)
+
+\nabla ln \pi(a | s, \theta_{\sigma})
+= -\nabla ln \sigma - (a - \mu)^2 \nabla (2 * \sigma^2)^{-1}
+= -(\sigma * x_{\sigma}) / \sigma + [(a - \mu)^2 * 2 * \nabla \sigma] / (2 \sigma^3)
+= -x_{\sigma} - (a - \mu)^2 x_{\sigma} / \sigma^2
+= ((a - \mu)^2 / \sigma^2 - 1) x_{\sigma}
+
 ### 13.5
 
-### 17.1
+(a)
+
+Pt = Pr{A_t = 1}
+= \pi(1 | S_t, \theta_t)
+= e^{h_1} / (e^{h_1} + e^{h_0})
+= 1 / (1 + e^{h_1-h_0})
+= 1 / (1 + e^{-\theta_t^T x(S_t)})
+
+(b)
+
+\theta \leftarrow \alpha \gamma^t G \nabla ln \pi(A_t | S_t, \theta)
+
+(c)
+
+let's start (as recommended) by noting that:
+
+f'(x)
+= e^{-x} / (1 + e^{-x})^2
+= (1 - f(x)) f(x)
+
+if a = 1:
+
+\nabla ln \pi(a | s, \theta)
+= \nabla f(\theta^T x) / f(\theta^T x)
+= (1 - f(\theta^T x)) \nabla \theta^T x
+= (1 - f(\theta^T x)) x
+= x / (1 + e^{\theta^T x})
+
+if a = 0:
+
+\nabla ln \pi(a | s, \theta)
+= \nabla f(1 - \theta^T x) / f(1 - \theta^T x) because Pr(At=0) = 1 - Pr(At=1)
+= f(\theta^T x) \nabla (1 - \theta^T x)
+= - x / (1 + e^{theta^T x})
+= opposite of the one for a = 1
