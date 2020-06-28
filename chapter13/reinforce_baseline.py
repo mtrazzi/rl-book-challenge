@@ -31,8 +31,8 @@ class ReinforceBaseline:
         s, a = S[t], A[t]
         G = np.dot(g_l[:T-t], R[:T-t])
         delt = G - vhat(s, w)
-        w += self.a_w * delt * nab_vhat(s, w)
-        the += alp * g_l[t] * G * log_pi(a, s, pi)
+        w += a_w * delt * nab_vhat(s, w)
+        the += a_t * g_l[t] * delt * log_pi(a, s, pi)
       tot_rew_l.append(np.sum(R))
       to_plot.append(the[0]) 
     return tot_rew_l

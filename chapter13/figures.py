@@ -48,7 +48,7 @@ def plot_figure(ax, title, xticks, xnames, xlabel, yticks, ynames, ylabel,
   plt.legend(loc=loc)
 
 
-def run(ax, alg, alp_l, n_ep, n_runs):
+def run(ax, alg, alp_l, n_ep, n_runs, dash=True):
   for alp in alp_l:
     alg.a = alp
     print(f"[ALPHA={alp}]")
@@ -59,7 +59,8 @@ def run(ax, alg, alp_l, n_ep, n_runs):
       alg.seed(seed)
       tot_rew += np.array(alg.train(n_ep))
     plt.plot(tot_rew / n_runs, label=f'alpha=2 ** {np.log(alp) / np.log(2)}')
-  plt.plot(np.zeros(n_ep) + FIG_13_1_OPT_REW, '--', label='v*(s_0)')
+  if dash:
+    plt.plot(np.zeros(n_ep) + FIG_13_1_OPT_REW, '--', label='v*(s_0)')
 
 
 def benchmark(alg, title, fn):
@@ -90,7 +91,7 @@ def fig_13_1():
 def fig_13_2():
   env = Corridor()
   def vhat(s, w): return w[0]
-  def nab_vhat(s, w): return np.eyes(1)
+  def nab_vhat(s, w): return np.ones(1)
   fig, ax = plt.subplots()
   fig.suptitle('Figure 13.2', fontsize=BIG_FONT)
   fig.set_size_inches(20, 14)
@@ -103,13 +104,13 @@ def fig_13_2():
                           FIG_13_2_G, FIG_13_2_THE_DIM, pi_gen_corr,
                           logpi_wrap_corr(env, feat_corr),
                           vhat, nab_vhat, FIG_13_2_W_DIM)
+  run(ax, alg2, [FIG_13_2_ALP_BAS_T], FIG_13_2_N_EP, FIG_13_2_N_RUNS, dash=False)
   run(ax, alg1, [FIG_13_2_ALP], FIG_13_2_N_EP, FIG_13_2_N_RUNS)
-  run(ax, alg1, [0], FIG_13_2_N_EP, FIG_13_2_N_RUNS)
   plot_figure(ax, '', xticks, xnames, 'Episode', list(yticks) + [0], ynames,
               (f'Total\nReward\non episode\n(Averaged over\n' +
                f'{FIG_13_1_N_RUNS} runs)'), font=MED_FONT, labelpad=40,
               loc='upper right')
-  save_plot('figure 13.2', dpi=100)
+  save_plot('fig13.2', dpi=100)
   plt.show()
 
 
