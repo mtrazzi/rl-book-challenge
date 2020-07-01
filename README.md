@@ -138,9 +138,11 @@ case](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter
 
 ### Dependencies
 
-`numpy`
-`matplotlib`
-`seaborn`
+```bash
+numpy
+matplotlib
+seaborn
+```
 
 ### Credits
 
@@ -151,6 +153,13 @@ This README is inspired from [ShangtongZhang's repo](https://github.com/Shangton
 ### Design choices
 
 1. All of the chapters are self-contained.
-2. The environments use a gym-like API with methods `step`(returning `s`, `r`, `done`, `dict`) and `reset` (returning `s`).
+2. The environments use a gym-like API with methods:
+
+```bash
+s = env.reset()
+s_p, r, d, dict = env.step(a)
+```
 
 ### How long did it take
+
+The entire thing (plots, exercises, anki cards (including reviewing)) took about 400h of focused work.
