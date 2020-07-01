@@ -21,8 +21,8 @@ python figures.py 2.2
 5. [Figure 2.6: A parameter study of the various bandit algorithms](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.6.png)
 
 ### Chapter 4
-2. Figure 4.2: Jack’s car rental problem ([value function](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2.png), [policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2_policy.png))
-3. Figure 4.3: The solution to the gambler’s problem ([value function](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3.png), [policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3_policy.png))
+1. Figure 4.2: Jack’s car rental problem ([value function](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2.png), [policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2_policy.png))
+2. Figure 4.3: The solution to the gambler’s problem ([value function](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3.png), [policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3_policy.png))
 
 ### Chapter 5
 1. [Figure 5.1: Approximate state-value functions for the blackjack policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.1.png)
