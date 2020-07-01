@@ -13,6 +13,10 @@ from one_state import LEFT, OneState, RIGHT, S_INIT
 from racetrack import RacetrackEnv, Position, Velocity, RaceState
 
 POLICY_THRESHOLD = 20
+N_DEAL_SCORES = 10
+MIN_PLAY_SUM = 12
+MIN_DEAL_CARD = 1
+BLACKJACK = 21
 FIG_5_3_N_RUNS = 100
 FIG_5_3_STATE_VALUE = -0.27726
 FIG_5_3_PLAYER_SUM = 13
@@ -201,6 +205,7 @@ def fig_5_1():
 def fig_5_2(n_episodes=int(1e5), on_policy_instead=False):
   env = BlackjackEnv()
   fig = plt.figure()
+  fig.set_size_inches(20, 14)
   fig.suptitle('Figure 5.2')
   if on_policy_instead:
     alg = OnPolicyFirstVisitMonteCarlo(env, pi=blackjack_policy(env),
@@ -350,6 +355,8 @@ def main():
     PLOT_FUNCTION[args.figure](args.n_ep)
   elif args.figure in ['5.5', 'ex5.14']:
     PLOT_FUNCTION[args.figure](args.n_ep, args.config)
+  else:
+    PLOT_FUNCTION[args.figure]()
 
 if __name__ == "__main__":
   main()
