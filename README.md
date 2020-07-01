@@ -12,8 +12,8 @@
 6. [Figure 2.6: A parameter study of the various bandit algorithms](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.6.png)
 
 ### Chapter 4
-2. [Figure 4.2: Jack’s car rental problem](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2.png)
-3. [Figure 4.3: The solution to the gambler’s problem](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3.png)
+2. [Figure 4.2: Jack’s car rental problem](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2.png) ([policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.2_policy.png))
+3. [Figure 4.3: The solution to the gambler’s problem](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3.png) ([policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter4/plots/fig4.3_policy.png))
 
 ### Chapter 5
 1. [Figure 5.1: Approximate state-value functions for the blackjack policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.1.png)
@@ -22,15 +22,19 @@
 4. [Figure 5.5: A couple of right turns for the racetrack task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_left.png)
 
 ### Chapter 6
-1. [Example 6.2: Random walk](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.2_comparison.png)
-2. [Figure 6.2: Batch updating](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.2.png)
-3. [Figure 6.3: Sarsa applied to windy grid world](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.3_comparison.png)
-4. [Example 6.6: The cliff-walking task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.6.png)
-5. [Figure 6.6: Interim and asymptotic performance of TD control methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.6.png)
-6. [Figure 6.7: Comparison of Q-learning and Double Q-learning](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.7.png)
+1. [Figure 6.1: Changes recommended in the driving home example by Monte Carlo methods (left)
+and TD methods (right)](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.1.png)
+2. [Example 6.2: Random walk](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.2.png) ([comparison](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.2_comparison.png))
+3. [Figure 6.2: Performance of TD(0) and constant MC under batch training on the random walk task](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.2.png)
+4. [Example 6.5: Windy Gridworld](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.5.png)
+5. [Example 6.6: Cliff Walking](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/example6.6.png)
+6. [Figure 6.3: Interim and asymptotic performance of TD control methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.3_comparison.png)
+7. [Figure 6.5: Comparison of Q-learning and Double Q-learning](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter6/plots/fig6.5.png)
 
 ### Chapter 7
 1. [Figure 7.2: Performance of n-step TD methods on 19-state random walk](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter7/plots/fig7.2_comparison.png)
+2. [Figure 7.4: Gridworld example of the speedup of policy learning due to the use of n-step
+methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter7/plots/fig7.4.png)
 
 ### Chapter 8
 1. [Figure 8.2: Average learning curves for Dyna-Q agents varying in their number of planning steps](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter8/plots/fig8.2.png)
