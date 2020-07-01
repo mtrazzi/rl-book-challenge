@@ -26,9 +26,10 @@ python figures.py 2.2
 
 ### Chapter 5
 1. [Figure 5.1: Approximate state-value functions for the blackjack policy](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.1.png)
-2. [Figure 5.3: Weighted importance sampling](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.3.png)
-3. [Figure 5.4: Ordinary importance sampling with surprisingly unstable estimates](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.4.png)
-4. Figure 5.5: A couple of right turns for the racetrack task ([1](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_left.png), [2](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_right_1.png), [3](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_right_2.png))
+2. [Figure 5.2: The optimal policy and state-value function for blackjack found by Monte Carlo ES](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.2.png)
+3. [Figure 5.3: Weighted importance sampling](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.3.png)
+4. [Figure 5.4: Ordinary importance sampling with surprisingly unstable estimates](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.4.png)
+5. Figure 5.5: A couple of right turns for the racetrack task ([1](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_left.png), [2](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_right_1.png), [3](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter5/plots/fig5.5_right_2.png))
 
 ### Chapter 6
 1. [Figure 6.1: Changes recommended in the driving home example by Monte Carlo methods (left)
