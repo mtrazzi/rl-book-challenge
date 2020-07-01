@@ -9,7 +9,7 @@
 To reproduce a figure, say figure 2.2, do:
 
 ```bash
-cd chapterx
+cd chapter2
 python figures.py 2.2
 ```
 
@@ -83,12 +83,12 @@ methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chap
 1. [Figure 13.1: REINFORCE on the short-corridor grid world](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter13/plots/fig13.1.png)
 2. [Figure 13.2: REINFORCE with baseline on the short-corridor grid-world](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter13/plots/fig13.2.png)
 
-## 2. Solve all of the exercises ([text answers](https://github.com/mtrazzi/rl-book-challenge/tree/master/exercises.txt))
+## 2. Solution to all of the exercises ([text answers](https://github.com/mtrazzi/rl-book-challenge/tree/master/exercises.txt))
 
 To reproduce the results of an exercise, say exercise 2.5 do:
 
 ```bash
-cd chapterx
+cd chapter2
 python figures.py ex2.5
 ```
 
@@ -132,19 +132,21 @@ case](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter
 
 1. [Exercise11.3: One-step semi-gradient Q-learning to Baird’s counterexample](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter11/plots/ex11.3.png)
 
-## 3. [Distill what you learn into Anki flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4) (cf. [this blog](http://augmentingcognition.com/ltm.html))
+## 3. [Anki flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4) (cf. [this blog](http://augmentingcognition.com/ltm.html))
 
 ## Appendix
 
 ### Dependencies
 
-Only dependencies are numpy and matplotlib, although I sometimes use seaborn for heatmaps.
+`numpy`
+`matplotlib`
+`seaborn`
 
 ### Credits
 
-All of the code and answers are mine, except for the [tile coding software](https://github.com/mtrazzi/rl-book-challenge/blob/master/chapter10/tiles_sutton.py) used for mountain car, as it's directly linked in the book.
+All of the code and answers are mine, except for mountain car's [tile coding](https://github.com/mtrazzi/rl-book-challenge/blob/master/chapter10/tiles_sutton.py) (url in the book).
 
-The current README (July 1st 2020) is inspired from [https://github.com/ShangtongZhang/reinforcement-learning-an-introduction](https://github.com/ShangtongZhang/reinforcement-learning-an-introduction), but I started reimplementing all of the figures without knowing about this repo.
+This README is inspired from [ShangtongZhang's repo](https://github.com/ShangtongZhang/reinforcement-learning-an-introduction).
 
 ### Design choices
 
