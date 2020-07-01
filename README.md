@@ -1,8 +1,17 @@
-# rl book challenge
+# In this repo
 
->reading the [rl book](http://incompleteideas.net/book/RLbook2018trimmed.pdf) the hard way
+1. Python replication of all the plots from [Reinforcement Learning: An Introduction](http://incompleteideas.net/book/RLbook2018trimmed.pdf)
+2. Solution for all of the exercises
+3. Anki flashcards summary of the book
 
 ## 1. Replicate all the figures
+
+To reproduce a figure, say figure 2.2, do:
+
+```bash
+cd chapterx
+python figures.py 2.2
+```
 
 ### Chapter 2
 1. [Figure 2.2: Average performance of epsilon-greedy action-value methods on the 10-armed testbed](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/fig2.2.png)
@@ -76,6 +85,13 @@ methods](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chap
 
 ## 2. Solve all of the exercises ([text answers](https://github.com/mtrazzi/rl-book-challenge/tree/master/exercises.txt))
 
+To reproduce the results of an exercise, say exercise 2.5 do:
+
+```bash
+cd chapterx
+python figures.py ex2.5
+```
+
 ### Chapter 2
 
 1. [Exercise2.5: Difficulties that sample-average methods have for nonstationary problems](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter2/plots/ex2.5.png)
@@ -117,3 +133,22 @@ case](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter
 1. [Exercise11.3: One-step semi-gradient Q-learning to Baird’s counterexample](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter11/plots/ex11.3.png)
 
 ## 3. [Distill what you learn into Anki flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4) (cf. [this blog](http://augmentingcognition.com/ltm.html))
+
+## Appendix
+
+### Dependencies
+
+Only dependencies are numpy and matplotlib, although I sometimes use seaborn for heatmaps.
+
+### Credits
+
+All of the code and answers are mine, except for the [tile coding software](https://github.com/mtrazzi/rl-book-challenge/blob/master/chapter10/tiles_sutton.py) used for mountain car, as it's directly linked in the book.
+
+The current README (July 1st 2020) is inspired from [https://github.com/ShangtongZhang/reinforcement-learning-an-introduction](https://github.com/ShangtongZhang/reinforcement-learning-an-introduction), but I started reimplementing all of the figures without knowing about this repo.
+
+### Design choices
+
+1. All of the chapters are self-contained.
+2. The environments use a gym-like API with methods `step`(returning `s`, `r`, `done`, `dict`) and `reset` (returning `s`).
+
+### How long did it take
