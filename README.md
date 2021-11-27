@@ -133,7 +133,7 @@ case](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter
 
 1. [Exercise11.3: One-step semi-gradient Q-learning to Baird’s counterexample](https://raw.githubusercontent.com/mtrazzi/rl-book-challenge/master/chapter11/plots/ex11.3.png)
 
-## 3. [Anki flashcards](https://drive.google.com/open?id=1K2B8FsxHShDDER9EXIHDrirBbXf7M2K4) (cf. [this blog](http://augmentingcognition.com/ltm.html))
+## 3. [Anki flashcards](https://drive.google.com/file/d/1-KSrOr5G6M9G-SjJ0weqnycJvX2rspi1/view?usp=sharing) (cf. [this blog](http://augmentingcognition.com/ltm.html))
 
 ## Appendix
 
